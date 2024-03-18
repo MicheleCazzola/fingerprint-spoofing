@@ -1,87 +1,89 @@
 from sys import argv
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import norm
 
-class Entry:
-    def __init__(self, line):
-        fields = line.strip().split(",")
-        self.features = [float(f.strip()) for f in fields[:-1]]
-        self.label = float(fields[-1].strip())
+label_names = {
+    False: "Fake",
+    True: "Genuine"
+}
 
 
-def load_train_data(train_data_file):
-    training_set = []
-    with open(train_data_file, mode="r") as fin:
+def load_csv(filename):
+    features = []
+    labels = []
+    with open(filename, mode="r") as fin:
         for line in fin:
-            training_set.append(Entry(line))
+            fields = line.strip().split(",")
+            v = np.array([float(f.strip()) for f in fields[:-1]])
+            features.append(v.reshape((len(v), 1)))
+            labels.append(int(fields[-1].strip()))
 
-    return training_set
-
-
-def print_hist(features, class_masks, start, end):
-    for c in range(start, end):
-        plt.figure(f"Histogram for feature {c}")
-        plt.hist(features[c, class_masks[0]], bins=20, density=True, alpha=0.5, label=f"False class")
-        plt.hist(features[c, class_masks[1]], bins=20, density=True, alpha=0.5, label=f"True class")
-        plt.xlabel(f"Feature {c}")
-        plt.legend()
-
-        # Only to test
-        plt.plot(np.linspace(features[c].min(), features[c].max(), 100),
-                 norm.pdf(np.linspace(features[c].min(), features[c].max(), 100), features[c].mean(), features[c].std()),
-                 'k', linewidth=2)
-
-        plt.title(f"Feature {c} histogram")
+    return np.hstack(features), np.array(labels, dtype=np.int32)
 
 
+def plot_feature_distributions(features, labels):
+    features0 = features[:, labels == 0]
+    features1 = features[:, labels == 1]
 
-def print_scatter(features, class_masks, first, second):
-    plt.figure(f"Scatter plot for features {first}, {second}")
-    plt.scatter(features[first, class_masks[0]], features[second, class_masks[0]], alpha=0.2, label="False class")
-    plt.scatter(features[first, class_masks[1]], features[second, class_masks[1]], alpha=0.2, label="True class")
-    plt.xlabel(f"Feature {first}")
-    plt.ylabel(f"Feature {second}")
+    # Histogram plot
+    for c in range(features.shape[0]):
+        print_hist(features0, features1, c)
+
+    # Scatter plots
+    for i in range(features.shape[0]):
+        for j in range(i + 1, features.shape[0]):
+            print_scatter(features0, features1, i, j)
+
+    plt.show()
+
+
+def compute_statistics(features, labels, **functions):
+    for (name, func) in functions.items():
+        result = func(features, 1, labels)
+        print(f"--{name} values--")
+        for i in range(0, 4):
+            print(f"Feature {i}:\n"
+                  f"\t{label_names[False]}: {result[0][i]:.3f}\n"
+                  f"\t{label_names[True]}: {result[1][i]:.3f}")
+        print()
+
+
+def print_hist(features_false, features_true, n):
+    plt.figure(f"Histogram for feature {n + 1}")
+    plt.hist(features_false[n, :], bins=20, density=True, alpha=0.5, label=label_names[False])
+    plt.hist(features_true[n, :], bins=20, density=True, alpha=0.5, label=label_names[True])
+    plt.xlabel(f"Feature {n + 1}")
     plt.legend()
-    plt.title(f"Feature {first}, {second} scatter plot")
+    plt.title(f"Feature {n + 1} histogram")
+
+
+def print_scatter(features_false, features_true, n1, n2):
+    plt.figure(f"Scatter plot for features {n1 + 1}, {n2 + 1}")
+    plt.scatter(features_false[n1:n1 + 1, :], features_false[n2:n2 + 1, :], alpha=0.2, label=label_names[False])
+    plt.scatter(features_true[n1:n1 + 1, :], features_true[n2:n2 + 1, :], alpha=0.2, label=label_names[True])
+    plt.xlabel(f"Feature {n1 + 1}")
+    plt.ylabel(f"Feature {n2 + 1}")
+    plt.legend()
+    plt.title(f"Features {n1 + 1}, {n2 + 1} scatter plot")
 
 
 if __name__ == "__main__":
 
-    if len(argv) < 2:
-        exit("Missing arguments: name of training data file")
-    dataset_raw = np.array(load_train_data(argv[1]))
-    features = np.array([entry.features for entry in dataset_raw]).T
-    labels = np.array([entry.label for entry in dataset_raw]).reshape(1, len(dataset_raw))
-    label_masks = [np.array([entry.label == t for entry in dataset_raw]) for t in [0.0, 1.0]]
+    # Load data with exception handling
+    try:
+        features, labels = load_csv(argv[1])
+    except IndexError:
+        exit("Missing argument: name of training data file")
+    except FileNotFoundError:
+        exit(f"File {argv[1]} not found")
 
-    # Features 0, 1
-    print_hist(features, label_masks, 0, 2)
-    print_scatter(features, label_masks, 0, 1)
+    # Plot distributions of the features
+    plot_feature_distributions(features, labels)
 
-    # Features 2, 3
-    print_hist(features, label_masks, 2, 4)
-    print_scatter(features, label_masks, 2, 3)
-
-    # Features 4, 5
-    print_hist(features, label_masks, 4, 6)
-    print_scatter(features, label_masks, 4, 5)
-
-    # Means
-    means_f = features[:, label_masks[0]].mean(axis=1)
-    means_t = features[:, label_masks[1]].mean(axis=1)
-    print("--Mean values--")
-    for i in range(0, 4):
-        print(f"Feature {i}:\n\tFalse class: {means_f[i]:.3f}\n\tTrue class: {means_t[i]:.3f}")
-    print()
-
-    # Variances
-    variance_f = features[:, label_masks[0]].var(axis=1)
-    variance_t = features[:, label_masks[1]].var(axis=1)
-    print("--Variance values--")
-    for i in range(0, 4):
-        print(f"Feature {i}:\n\tFalse class: {variance_f[i]:.3f}\n\tTrue class: {variance_t[i]:.3f}")
-
-    #print(features, features.shape, labels, labels.shape, sep="\n\n")
-
-    plt.show()
+    # Compute and print mean and variance per class
+    # for each of the first four features
+    compute_statistics(features, labels,
+                       Mean=lambda array, ax, labels: (
+                           array[:, labels == 0].mean(axis=ax), array[:, labels == 1].mean(axis=ax)),
+                       Variance=lambda array, ax, labels: (
+                           array[:, labels == 0].var(axis=ax), array[:, labels == 1].var(axis=ax)))
