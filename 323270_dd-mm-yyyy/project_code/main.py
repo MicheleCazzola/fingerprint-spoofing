@@ -8,6 +8,7 @@ label_names = {
 }
 
 PLOT_PATH = "output\\plots\\"
+FILE_PATH = "output\\files\\"
 
 
 def load_csv(filename):
@@ -36,18 +37,17 @@ def plot_feature_distributions(features, labels):
         for j in range(i + 1, features.shape[0]):
             print_scatter(features0, features1, i, j)
 
-    plt.show()
 
-
-def compute_statistics(features, labels, **functions):
-    for (name, func) in functions.items():
-        result = func(features, 1, labels)
-        print(f"--{name} values--")
-        for i in range(0, 4):
-            print(f"Feature {i}:\n"
-                  f"\t{label_names[False]}: {result[0][i]:.3f}\n"
-                  f"\t{label_names[True]}: {result[1][i]:.3f}")
-        print()
+def compute_statistics(features, labels, out_file, **functions):
+    with open(out_file, mode="w") as fout:
+        for (name, func) in functions.items():
+            result = func(features, 1, labels)
+            fout.write(f"--{name} values--\n")
+            for i in range(0, 4):
+                fout.write(f"Feature {i+1}:\n"
+                           f"\t{label_names[False]}: {result[0][i]:.3f}\n"
+                           f"\t{label_names[True]}: {result[1][i]:.3f}\n")
+            fout.write("\n")
 
 
 def print_hist(features_false, features_true, n):
@@ -57,7 +57,7 @@ def print_hist(features_false, features_true, n):
     plt.xlabel(f"Feature {n + 1}")
     plt.legend()
     plt.title(f"Feature {n + 1} histogram")
-    plt.savefig(f"{PLOT_PATH}\\{'histograms'}\\histogram_{n+1}.pdf")
+    plt.savefig(f"{PLOT_PATH}\\{'histograms'}\\histogram_{n + 1}.pdf")
 
 
 def print_scatter(features_false, features_true, n1, n2):
@@ -68,7 +68,7 @@ def print_scatter(features_false, features_true, n1, n2):
     plt.ylabel(f"Feature {n2 + 1}")
     plt.legend()
     plt.title(f"Features {n1 + 1}, {n2 + 1} scatter plot")
-    plt.savefig(f"{PLOT_PATH}\\{'scatterplots'}\\scatter_{n1+1}_{n2+1}.pdf")
+    plt.savefig(f"{PLOT_PATH}\\{'scatterplots'}\\scatter_{n1 + 1}_{n2 + 1}.pdf")
 
 
 if __name__ == "__main__":
@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     # Compute and print mean and variance per class
     # for each of the first four features
-    compute_statistics(features, labels,
+    compute_statistics(features, labels, FILE_PATH + "\\feature_statistics.txt",
                        Mean=lambda array, ax, labels: (
                            array[:, labels == 0].mean(axis=ax), array[:, labels == 1].mean(axis=ax)),
                        Variance=lambda array, ax, labels: (
