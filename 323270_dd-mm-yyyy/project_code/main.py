@@ -7,6 +7,8 @@ label_names = {
     True: "Genuine"
 }
 
+PLOT_PATH = "output\\plots\\"
+
 
 def load_csv(filename):
     features = []
@@ -50,21 +52,23 @@ def compute_statistics(features, labels, **functions):
 
 def print_hist(features_false, features_true, n):
     plt.figure(f"Histogram for feature {n + 1}")
-    plt.hist(features_false[n, :], bins=20, density=True, alpha=0.5, label=label_names[False])
-    plt.hist(features_true[n, :], bins=20, density=True, alpha=0.5, label=label_names[True])
+    plt.hist(features_false[n, :], bins=20, density=True, alpha=0.4, label=label_names[False])
+    plt.hist(features_true[n, :], bins=20, density=True, alpha=0.4, label=label_names[True])
     plt.xlabel(f"Feature {n + 1}")
     plt.legend()
     plt.title(f"Feature {n + 1} histogram")
+    plt.savefig(f"{PLOT_PATH}\\{'histograms'}\\histogram_{n+1}.pdf")
 
 
 def print_scatter(features_false, features_true, n1, n2):
     plt.figure(f"Scatter plot for features {n1 + 1}, {n2 + 1}")
-    plt.scatter(features_false[n1:n1 + 1, :], features_false[n2:n2 + 1, :], alpha=0.2, label=label_names[False])
-    plt.scatter(features_true[n1:n1 + 1, :], features_true[n2:n2 + 1, :], alpha=0.2, label=label_names[True])
+    plt.scatter(features_false[n1:n1 + 1, :], features_false[n2:n2 + 1, :], alpha=0.4, label=label_names[False])
+    plt.scatter(features_true[n1:n1 + 1, :], features_true[n2:n2 + 1, :], alpha=0.4, label=label_names[True])
     plt.xlabel(f"Feature {n1 + 1}")
     plt.ylabel(f"Feature {n2 + 1}")
     plt.legend()
     plt.title(f"Features {n1 + 1}, {n2 + 1} scatter plot")
+    plt.savefig(f"{PLOT_PATH}\\{'scatterplots'}\\scatter_{n1+1}_{n2+1}.pdf")
 
 
 if __name__ == "__main__":
