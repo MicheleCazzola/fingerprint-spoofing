@@ -8,25 +8,23 @@ Load the dataset and plot the histogram and pair-wise scatter plots of the diffe
 2.	Analyze the third and fourth features. What do you observe? Do the classes overlap? If so, where? Do the classes show similar mean for these two features? Are the variances similar for the two classes? How many modes are evident from the histograms?
 3.	Analyze the last two features. What do you observe? Do the classes overlap? If so, where? How many modes are evident from the histograms? How many clusters can you notice from the scatter plots for each class?
 #### Answers
-1. For each feature, both classes have a single modal distribution with normal shape and they overlap in the central part of their domain:
-   - mean values are the same (about 0) for both features and their classes;
-   - variances are different:  
-     - about 0.6 for the *fake* class of feature 1 and the *genuine* class of feature 2;
-     - about 1.4 for the *genuine* class of feature 1 and the *fake* class of feature 2.
+1. For each feature, both classes exhibit a unimodal distribution with Normal shape, and they overlap in the central part of their domain:
+   - the mean values are the same (approximately 0) for both features and their respective classes;
+   - the variances are different:  
+     - approximately 0.6 for the *fake* class of feature 1 and the *genuine* class of feature 2;
+     - approximately 1.4 for the *genuine* class of feature 1 and the *fake* class of feature 2.
    
-   We can observe that, for each feature, the class with the higher variance has the highest modal frequency (peek value).
+   We observe that, for each feature, the class with the higher variance exhibits the highest modal frequency (peak value).
 
-
-2. For each feature, both classes have a single modal distribution with normal shape and they overlap on the side of the normal distribution; for each pair of classes inside each feature:
-   - mean values are opposite but almost equal in module (between 0.6 and 0.7);
-   - variances are almost equal (between 0.5 and 0.6).
+2. For each feature, both classes demonstrate a unimodal distribution with Normal shape, and they overlap on their respective sides; for each pair of classes within each feature:
+   - the mean values are opposite but nearly equal in magnitude (between 0.6 and 0.7);
+   - the variances are nearly equal (between 0.5 and 0.6).
    
-   We can observe that, for each feature, the classes have about the same modal frequency.
+   We observe that, for each feature, the classes display the similar modal frequencies.
 
+3. For each feature, the *fake* class displays a unimodal distribution, while the *genuine* class exhibits a bimodal distribution:
+   - for the *fake* class, the modal values are opposite;
+   - for the *genuine* class, the modal value is approximately 0.
 
-3. For each feature, the *fake* class has a single modal distribution and the *genuine* class has a double modal distribution:
-   - for the *fake* class, modal values are opposites;
-   - for the *genuine* class, modal value is about 0.
-
-   We can observe that they overlap around the modal values of the *fake* class distribution, while in the central part of the domain the overlapping is almost null.  
-   Moreover, the scatter plots highlight the presence of 4 clusters for each class.
+   We observe that they overlap around the modal values of the *fake* class distribution, while the overlapping is minimal in the central part of the domain.
+   Furthermore, the scatter plots highlight the presence of four clusters for each class.
