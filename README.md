@@ -8,18 +8,18 @@ Load the dataset and plot the histogram and pair-wise scatter plots of the diffe
 2.	Analyze the third and fourth features. What do you observe? Do the classes overlap? If so, where? Do the classes show similar mean for these two features? Are the variances similar for the two classes? How many modes are evident from the histograms?
 3.	Analyze the last two features. What do you observe? Do the classes overlap? If so, where? How many modes are evident from the histograms? How many clusters can you notice from the scatter plots for each class?
 #### Answers
-1. For each feature, both classes have a single modal distribution, with normal shape and an overlapping in the central part of their domain:
+1. For each feature, both classes have a single modal distribution with normal shape and they overlap in the central part of their domain:
    - mean values are the same (about 0) for both features and their classes;
-   - variances differ:  
-     - about 0.6 for *fake* class of feature 1 and *genuine* class of feature 2;
-     - about 1.4 for *genuine* class of feature 1 and *fake* class of feature 2.
+   - variances are different:  
+     - about 0.6 for the *fake* class of feature 1 and the *genuine* class of feature 2;
+     - about 1.4 for the *genuine* class of feature 1 and the *fake* class of feature 2.
    
    We can observe that, for each feature, the class with the higher variance has the highest modal frequency (peek value).
 
 
-2. For each feature, both classes have a single modal distribution, with normal shape and an overlapping focused on the side of the normal distribution:
-   - mean values are opposite but almost equal in module (between 0.6 and 0.7), for each pair of classes inside each feature;
-   - variances are almost equal (between 0.5 and 0.6), for each pair of classes inside each feature.
+2. For each feature, both classes have a single modal distribution with normal shape and they overlap on the side of the normal distribution; for each pair of classes inside each feature:
+   - mean values are opposite but almost equal in module (between 0.6 and 0.7);
+   - variances are almost equal (between 0.5 and 0.6).
    
    We can observe that, for each feature, the classes have about the same modal frequency.
 
