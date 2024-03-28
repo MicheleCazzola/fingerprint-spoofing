@@ -7,24 +7,25 @@ Load the dataset and plot the histogram and pair-wise scatter plots of the diffe
 1.	Analyze the first two features. What do you observe? Do the classes overlap? If so, where? Do the classes show similar mean for the first two features? Are the variances similar for the two classes? How many modes are evident from the histograms (i.e., how many “peaks” can be observed)?
 2.	Analyze the third and fourth features. What do you observe? Do the classes overlap? If so, where? Do the classes show similar mean for these two features? Are the variances similar for the two classes? How many modes are evident from the histograms?
 3.	Analyze the last two features. What do you observe? Do the classes overlap? If so, where? How many modes are evident from the histograms? How many clusters can you notice from the scatter plots for each class?
-#### Answers
-1. For each feature, both classes exhibit a unimodal distribution with Normal shape, and they overlap in the central part of their domain:
-   - the mean values are the same (approximately 0) for both features and their respective classes;
-   - the variances are different:  
-     - approximately 0.6 for the *fake* class of feature 1 and the *genuine* class of feature 2;
-     - approximately 1.4 for the *genuine* class of feature 1 and the *fake* class of feature 2.
-   
-   We observe that, for each feature, the class with the higher variance exhibits the highest modal frequency (peak value).
+## Lab 3
+Apply PCA and LDA to the project data.
+1. Start analyzing the effects of PCA on the features. Plot
+the histogram of the projected features for the 6 PCA directions, starting from the principal (largest
+variance). What do you observe? What are the effects on the class distributions? Can you spot the
+different clusters inside each class?
 
-2. For each feature, both classes demonstrate a unimodal distribution with Normal shape, and they overlap on their respective sides; for each pair of classes within each feature:
-   - the mean values are opposite but nearly equal in magnitude (between 0.6 and 0.7);
-   - the variances are nearly equal (between 0.5 and 0.6).
-   
-   We observe that, for each feature, the classes display the similar modal frequencies.
+2. Apply LDA (1 dimensional, since we have just two classes), and compute the histogram of the projected
+LDA samples. What do you observe? Do the classes overlap? Compared to the histogram of the 6
+features you computed in Laboratory 2, is LDA finding a good direction with little class overlap?
 
-3. For each feature, the *fake* class displays a unimodal distribution, while the *genuine* class exhibits a bimodal distribution:
-   - for the *fake* class, the modal values are opposite;
-   - for the *genuine* class, the modal value is approximately 0.
+3. Try applying LDA as classifier. Divide the dataset in model training and validation sets (you can reuse
+the previous function to split the dataset). Apply LDA, and select the threshold as in the previous
+sections. Compute the predictions, and the error rate.
 
-   We observe that they overlap around the modal values of the *fake* class distribution, while the overlapping is minimal in the central part of the domain.
-   Furthermore, the scatter plots highlight the presence of four clusters for each class.
+4. Now try changing the value of the threshold. What do you observe? Can you find values that improve
+the classification accuracy?
+
+5. Finally, try pre-processing the features with PCA. Apply PCA (estimated on the model training data
+only), and then classify the validation data with LDA. Analyze the performance as a function of the
+number of PCA dimensions m . What do you observe? Can you find values of m that improve the
+accuracy on the validation set? Is PCA beneficial for the task when combined with the LDA classifier?
