@@ -1,4 +1,4 @@
---Mean valuesss--
+--Mean values--
 Feature 1:
 	Fake: 0.003
 	Genuine: 0.001
@@ -11,8 +11,14 @@ Feature 3:
 Feature 4:
 	Fake: 0.671
 	Genuine: -0.664
+Feature 5:
+	Fake: 0.028
+	Genuine: -0.042
+Feature 6:
+	Fake: -0.006
+	Genuine: 0.024
 
---Variance valuesss--
+--Variance values--
 Feature 1:
 	Fake: 0.570
 	Genuine: 1.430
@@ -25,4 +31,10 @@ Feature 3:
 Feature 4:
 	Fake: 0.536
 	Genuine: 0.553
+Feature 5:
+	Fake: 0.680
+	Genuine: 1.318
+Feature 6:
+	Fake: 0.705
+	Genuine: 1.287
 
