@@ -89,10 +89,13 @@ class LDA:
     def projection(self, D, W):
         return W.T @ D
 
-    def classification(self):
-        (DTR, LTR), (DVAL, LVAL)  = split_db_2to1(self.D, self.L)
+    def classification(self, dir=-1, D = None, L=None):
+        D = D if D is not None else self.D
+        L = L if L is not None else self.L
 
-        W = -self.apply(DTR, LTR)
+        (DTR, LTR), (DVAL, LVAL)  = split_db_2to1(D, L)
+
+        W = dir * self.apply(DTR, LTR)
 
         DTR_lda = W.T @ DTR
         DVAL_lda = W.T @ DVAL
@@ -122,6 +125,15 @@ class LDA:
         error_rate_trend_th = error_rate_trend(DVAL_lda, LVAL, mu0, mu1)
 
         return error_rate_trend_th
+
+    def classification_reduced(self):
+        result = []
+        for m in range(self.D.shape[0]-1, 1, -1):
+            DR = PCA(self.D, m)
+            dir = 1 if m == 2 else -1
+            result.append(self.classification(dir, D=DR))
+
+        return result
 
 
 def error_rate_trend(DVAL_lda, LVAL, mu0, mu1):

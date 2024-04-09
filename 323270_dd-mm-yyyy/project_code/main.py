@@ -68,4 +68,7 @@ if __name__ == "__main__":
     plt.vlines(x = threshold, ymin = 0.09, ymax = 0.1, colors = "b")
     plt.hlines(y = error_rate, xmin = -0.25, xmax = 0.25, colors = "r")
     plt.savefig(lab3.PLOT_PATH_LDA + "trend.png")
-    plt.show()
+
+    for r in LDA_object.classification_reduced():
+        predicted_labels_PCA, real_labels, error_rate_PCA, threshold_PCA = r
+        print(predicted_labels_PCA, real_labels, error_rate_PCA, threshold_PCA)
