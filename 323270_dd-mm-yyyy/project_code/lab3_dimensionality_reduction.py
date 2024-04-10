@@ -172,7 +172,7 @@ def assign_1_above(PVAL, DVAL, threshold):
 def assign_1_below(PVAL, DVAL, threshold):
     """
     Assigns labels to data, using validation set and threshold:
-    label 1 is given to records under -1 * threshold
+    label 1 is given to records below -1 * threshold
 
     :param PVAL: predicted validation set labels
     :param DVAL: validation set data
@@ -268,7 +268,7 @@ def LDA_classify(D, L, m=None, PCA_enabled=False):
     return PVAL, err_rate, threshold
 
 
-def classification_best_threshold(D, L):
+def LDA_classification_best_threshold(D, L):
     """
     Performs LDA classification without PCA, tracking error rate for each threshold value used
 
@@ -288,6 +288,24 @@ def classification_best_threshold(D, L):
                                                               assign_1_above if mu1 > mu0 else assign_1_below)
 
     return err_rate_trend, err_rate_trend_reduced
+
+
+def LDA_classification_PCA(D, L):
+    """
+    Compute the LDA classification with PCA preprocessing, using different dimensions
+
+    :param D: dataset
+    :param L: labels
+    :return: error rates, depending on the dimensionality of the PCA
+    """
+
+    dimensions = list(range(5, 1, -1))
+    error_rates = []
+    for m in dimensions:
+        _, error_rate, _ = LDA_classify(D, L, m, True)
+        error_rates.append(error_rate)
+
+    return dimensions, error_rates
 
 
 def error_rate_trend(DVAL_lda, LVAL, assign_function):

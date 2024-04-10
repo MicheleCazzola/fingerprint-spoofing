@@ -9,7 +9,8 @@ LABEL_NAMES = {
 PLOT_PATH_PCA = "output\\plots\\PCA_features\\"
 PLOT_PATH_LDA = "output\\plots\\LDA_features\\"
 PLOT_PATH = "output\\plots\\original_features\\"
-FILE_PATH = "output\\files\\"
+FILE_PATH = "output\\files\\original_features\\"
+FILE_PATH_LDA = "output\\files\\LDA_features\\"
 
 
 def load_csv(filename):
@@ -88,7 +89,7 @@ def compute_statistics(features, labels, **functions):
     return r
 
 
-def plot_statistics(statistics, path_root, file_name):
+def save_statistics(statistics, path_root, file_name):
     """
     Prints some pre-computed statistics about features and labels at the specified path
 
@@ -97,7 +98,7 @@ def plot_statistics(statistics, path_root, file_name):
     :param file_name: file to store the printed statistics
     :return: None
     """
-    with open(f"{path_root}\\{file_name}", mode="w") as fout:
+    with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
         for (name, stat) in statistics.items():
             fout.write(f"--{name} values--\n")
             for i in range(len(stat[0])):
@@ -105,6 +106,25 @@ def plot_statistics(statistics, path_root, file_name):
                            f"\t{LABEL_NAMES[False]}: {stat[0][i]:.3f}\n"
                            f"\t{LABEL_NAMES[True]}: {stat[1][i]:.3f}\n")
             fout.write("\n")
+
+
+def save_LDA_errors(base_error_rate, dimensions, error_rates, path_root, file_name):
+    """
+    Prints LDA error rates at the specified path
+
+    :param base_error_rate: LDA error rate without PCA preprocessing
+    :param dimensions: list of dimensions after PCA preprocessing
+    :param error_rates: list of error rates after PCA preprocessing
+    :param path_root: folder to store the printed statistics
+    :param file_name: file to store the printed statistics
+    :return: None
+    """
+    with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
+        fout.write(f"Classification error rate without PCA preprocessing: {base_error_rate:.3f}\n\n")
+        fout.write(f"--Classification error rates with PCA preprocessing--\n")
+        fout.write(f"PCA dimensions\tError rate\n")
+        for (dim, err) in zip(dimensions, error_rates):
+            fout.write(f"{dim:^16d}{err:^12.3f}\n")
 
 
 def print_hist(features_false, features_true, n, path, title, axis_label, name, extension):
