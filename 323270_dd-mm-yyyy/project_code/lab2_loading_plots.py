@@ -6,6 +6,8 @@ LABEL_NAMES = {
     True: "Genuine"
 }
 
+PLOT_PATH_PCA = "output\\plots\\PCA_features\\"
+PLOT_PATH_LDA = "output\\plots\\LDA_features\\"
 PLOT_PATH = "output\\plots\\original_features\\"
 FILE_PATH = "output\\files\\"
 
@@ -148,9 +150,37 @@ def print_scatter(features_false, features_true, n1, n2, path, title, x_label, y
     plt.figure(name)
     plt.scatter(features_false[n1:n1 + 1, :], features_false[n2:n2 + 1, :], alpha=0.4, label=LABEL_NAMES[False])
     plt.scatter(features_true[n1:n1 + 1, :], features_true[n2:n2 + 1, :], alpha=0.4, label=LABEL_NAMES[True])
-    plt.xlabel(f"Feature {n1 + 1}")
-    plt.ylabel(f"Feature {n2 + 1}")
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
     plt.legend()
     plt.title(f"{title} scatter plot")
+    plt.savefig(f"{path}{name}.{extension}")
+    plt.close(name)
+
+
+def print_line_plot(x, y, path, title, x_label, y_label, name, extension, cross_center=None):
+    """
+    Prints a line plot of y vs. x, with specified parameters
+
+    :param x: x vector
+    :param y: y vector
+    :param path: path to store the plots
+    :param title: plot title
+    :param x_label: x-axis label
+    :param y_label: y-axis label
+    :param name: name of the plot in the file system
+    :param extension: file extension of the plot
+    :param cross_center: center (x, y) of the cross (optional)
+    :return: None
+    """
+
+    plt.figure(name)
+    plt.plot(x, y, linewidth=2)
+    plt.grid()
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(f"{title}")
+    plt.vlines(x=cross_center[0], ymin=cross_center[1] - 0.01, ymax=cross_center[1] + 0.01, colors="k")
+    plt.hlines(y=cross_center[1], xmin=cross_center[0] - 0.1, xmax=cross_center[0] + 0.1, colors="k")
     plt.savefig(f"{path}{name}.{extension}")
     plt.close(name)

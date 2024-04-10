@@ -34,41 +34,51 @@ if __name__ == "__main__":
 
     lab2.plot_statistics(statistics, lab2.FILE_PATH, "feature_statistics.txt")
 
-    features_projected = lab3.PCA(features, 6)
+    features_projected_PCA = lab3.PCA(features, 6)
 
-    lab2.plot_feature_distributions(features_projected, labels, lab3.PLOT_PATH_PCA,
+    lab2.plot_feature_distributions(features_projected_PCA, labels, lab2.PLOT_PATH_PCA,
                                     "PCA feature",
                                     "PCA feature",
                                     "PCA_histogram",
                                     "PCA_scatter",
                                     "pdf")
 
-    LDA_object = lab3.LDA(features, labels, 1)
-    features_projected_LDA = LDA_object.projection(LDA_object.D, LDA_object.W)
+    features_projected_LDA = lab3.LDA_apply(features, labels)
 
     print(features_projected_LDA.shape)
 
     lab2.print_hist(features_projected_LDA[:, labels == 0],
                     features_projected_LDA[:, labels == 1],
                     0,
-                    f"{lab3.PLOT_PATH_LDA}histograms\\",
+                    f"{lab2.PLOT_PATH_LDA}histograms\\",
                     f"LDA direction",
                     f"LDA direction",
                     f"LDA_histogram",
                     "pdf")
 
-    predicted_labels, real_labels, error_rate, threshold = LDA_object.classification()
+    PVAL, error_rate, threshold_default = lab3.LDA_classify(features, labels)
+    print(f"{error_rate}")
 
-    print(predicted_labels, real_labels, error_rate, threshold, sep = "\n")
+    error_rate_trend, red_error_rate_trend = lab3.classification_best_threshold(features, labels)
 
-    error_rate_trend = LDA_object.classification_best_threshold()
+    lab2.print_line_plot(error_rate_trend[0], error_rate_trend[1],
+                         f"{lab2.PLOT_PATH_LDA}lines\\",
+                         "Error rate vs. threshold",
+                         "Threshold",
+                         "Error rate",
+                         "error_rate_threshold",
+                         "pdf",
+                         (threshold_default, error_rate))
 
-    plt.figure(1, figsize=(12.8, 9.6), dpi=400)
-    plt.plot(error_rate_trend[0], error_rate_trend[1], linewidth=1)
-    plt.vlines(x = threshold, ymin = 0.09, ymax = 0.1, colors = "b")
-    plt.hlines(y = error_rate, xmin = -0.25, xmax = 0.25, colors = "r")
-    plt.savefig(lab3.PLOT_PATH_LDA + "trend.png")
+    lab2.print_line_plot(red_error_rate_trend[0], red_error_rate_trend[1],
+                         f"{lab2.PLOT_PATH_LDA}lines\\",
+                         "Error rate vs. threshold",
+                         "Threshold",
+                         "Error rate",
+                         "error_rate_threshold_compact",
+                         "pdf",
+                         (threshold_default, error_rate))
 
-    for r in LDA_object.classification_reduced():
-        predicted_labels_PCA, real_labels, error_rate_PCA, threshold_PCA = r
-        print(predicted_labels_PCA, real_labels, error_rate_PCA, threshold_PCA)
+    for m in range(5, 1, -1):
+        PVAL, error_rate, _ = lab3.LDA_classify(features, labels, m, True)
+        print(f"{m}: {error_rate}")
