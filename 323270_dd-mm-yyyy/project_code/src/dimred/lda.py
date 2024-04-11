@@ -1,58 +1,7 @@
 import numpy as np
 from numpy.linalg import linalg
-import scipy.linalg as scalg
-
-
-def vcol(array):
-    """
-    Converts a 1D-ndarray into a column 2D-ndarray
-
-    :param array: 1D-ndarray
-    :return: column 2D-ndarray
-    """
-    return array.reshape(array.size, 1)
-
-
-def rcol(array):
-    """
-    Converts a 1D-ndarray into a row 2D-ndarray
-
-    :param array: 1D-ndarray
-    :return: row 2D-ndarray
-    """
-    return array.reshape(1, array.size)
-
-
-def PCA(D, m=2):
-    """
-    Computes PCA with specified dimensions (default is 2)
-
-    :param D: dataset to compute PCA on
-    :param m: number of principal components to select
-    :return: dataset projected over selected PCA components
-    """
-    P = PCA_reduce(D, m)
-    DP = project(D, P)
-
-    return DP
-
-
-def PCA_reduce(D, m=2):
-    """
-        Computes PCA with specified dimensions (default is 2)
-
-        :param D: dataset to compute PCA on
-        :param m: number of principal components to select
-        :return: PCA projection matrix
-        """
-    mu = D.mean(axis=1)
-    DC = D - vcol(mu)
-    C = DC @ DC.T / DC.shape[1]
-
-    s, U = linalg.eigh(C)
-    P = U[:, ::-1][:, 0:m]
-
-    return P
+from . import pca
+from src.utilities.utilities import vcol, split_db_2to1, project
 
 
 def covariances(D, L):
@@ -64,25 +13,15 @@ def covariances(D, L):
     :return: computed matrices
     """
     mu = D.mean(axis=1)
-    Sb = np.zeros((D.shape[0], D.shape[0]))
 
-    for c in set(L.tolist()):
-        nc = D[:, L == c].shape[1]
-        mu_class = D[:, L == c].mean(axis=1)
-        mu_centered = vcol(mu_class) - vcol(mu)
-        SBc = nc * mu_centered @ mu_centered.T
-        Sb += SBc
-    Sb /= D.shape[1]
+    D0, D1 = D[:, L == 0], D[:, L == 1]
+    mu0, mu1 = D0.mean(axis=1), D1.mean(axis=1)
+    nc0, nc1 = D0.shape[1], D1.shape[1]
 
-    Sw = np.zeros((D.shape[0], D.shape[0]))
-    for c in set(L.tolist()):
-        mu_class = D[:, L == c].mean(axis=1)
-        DC = D[:, L == c] - vcol(mu_class)
-        SWc = DC @ DC.T
-        Sw += SWc
-    Sw /= D.shape[1]
+    SB = (nc0 * vcol(mu0 - mu) @ vcol(mu0 - mu).T + nc1 * vcol(mu1 - mu) * vcol(mu1 - mu).T) / D.shape[1]
+    SW = ((D0 - vcol(mu0)) @ (D0 - vcol(mu0)).T + (D1 - vcol(mu1)) @ (D1 - vcol(mu1)).T) / D.shape[1]
 
-    return Sb, Sw
+    return SB, SW
 
 
 def reduce(SB, SW):
@@ -94,52 +33,12 @@ def reduce(SB, SW):
     :param SW: within-class covariance matrix
     :return: LDA transformation matrix
     """
-    # w1 proportional to w2 = w3
-    # w1 = LDA_special_case(D, L, self.SW)
-    # w2 = LDA_generalized_eigenvalue(self.SB, self.SW, self.m)
-    W = W3 = LDA_joint_diag(SB, SW, 1)
+    W = joint_diag(SB, SW, 1)
 
     return W
 
 
-def project(D, M):
-    """
-    Project data over basis spanned by columns of matrix M
-
-    :param D: dataset
-    :param M: transformation matrix
-    :return: projected dataset
-    """
-    return M.T @ D
-
-
-def split_db_2to1(D, L, seed=0):
-    """
-    Splits dataset and labels into two subsets:
-    - training set and labels
-    - validation set and labels
-    Split is computed randomly, using an optional seed parameter
-
-    :param D: dataset
-    :param L: labels
-    :param seed: random seed (default 0)
-    :return: training set and labels, validation set and labels
-    """
-    nTrain = int(D.shape[1] * 2.0 / 3.0)
-    np.random.seed(seed)
-    idx = np.random.permutation(D.shape[1])
-    idxTrain = idx[0:nTrain]
-    idxTest = idx[nTrain:]
-
-    DTR = D[:, idxTrain]
-    DVAL = D[:, idxTest]
-    LTR = L[idxTrain]
-    LVAL = L[idxTest]
-
-    return (DTR, LTR), (DVAL, LVAL)
-
-
-def thres_compute(DTR, LTR):
+def threshold_compute(DTR, LTR):
     """
     Computes threshold for LDA binary classification, using training set and its labels
 
@@ -210,7 +109,7 @@ def error_rate(PVAL, LVAL):
     return np.sum(LVAL != PVAL) / LVAL.shape[0]
 
 
-def LDA_estimate(D, L):
+def estimate(D, L):
     """
     Estimates LDA transformation matrix, given dataset and labels
 
@@ -224,7 +123,7 @@ def LDA_estimate(D, L):
     return W
 
 
-def LDA_apply(D, L):
+def apply(D, L):
     """
     Applies LDA transformation, given dataset and labels
 
@@ -232,13 +131,13 @@ def LDA_apply(D, L):
     :param L: labels
     :return: projected dataset
     """
-    W = LDA_estimate(D, L)
+    W = estimate(D, L)
     DP = project(D, W)
 
     return DP
 
 
-def LDA_classify(D, L, m=None, PCA_enabled=False):
+def classify(D, L, m=None, PCA_enabled=False):
     """
     Performs LDA classification, given dataset and labels
 
@@ -251,16 +150,16 @@ def LDA_classify(D, L, m=None, PCA_enabled=False):
     (DTR, LTR), (DVAL, LVAL) = split_db_2to1(D, L)
 
     if PCA_enabled:
-        P = PCA_reduce(DTR, m)
+        P = pca.reduce(DTR, m)
 
         DTR = project(DTR, P)
         DVAL = project(DVAL, P)
 
-    W = LDA_estimate(DTR, LTR)
+    W = estimate(DTR, LTR)
     DTR_lda = project(DTR, W)
     DVAL_lda = project(DVAL, W)
 
-    mu0, mu1, threshold = thres_compute(DTR_lda, LTR)
+    mu0, mu1, threshold = threshold_compute(DTR_lda, LTR)
     PVAL = predict(DVAL_lda, LVAL, assign_1_above if mu1 > mu0 else assign_1_below, threshold)
 
     err_rate = error_rate(PVAL, LVAL)
@@ -268,7 +167,7 @@ def LDA_classify(D, L, m=None, PCA_enabled=False):
     return PVAL, err_rate, threshold
 
 
-def LDA_classification_best_threshold(D, L):
+def classify_best_threshold(D, L):
     """
     Performs LDA classification without PCA, tracking error rate for each threshold value used
 
@@ -278,7 +177,7 @@ def LDA_classification_best_threshold(D, L):
     """
     (DTR, LTR), (DVAL, LVAL) = split_db_2to1(D, L)
 
-    W = LDA_estimate(DTR, LTR)
+    W = estimate(DTR, LTR)
     DTR_lda = project(DTR, W)
     DVAL_lda = project(DVAL, W)
 
@@ -290,7 +189,7 @@ def LDA_classification_best_threshold(D, L):
     return err_rate_trend, err_rate_trend_reduced
 
 
-def LDA_classification_PCA(D, L):
+def classify_PCA_preprocess(D, L):
     """
     Compute the LDA classification with PCA preprocessing, using different dimensions
 
@@ -302,7 +201,7 @@ def LDA_classification_PCA(D, L):
     dimensions = list(range(5, 1, -1))
     error_rates = []
     for m in dimensions:
-        _, error_rate, _ = LDA_classify(D, L, m, True)
+        _, error_rate, _ = classify(D, L, m, True)
         error_rates.append(error_rate)
 
     return dimensions, error_rates
@@ -340,52 +239,22 @@ def error_rate_trend(DVAL_lda, LVAL, assign_function):
     return (th, er), (red_th, red_er)
 
 
-def LDA_special_case(D, L, SW):
+def joint_diag(SB, SW, m):
     """
-    Computes LDA transformation matrix using binary LDA property
-
-    :param D: dataset
-    :param L: labels
-    :param SW: within-class covariance matrix
-    :return: transformation matrix (unit vector), with positive direction
-    """
-    mu0 = D[:, L == 0].mean(axis=1)
-    mu1 = D[:, L == 1].mean(axis=1)
-
-    w = linalg.inv(SW) @ vcol(mu1 - mu0)
-
-    return w / linalg.norm(w, 2) * (1 if mu1 > mu0 else -1)
-
-
-def LDA_generalized_eigenvalue(SB, SW, m):
-    """
-    Computes LDA transformation matrix by solving generalized eigenvalue problem
+    Computes LDA transformation matrix by using joint diagonalization, such as
+    SB becomes diagonal and SW becomes the identity matrix
 
     :param SB: between-class covariance matrix
     :param SW: within-class covariance matrix
     :param m: LDA dimensions
     :return: LDA transformation matrix
     """
-    s, U = scalg.eigh(SB, SW)
-    W = U[:, ::-1][:, 0:m]
-
-    return W
-
-
-def LDA_joint_diag(SB, SW, m):
-    """
-    Computes LDA transformation matrix by using joint diagonalization
-
-    :param SB: between-class covariance matrix
-    :param SW: within-class covariance matrix
-    :param m: LDA dimensions
-    :return: LDA transformation matrix
-    """
+    # Whitening transformation
     U1, s1, _ = linalg.svd(SW)
-    # s1, U1 = npalg.eigh(SW) same as above maybe
     P1 = U1 @ np.diag(1 / (s1 ** 0.5)) @ U1.T
     Sbt = P1 @ SB @ P1.T
 
+    # Diagonalization
     s2, U2 = linalg.eigh(Sbt)
     P2 = U2[:, ::-1][:, 0:m]
     W = P1.T @ P2
