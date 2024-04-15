@@ -2,6 +2,7 @@ from sys import argv
 from src.dimred import lda, pca
 from src.io import fio, constants, plot
 from src.utilities import utilities
+from src.fitting import fitting
 
 if __name__ == "__main__":
 
@@ -79,3 +80,7 @@ if __name__ == "__main__":
 
     fio.save_LDA_errors(error_rate, PCA_preprocessing_dimensions, error_rates,
                         constants.FILE_PATH_LDA, "error_rates.txt")
+
+    x_domain, y_estimations, features_per_class = fitting.gaussian_estimation(features, labels)
+
+    plot.plot_estimated_features(x_domain, y_estimations, features_per_class)

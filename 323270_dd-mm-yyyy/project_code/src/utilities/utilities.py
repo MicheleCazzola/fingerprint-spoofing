@@ -28,7 +28,7 @@ def vcol(array):
     return array.reshape(array.size, 1)
 
 
-def rcol(array):
+def vrow(array):
     """
     Converts a 1D-ndarray into a row 2D-ndarray
 

@@ -6,6 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/dimred" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/io" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/utilities" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/fitting" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/output" />
     </content>

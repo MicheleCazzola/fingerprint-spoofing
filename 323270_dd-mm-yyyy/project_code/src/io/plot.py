@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from .constants import LABEL_NAMES
+from .constants import LABEL_NAMES, PLOT_PATH_ESTIMATIONS
 
 
 def plot_feature_distributions(features, labels, path_root, title_prefix, axes_prefix, name_prefix_hist,
@@ -118,3 +118,29 @@ def print_line_plot(x, y, path, title, x_label, y_label, name, extension, cross_
     plt.hlines(y=cross_center[1], xmin=cross_center[0] - 0.1, xmax=cross_center[0] + 0.1, colors="k")
     plt.savefig(f"{path}{name}.{extension}")
     plt.close(name)
+
+
+def print_line_hist(x_gauss, y_gauss_false, y_gauss_true, features_false, features_true,
+                    path, title, axis_label, name, extension):
+    plt.figure(name)
+    plt.hist(features_false.ravel(), bins=50, density=True, alpha=0.4, label=LABEL_NAMES[False], color="dodgerblue")
+    plt.hist(features_true.ravel(), bins=50, density=True, alpha=0.4, label=LABEL_NAMES[True], color="orange")
+    plt.plot(x_gauss, y_gauss_false, color="blue")
+    plt.plot(x_gauss, y_gauss_true, color="red")
+    plt.xlabel(axis_label)
+    plt.legend()
+    plt.title(f"{title} histogram")
+    plt.savefig(f"{path}{name}.{extension}")
+    plt.close(name)
+
+
+def plot_estimated_features(x_gauss, y_gauss_estimations, features):
+    i = 0
+    for ((y_est_false, y_est_true), (f_false, f_true)) in zip(y_gauss_estimations, features):
+        print_line_hist(x_gauss, y_est_false, y_est_true, f_false, f_true,
+                        PLOT_PATH_ESTIMATIONS,
+                        f"Estimated feature {i + 1}",
+                        f"Estimated feature {i + 1}",
+                        f"estimated_feature_{i + 1}",
+                        "pdf")
+        i += 1

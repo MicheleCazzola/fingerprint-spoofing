@@ -3,6 +3,7 @@ LABEL_NAMES = {
     True: "Genuine"
 }
 
+PLOT_PATH_ESTIMATIONS = "output/plots/feature_estimation/"
 PLOT_PATH_PCA = "output/plots/PCA_features/"
 PLOT_PATH_LDA = "output/plots/LDA_features/"
 PLOT_PATH = "output/plots/original_features/"

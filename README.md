@@ -29,3 +29,14 @@ the classification accuracy?
 only), and then classify the validation data with LDA. Analyze the performance as a function of the
 number of PCA dimensions m . What do you observe? Can you find values of m that improve the
 accuracy on the validation set? Is PCA beneficial for the task when combined with the LDA classifier?
+## Lab 4
+1. Try fitting uni-variate Gaussian models to the different features of the project dataset. For each component
+of the feature vectors, compute the ML estimate for the parameters of a 1D Gaussian distribution.
+2. Plot the distribution density (remember that you have to exponentiate the log-density) on top of the
+normalized histogram (set density=True when creating the histogram, see Laboratory 2). What do
+you observe? Are there features for which the Gaussian densities provide a good fit? Are there features
+for which the Gaussian model seems significantly less accurate?  
+*Note*: for this part of the project, since we are still performing some preliminary, qualitative analysis,
+you can compute the ML estimates and the plots either on the whole training set. In the following labs
+we will employ the densities for classification, and we will need to perform model selection, therefore we
+will re-compute ML estimates on the model training portion of the dataset only (see Laboratory 3).
