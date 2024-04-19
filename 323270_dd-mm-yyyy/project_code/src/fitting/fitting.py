@@ -4,6 +4,14 @@ from numpy.linalg import linalg
 
 
 def logpdf_GAU_ND(X, mu, C):
+    """
+    Computes the log-density Gaussian distribution for the dataset **X**, by iterating over its samples
+
+    :param X: dataset to compute the Gaussian distribution on
+    :param mu: mean vector of the Gaussian distribution
+    :param C: covariance matrix of the Gaussian distribution
+    :return: values of the Gaussian distribution for the dataset
+    """
     Y = []
     for i in range(X.shape[1]):
         Y.append(logpdf_GAU_ND_sample(X[:, i:i + 1], mu, C)[0, 0])
@@ -13,7 +21,12 @@ def logpdf_GAU_ND(X, mu, C):
 
 def logpdf_GAU_ND_sample(x, mu, C):
     """
-    Log-gaussian estimation for a sample
+    Computes the log-density Gaussian distribution for a single sample, **x**
+
+    :param x: sample to compute the Gaussian distribution value on
+    :param mu: mean vector of the Gaussian distribution
+    :param C: covariance matrix of the Gaussian distribution
+    :return: value of the Gaussian distribution for the given sample
     """
     M = vcol(x).shape[0]
     sign, det_val = linalg.slogdet(C)  # sign = 1 since C is semi-definite positive (supposed not singular)
@@ -21,6 +34,13 @@ def logpdf_GAU_ND_sample(x, mu, C):
 
 
 def compute_estimators(X, mu):
+    """
+    Computes the estimates of the Gaussian-distributed dataset **X**, using the maximum likelihood method
+
+    :param X: source dataset, distributed as Multivariate Gaussian (MVG)
+    :param mu: dataset mean
+    :return: estimates of mean vector and covariance matrix
+    """
     N = X.shape[1]
     mu_ML = np.sum(X, axis=1) / N
     cov_ML = (X - vcol(mu)) @ (X - vcol(mu)).T / N
@@ -29,6 +49,13 @@ def compute_estimators(X, mu):
 
 
 def gaussian_estimation(D, L):
+    """
+    Computes the estimates of the Gaussian-distributed dataset **D**
+
+    :param D: dataset, distributed as Multivariate Gaussian
+    :param L: corresponding labels
+    :return: a triplet with features domain, Gaussian estimated plot and dataset samples, divided by class
+    """
 
     features = []
     Yplots = []
@@ -36,13 +63,12 @@ def gaussian_estimation(D, L):
     for i in range(D.shape[0]):
         D0 = D[i:i + 1, L == 0]
         D1 = D[i:i + 1, L == 1]
+
         m_ML0, C_ML0 = compute_estimators(D0, D0.mean(axis=1))
         m_ML1, C_ML1 = compute_estimators(D1, D1.mean(axis=1))
 
-        llPlot0 = logpdf_GAU_ND(vrow(XPlot), m_ML0, C_ML0)
-        llPlot1 = logpdf_GAU_ND(vrow(XPlot), m_ML1, C_ML1)
-        YPlot0 = np.exp(llPlot0)
-        YPlot1 = np.exp(llPlot1)
+        YPlot0 = np.exp(logpdf_GAU_ND(vrow(XPlot), m_ML0, C_ML0))
+        YPlot1 = np.exp(logpdf_GAU_ND(vrow(XPlot), m_ML1, C_ML1))
 
         features.append((D0, D1))
         Yplots.append((YPlot0, YPlot1))

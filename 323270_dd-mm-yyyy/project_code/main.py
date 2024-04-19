@@ -45,9 +45,9 @@ if __name__ == "__main__":
 
     features_projected_LDA = lda.apply(features, labels)
 
-    plot.print_hist(features_projected_LDA[:, labels == 0],
+    plot.plot_hist(features_projected_LDA[:, labels == 0],
                     features_projected_LDA[:, labels == 1],
-                    0,
+                   0,
                     f"{constants.PLOT_PATH_LDA}histograms/",
                     f"LDA direction",
                     f"LDA direction",
@@ -58,23 +58,23 @@ if __name__ == "__main__":
 
     error_rate_trend, red_error_rate_trend = lda.classify_best_threshold(features, labels)
 
-    plot.print_line_plot(error_rate_trend[0], error_rate_trend[1],
+    plot.plot_line(error_rate_trend[0], error_rate_trend[1],
                          f"{constants.PLOT_PATH_LDA}lines/",
                          "Error rate vs. threshold",
                          "Threshold",
                          "Error rate",
                          "error_rate_threshold",
                          "pdf",
-                         (threshold_default, error_rate))
+                   (threshold_default, error_rate))
 
-    plot.print_line_plot(red_error_rate_trend[0], red_error_rate_trend[1],
+    plot.plot_line(red_error_rate_trend[0], red_error_rate_trend[1],
                          f"{constants.PLOT_PATH_LDA}lines/",
                          "Error rate vs. threshold",
                          "Threshold",
                          "Error rate",
                          "error_rate_threshold_compact",
                          "pdf",
-                         (threshold_default, error_rate))
+                   (threshold_default, error_rate))
 
     PCA_preprocessing_dimensions, error_rates = lda.classify_PCA_preprocess(features, labels)
 

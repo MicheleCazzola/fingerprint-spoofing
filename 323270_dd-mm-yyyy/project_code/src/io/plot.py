@@ -22,26 +22,26 @@ def plot_feature_distributions(features, labels, path_root, title_prefix, axes_p
 
     # Histogram plot
     for c in range(features.shape[0]):
-        print_hist(features0, features1, c,
-                   f"{path_root}histograms/",
-                   f"{title_prefix} {c + 1}",
-                   f"{axes_prefix} {c + 1}",
-                   f"{name_prefix_hist}_{c + 1}",
-                   extension)
+        plot_hist(features0, features1, c,
+                  f"{path_root}histograms/",
+                  f"{title_prefix} {c + 1}",
+                  f"{axes_prefix} {c + 1}",
+                  f"{name_prefix_hist}_{c + 1}",
+                  extension)
 
     # Scatter plots
     for i in range(features.shape[0]):
         for j in range(i + 1, features.shape[0]):
-            print_scatter(features0, features1, i, j,
-                          f"{path_root}scatterplots/",
-                          f"{title_prefix}s {i + 1}, {j + 1}",
-                          f"{axes_prefix} {i + 1}",
-                          f"{axes_prefix} {j + 1}",
-                          f"{name_prefix_scatter}_{i + 1}_{j + 1}",
-                          extension)
+            plot_scatter(features0, features1, i, j,
+                         f"{path_root}scatterplots/",
+                         f"{title_prefix}s {i + 1}, {j + 1}",
+                         f"{axes_prefix} {i + 1}",
+                         f"{axes_prefix} {j + 1}",
+                         f"{name_prefix_scatter}_{i + 1}_{j + 1}",
+                         extension)
 
 
-def print_hist(features_false, features_true, n, path, title, axis_label, name, extension):
+def plot_hist(features_false, features_true, n, path, title, axis_label, name, extension):
     """
     Prints a histogram of the features, with specified parameters
 
@@ -65,7 +65,7 @@ def print_hist(features_false, features_true, n, path, title, axis_label, name, 
     plt.close(name)
 
 
-def print_scatter(features_false, features_true, n1, n2, path, title, x_label, y_label, name, extension):
+def plot_scatter(features_false, features_true, n1, n2, path, title, x_label, y_label, name, extension):
     """
     Prints a scatter plot of the pair of features, with specified parameters
 
@@ -92,7 +92,7 @@ def print_scatter(features_false, features_true, n1, n2, path, title, x_label, y
     plt.close(name)
 
 
-def print_line_plot(x, y, path, title, x_label, y_label, name, extension, cross_center=None):
+def plot_line(x, y, path, title, x_label, y_label, name, extension, cross_center=None):
     """
     Prints a line plot of y vs. x, with specified parameters
 
@@ -120,27 +120,50 @@ def print_line_plot(x, y, path, title, x_label, y_label, name, extension, cross_
     plt.close(name)
 
 
-def print_line_hist(x_gauss, y_gauss_false, y_gauss_true, features_false, features_true,
-                    path, title, axis_label, name, extension):
+def plot_line_hist(x, y_false, y_true, features_false, features_true,
+                   path, title, axis_label, name, extension):
+    """
+    Plots a line chart over a histogram
+
+    :param x: the domain where plot the charts
+    :param y_false: ordinate values for line chart, false class
+    :param y_true: ordinate values for line chart, true class
+    :param features_false: feature values for histogram, false class
+    :param features_true: feature values for histogram, true class
+    :param path: path to store the plots
+    :param title: plot title
+    :param axis_label: x-axis label
+    :param name: name of the plot in the file system
+    :param extension: file extension of the plot
+    :return: None
+    """
     plt.figure(name)
     plt.hist(features_false.ravel(), bins=50, density=True, alpha=0.4, label=LABEL_NAMES[False], color="dodgerblue")
     plt.hist(features_true.ravel(), bins=50, density=True, alpha=0.4, label=LABEL_NAMES[True], color="orange")
-    plt.plot(x_gauss, y_gauss_false, color="blue")
-    plt.plot(x_gauss, y_gauss_true, color="red")
+    plt.plot(x, y_false, color="blue", label=f"Est. {LABEL_NAMES[False]}")
+    plt.plot(x, y_true, color="red", label=f"Est. {LABEL_NAMES[True]}")
     plt.xlabel(axis_label)
     plt.legend()
-    plt.title(f"{title} histogram")
+    plt.title(f"{title}")
     plt.savefig(f"{path}{name}.{extension}")
     plt.close(name)
 
 
-def plot_estimated_features(x_gauss, y_gauss_estimations, features):
+def plot_estimated_features(x, y, features):
+    """
+    Plots estimated features, by overlapping estimated graph over the corresponding histogram
+
+    :param x: features domain
+    :param y: estimated values for the features
+    :param features: dataset features, divided by class
+    :return: None
+    """
     i = 0
-    for ((y_est_false, y_est_true), (f_false, f_true)) in zip(y_gauss_estimations, features):
-        print_line_hist(x_gauss, y_est_false, y_est_true, f_false, f_true,
-                        PLOT_PATH_ESTIMATIONS,
-                        f"Estimated feature {i + 1}",
-                        f"Estimated feature {i + 1}",
-                        f"estimated_feature_{i + 1}",
-                        "pdf")
+    for ((y_est_false, y_est_true), (f_false, f_true)) in zip(y, features):
+        plot_line_hist(x, y_est_false, y_est_true, f_false, f_true,
+                       PLOT_PATH_ESTIMATIONS,
+                       f"Feature {i + 1} estimate",
+                       f"Estimated feature {i + 1}",
+                       f"estimated_feature_{i + 1}",
+                       "pdf")
         i += 1

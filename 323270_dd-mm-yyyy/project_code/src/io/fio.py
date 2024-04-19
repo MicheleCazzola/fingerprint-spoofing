@@ -53,8 +53,9 @@ def save_LDA_errors(base_error_rate, dimensions, error_rates, path_root, file_na
     :return: None
     """
     with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
-        fout.write(f"Classification error rate without PCA preprocessing: {base_error_rate:.3f}\n\n")
+        fout.write("Classification error rate without PCA preprocessing " +
+                   f"{base_error_rate:.4f} ({100 * base_error_rate:.2f} %)\n\n")
         fout.write(f"--Classification error rates with PCA preprocessing--\n")
-        fout.write(f"PCA dimensions\tError rate\n")
+        fout.write(f"PCA dimensions\tError rate\tError rate (%)\n")
         for (dim, err) in zip(dimensions, error_rates):
-            fout.write(f"{dim:^16d}{err:^12.4f}\n")
+            fout.write(f"{dim:^14d}\t{err:^10.4f}\t{100 * err:^13.2f}\n")
