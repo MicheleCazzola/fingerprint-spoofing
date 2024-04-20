@@ -5,32 +5,17 @@ from numpy.linalg import linalg
 
 def logpdf_GAU_ND(X, mu, C):
     """
-    Computes the log-density Gaussian distribution for the dataset **X**, by iterating over its samples
+    Computes the log-density Gaussian distribution for the dataset **X**, by direct computing
 
     :param X: dataset to compute the Gaussian distribution on
     :param mu: mean vector of the Gaussian distribution
     :param C: covariance matrix of the Gaussian distribution
     :return: values of the Gaussian distribution for the dataset
     """
-    Y = []
-    for i in range(X.shape[1]):
-        Y.append(logpdf_GAU_ND_sample(X[:, i:i + 1], mu, C)[0, 0])
+    M = X.shape[0]
 
-    return np.array(Y)
-
-
-def logpdf_GAU_ND_sample(x, mu, C):
-    """
-    Computes the log-density Gaussian distribution for a single sample, **x**
-
-    :param x: sample to compute the Gaussian distribution value on
-    :param mu: mean vector of the Gaussian distribution
-    :param C: covariance matrix of the Gaussian distribution
-    :return: value of the Gaussian distribution for the given sample
-    """
-    M = vcol(x).shape[0]
     sign, det_val = linalg.slogdet(C)  # sign = 1 since C is semi-definite positive (supposed not singular)
-    return -M * np.log(2 * np.pi) / 2 - det_val / 2 - (x - vcol(mu)).T @ linalg.inv(C) @ (x - vcol(mu)) / 2
+    return -M * np.log(2 * np.pi) / 2 - det_val / 2 - ((X - vcol(mu)) * (linalg.inv(C) @ (X - vcol(mu)))).sum(0) / 2
 
 
 def compute_estimators(X, mu):
