@@ -13,7 +13,6 @@ def logpdf_GAU_ND(X, mu, C):
     :return: values of the Gaussian distribution for the dataset
     """
     M = X.shape[0]
-
     sign, det_val = linalg.slogdet(C)  # sign = 1 since C is semi-definite positive (supposed not singular)
     return -M * np.log(2 * np.pi) / 2 - det_val / 2 - ((X - vcol(mu)) * (linalg.inv(C) @ (X - vcol(mu)))).sum(0) / 2
 

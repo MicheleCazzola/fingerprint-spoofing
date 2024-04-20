@@ -13,18 +13,19 @@ def covariances(D, L):
     :return: computed matrices
     """
     mu = D.mean(axis=1)
+    SB = np.zeros((D.shape[0], D.shape[0]))
+    SW = np.zeros((D.shape[0], D.shape[0]))
+    for label in np.unique(L):
+        D_label = D[:, L == label]
+        mu_label = D_label.mean(axis=1)
+        nc_label = D_label.shape[1]
+        SB += nc_label * vcol(mu_label - mu) @ vcol(mu_label - mu).T
+        SW += (D_label - vcol(mu_label)) @ (D_label - vcol(mu_label)).T
 
-    D0, D1 = D[:, L == 0], D[:, L == 1]
-    mu0, mu1 = D0.mean(axis=1), D1.mean(axis=1)
-    nc0, nc1 = D0.shape[1], D1.shape[1]
-
-    SB = (nc0 * vcol(mu0 - mu) @ vcol(mu0 - mu).T + nc1 * vcol(mu1 - mu) * vcol(mu1 - mu).T) / D.shape[1]
-    SW = ((D0 - vcol(mu0)) @ (D0 - vcol(mu0)).T + (D1 - vcol(mu1)) @ (D1 - vcol(mu1)).T) / D.shape[1]
-
-    return SB, SW
+    return SB / D.shape[1], SW / D.shape[1]
 
 
-def reduce(SB, SW):
+def transform(SB, SW):
     """
     Computes LDA transformation matrix W, using joint diagonalization between
     covariance matrices SB and SW
@@ -118,7 +119,7 @@ def estimate(D, L):
     :return: LDA transformation matrix
     """
     SB, SW = covariances(D, L)
-    W = reduce(SB, SW)
+    W = transform(SB, SW)
 
     return W
 
