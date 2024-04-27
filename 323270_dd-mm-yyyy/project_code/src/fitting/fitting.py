@@ -23,7 +23,7 @@ def compute_estimators(X, mu):
 
     :param X: source dataset, distributed as Multivariate Gaussian (MVG)
     :param mu: dataset mean
-    :return: estimates of mean vector and covariance matrix
+    :return: estimates of mean vector (1D-array) and covariance matrix
     """
     N = X.shape[1]
     mu_ML = np.sum(X, axis=1) / N
