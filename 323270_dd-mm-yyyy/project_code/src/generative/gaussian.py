@@ -2,8 +2,10 @@ from sys import argv
 
 import numpy as np
 
+from constants import LABEL_NAMES
+from pca import reduce
 from src.io.fio import load_csv
-from utilities.utilities import vcol, split_db_2to1, vrow
+from utilities.utilities import vcol, split_db_2to1, vrow, project
 from fitting.fitting import logpdf_GAU_ND, compute_estimators
 
 
@@ -18,26 +20,29 @@ def estimate(D, L):
     return np.array(mu_c), np.array(cov_c)
 
 
-def class_conditional_log(D, L, mu_c, cov_c):
-    S = []
-    for c in np.unique(L):
-        yc = logpdf_GAU_ND(D, mu_c[c], cov_c[c])
-        S.append(yc)
+def set_prior():
+    return vcol(np.array([1 / 2, 1 / 2]))
 
-    return np.array(S)
+
+def set_threshold(prior_false, prior_true):
+    return -np.log(prior_true / prior_false)
+
+
+def compute_cov_naive_approx(cov_c):
+    return cov_c * np.eye(cov_c[0].shape[1])
+
+
+def class_conditional(DTE, mu_c, cov_c):
+    return logpdf_GAU_ND(DTE, mu_c[0], cov_c[0]), logpdf_GAU_ND(DTE, mu_c[1], cov_c[1])
 
 
 def within_class_covariance(cov_c, DTR, LTR):
-    cov = np.zeros((cov_c.shape[1], cov_c.shape[2]))
-    for c in np.unique(LTR):
-        Nc = DTR[:, LTR == c].shape[1]
-        cov += Nc * cov_c[c]
-    return cov / DTR.shape[1]
+    return (DTR[:, LTR == 0].shape[1] * cov_c[0] + DTR[:, LTR == 1].shape[1] * cov_c[1]) / DTR.shape[1]
 
 
-def compute_llr(DTE, LTE, mu_c, cov_c):
-    S = class_conditional_log(DTE, LTE, mu_c, cov_c)
-    return S[1] - S[0]
+def compute_llr(DTE, mu_c, cov_c):
+    cc_false, cc_true = class_conditional(DTE, mu_c, cov_c)
+    return cc_true - cc_false
 
 
 def predict(LTE, llr, threshold):
@@ -52,75 +57,121 @@ def compute_error_rate(LPR, LTE):
     return np.sum(LPR != LTE) / LTE.shape[0]
 
 
-def MVG(DTR, LTR, DTE, LTE):
-    mu_c, cov_c = estimate(DTR, LTR)
-    prior = vcol(np.array([1 / 2, 1 / 2]))
-    llr = compute_llr(DTE, LTE, mu_c, cov_c)
-
-    threshold = -np.log(prior[1] / prior[0])
+def classify(DTE, LTE, mu_c, cov_c, threshold):
+    llr = compute_llr(DTE, mu_c, cov_c)
     LPR = predict(LTE, llr, threshold)
-
-    err_rate = compute_error_rate(LPR, LTE)
-
-    print(f"{err_rate:.4f}")
+    return compute_error_rate(LPR, LTE)
 
 
-def TiedMVG(DTR, LTR, DTE, LTE):
-    mu_c, cov_c = estimate(DTR, LTR)
-    cov = within_class_covariance(cov_c, DTR, LTR)
-    prior = vcol(np.array([1 / 2, 1 / 2]))
-
-    llr = compute_llr(DTE, LTE, mu_c, np.array([cov] * 2))
-
-    threshold = -np.log(prior[1] / prior[0])
-    LPR = predict(LTE, llr, threshold)
-
-    err_rate = compute_error_rate(LPR, LTE)
-
-    print(f"{err_rate:.4f}")
+def MVG(DTE, LTE, mu_c, cov_c, threshold):
+    return classify(DTE, LTE, mu_c, cov_c, threshold)
 
 
-def Naive_BayesMVG(DTR, LTR, DTE, LTE):
-    mu_c, cov_c = estimate(DTR, LTR)
-    cov_c = cov_c * np.eye(cov_c[0].shape[1])
-    prior = vcol(np.array([1 / 2, 1 / 2]))
+def TiedMVG(DTE, LTE, mu_c, cov, threshold):
+    return classify(DTE, LTE, mu_c, np.array([cov] * 2), threshold)
 
-    llr = compute_llr(DTE, LTE, mu_c, cov_c)
 
-    threshold = -np.log(prior[1] / prior[0])
-    LPR = predict(LTE, llr, threshold)
-
-    err_rate = compute_error_rate(LPR, LTE)
-
-    print(f"{err_rate:.4f}")
+def Naive_BayesMVG(DTE, LTE, mu_c, cov_c, threshold):
+    return classify(DTE, LTE, mu_c, cov_c, threshold)
 
 
 def compute_correlations(DTR, LTR):
     _, cov_c = estimate(DTR, LTR)
 
-    corr_matrices = [C / (vcol(C.diagonal() ** 0.5) * vrow(C.diagonal() ** 0.5)) for C in cov_c]
+    return [C / (vcol(C.diagonal() ** 0.5) * vrow(C.diagonal() ** 0.5)) for C in cov_c]
 
-    for corr_matrix in corr_matrices:
+
+def classification_analysis(DTR, LTR, DTE, LTE, prior):
+    mu_c, cov_c = estimate(DTR, LTR)
+    threshold = set_threshold(prior[0], prior[1])
+
+    return {
+        "MVG": MVG(DTE, LTE, mu_c, cov_c, threshold),
+        "Tied MVG": TiedMVG(DTE, LTE, mu_c, within_class_covariance(cov_c, DTR, LTR), threshold),
+        "Naive Bayes MVG": Naive_BayesMVG(DTE, LTE, mu_c, compute_cov_naive_approx(cov_c), threshold)
+    }
+
+
+def save_gaussian_classification_results(error_rates, corr_matrices, error_rates_1_4, error_rates_1_2, error_rates_3_4,
+                                         error_rates_pca):
+    print("--All features--")
+    print(error_rates)
+    print()
+
+    print("--Correlation matrices--")
+    for (corr_matrix, label) in zip(corr_matrices, LABEL_NAMES.keys()):
+        print(f"{label} class")
         for line in corr_matrix:
             for element in line:
-                print(f"{element:.2f}", end="\t")
+                print(f"{element: .2f}", end="\t")
             print()
         print()
 
+    print("Features 1-4")
+    print(error_rates_1_4)
+    print()
 
-if __name__ == '__main__':
+    print("Features 1-2")
+    print(error_rates_1_2)
+    print()
+
+    print("Features 3-4")
+    print(error_rates_3_4)
+    print()
+
+    print("--PCA preprocessing--")
+    print(error_rates_pca)
+
+
+def main():
     D, L = load_csv(argv[1])
 
     (DTR, LTR), (DTE, LTE) = split_db_2to1(D, L)
 
-    # 1: error rate = 7 %
-    MVG(DTR, LTR, DTE, LTE)
+    prior = set_prior()
 
-    # 2: error rate = 9.3 % (same as LDA) -> TIED = LDA (no preprocessing)
-    TiedMVG(DTR, LTR, DTE, LTE)
-
-    # 3: error rate = 7.2 %
-    Naive_BayesMVG(DTR, LTR, DTE, LTE)
+    # Classification with features 1-6
+    # 1: 7 %
+    # 2: 9.3 % (same as LDA)
+    # 3: 7.2 %
+    error_rates = classification_analysis(DTR, LTR, DTE, LTE, prior)
 
     # 4: low correlation, but not null -> Indeed Naive is good, but little worse than MVG
-    compute_correlations(DTR, LTR)
+    corr_matrices = compute_correlations(DTR, LTR)
+
+    # 5: features 5 and 6 does not fit well with Gaussian assumption
+
+    # 6: repeat analysis, but only with features 1-4
+    # MVG: 7.95 %
+    # Tied: 9.50 %
+    # Naive: 7.65 %
+    error_rates_1_4 = classification_analysis(DTR[0:4, :], LTR, DTE[0:4, :], LTE, prior)
+
+    # 7: repeat classification, but only with features (1-2) and then (3-4)
+
+    # Features 1-2
+    # MVG: 36.50 %
+    # Tied: 49.45 %
+    # Naive: 36.30 %
+    error_rates_1_2 = classification_analysis(DTR[0:2, :], LTR, DTE[0:2, :], LTE, prior)
+
+    # Features 3-4
+    # 9.45 %
+    # 9.40 %
+    # 9.45 %
+    error_rates_3_4 = classification_analysis(DTR[2:4, :], LTR, DTE[2:4, :], LTE, prior)
+
+    # 8: repeat classification, by applying PCA preprocessing
+
+    error_rates_pca = {}
+    for m in range(2, D.shape[0]):
+        P = reduce(DTR, m)
+        DTR_pca, DTE_pca = project(DTR, P), project(DTE, P)
+        error_rates_pca[m] = classification_analysis(DTR_pca, LTR, DTE_pca, LTE, prior)
+
+    save_gaussian_classification_results(error_rates, corr_matrices, error_rates_1_4, error_rates_1_2, error_rates_3_4,
+                                         error_rates_pca)
+
+
+if __name__ == '__main__':
+    main()
