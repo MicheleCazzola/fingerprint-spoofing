@@ -79,8 +79,8 @@ def assign_1_below(PVAL, DVAL, threshold):
     :param threshold: discriminant threshold
     :return: None
     """
-    PVAL[DVAL[0] >= -threshold] = 0
-    PVAL[DVAL[0] < -threshold] = 1
+    PVAL[DVAL[0] >= threshold] = 0
+    PVAL[DVAL[0] < threshold] = 1
 
 
 def predict(DVAL, LVAL, assign_function, threshold):
@@ -133,6 +133,7 @@ def apply(D, L):
     :return: projected dataset
     """
     W = estimate(D, L)
+    #W = -estimate(D, L)
     DP = project(D, W)
 
     return DP
