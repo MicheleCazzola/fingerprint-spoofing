@@ -1,6 +1,6 @@
 from sys import argv
 
-from gaussian import MVG
+from gaussian import MVG, gaussian_classification
 from src.dimred import lda, pca
 from src.io import fio, constants, plot
 from src.utilities import utilities
@@ -87,4 +87,4 @@ if __name__ == "__main__":
 
     plot.plot_estimated_features(x_domain, y_estimations, features_per_class)
 
-    # MVG(features, labels)
+    gaussian_classification(features, labels)

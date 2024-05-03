@@ -1,10 +1,8 @@
-from sys import argv
-
 import numpy as np
 
-from constants import LABEL_NAMES
+from constants import FILE_PATH_GENERATIVE_GAUSSIAN, GAUSSIAN_ERROR_RATES
 from pca import reduce
-from src.io.fio import load_csv
+from src.io.fio import save_gaussian_classification_results
 from utilities.utilities import vcol, split_db_2to1, vrow, project
 from fitting.fitting import logpdf_GAU_ND, compute_estimators
 
@@ -67,12 +65,13 @@ def MVG(DTE, LTE, mu_c, cov_c, threshold):
     return classify(DTE, LTE, mu_c, cov_c, threshold)
 
 
-def TiedMVG(DTE, LTE, mu_c, cov, threshold):
+def TiedMVG(DTE, LTE, mu_c, cov_c, DTR, LTR, threshold):
+    cov = within_class_covariance(cov_c, DTR, LTR)
     return classify(DTE, LTE, mu_c, np.array([cov] * 2), threshold)
 
 
 def Naive_BayesMVG(DTE, LTE, mu_c, cov_c, threshold):
-    return classify(DTE, LTE, mu_c, cov_c, threshold)
+    return classify(DTE, LTE, mu_c, compute_cov_naive_approx(cov_c), threshold)
 
 
 def compute_correlations(DTR, LTR):
@@ -87,44 +86,22 @@ def classification_analysis(DTR, LTR, DTE, LTE, prior):
 
     return {
         "MVG": MVG(DTE, LTE, mu_c, cov_c, threshold),
-        "Tied MVG": TiedMVG(DTE, LTE, mu_c, within_class_covariance(cov_c, DTR, LTR), threshold),
-        "Naive Bayes MVG": Naive_BayesMVG(DTE, LTE, mu_c, compute_cov_naive_approx(cov_c), threshold)
+        "Tied MVG": TiedMVG(DTE, LTE, mu_c, cov_c, DTR, LTR, threshold),
+        "Naive Bayes MVG": Naive_BayesMVG(DTE, LTE, mu_c, cov_c, threshold)
     }
 
 
-def save_gaussian_classification_results(error_rates, corr_matrices, error_rates_1_4, error_rates_1_2, error_rates_3_4,
-                                         error_rates_pca):
-    print("--All features--")
-    print(error_rates)
-    print()
+def classification_PCA_preprocessing(DTR, LTR, DTE, LTE, prior):
+    error_rates_pca = {}
+    for m in range(2, DTR.shape[0]):
+        P = reduce(DTR, m)
+        DTR_pca, DTE_pca = project(DTR, P), project(DTE, P)
+        error_rates_pca[m] = classification_analysis(DTR_pca, LTR, DTE_pca, LTE, prior)
 
-    print("--Correlation matrices--")
-    for (corr_matrix, label) in zip(corr_matrices, LABEL_NAMES.keys()):
-        print(f"{label} class")
-        for line in corr_matrix:
-            for element in line:
-                print(f"{element: .2f}", end="\t")
-            print()
-        print()
-
-    print("Features 1-4")
-    print(error_rates_1_4)
-    print()
-
-    print("Features 1-2")
-    print(error_rates_1_2)
-    print()
-
-    print("Features 3-4")
-    print(error_rates_3_4)
-    print()
-
-    print("--PCA preprocessing--")
-    print(error_rates_pca)
+    return error_rates_pca
 
 
-def main():
-    D, L = load_csv(argv[1])
+def gaussian_classification(D, L):
 
     (DTR, LTR), (DTE, LTE) = split_db_2to1(D, L)
 
@@ -163,15 +140,7 @@ def main():
 
     # 8: repeat classification, by applying PCA preprocessing
 
-    error_rates_pca = {}
-    for m in range(2, D.shape[0]):
-        P = reduce(DTR, m)
-        DTR_pca, DTE_pca = project(DTR, P), project(DTE, P)
-        error_rates_pca[m] = classification_analysis(DTR_pca, LTR, DTE_pca, LTE, prior)
+    error_rates_pca = classification_PCA_preprocessing(DTR, LTR, DTE, LTE, prior)
 
     save_gaussian_classification_results(error_rates, corr_matrices, error_rates_1_4, error_rates_1_2, error_rates_3_4,
-                                         error_rates_pca)
-
-
-if __name__ == '__main__':
-    main()
+                                         error_rates_pca, FILE_PATH_GENERATIVE_GAUSSIAN, GAUSSIAN_ERROR_RATES)

@@ -59,3 +59,58 @@ def save_LDA_errors(base_error_rate, dimensions, error_rates, path_root, file_na
         fout.write(f"PCA dimensions\tError rate\tError rate (%)\n")
         for (dim, err) in zip(dimensions, error_rates):
             fout.write(f"{dim:^14d}\t{err:^10.4f}\t{100 * err:^13.2f}\n")
+
+
+def build_table(errors):
+    result = ""
+    result += f"{'Method':^16s}{'Error rate':^14s}{'Error rate (%)':^14s}\n"
+    for (alg, err) in errors.items():
+        result += f"{alg:^16s}{err:^14.4f}{100 * err:^14.2f}\n"
+    result += "\n"
+
+    return result
+
+
+def save_gaussian_classification_results(error_rates, corr_matrices, error_rates_1_4, error_rates_1_2, error_rates_3_4,
+                                         error_rates_pca, path_root, file_name):
+
+    with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
+        fout.write("--All features--\n")
+        fout.write(build_table(error_rates))
+
+        fout.write("--Correlation matrices--\n")
+        for (corr_matrix, label) in zip(corr_matrices, LABEL_NAMES.keys()):
+            fout.write(f"{label} class\n")
+            for line in corr_matrix:
+                for element in line:
+                    fout.write(f"{element: .2f}\t")
+                fout.write("\n")
+            fout.write("\n")
+
+        fout.write("--Using subsets of features--\n")
+        fout.write("Features 1-4\n")
+        fout.write(build_table(error_rates_1_4))
+
+        fout.write("Features 1-2\n")
+        fout.write(build_table(error_rates_1_2))
+
+        fout.write("Features 3-4\n")
+        fout.write(build_table(error_rates_3_4))
+
+        fout.write("--PCA preprocessing--\n")
+        fout.write("Error rates\n")
+        fout.write(f"{'PCA dimensions':<16s}{'MVG':^10s}{'Tied MVG':^12s}{'Naive Bayes MVG':^17s}\n")
+        for (m, err) in error_rates_pca.items():
+            fout.write(f"{m:^16d}"
+                       f"{err['MVG']:^10.4f}"
+                       f"{err['Tied MVG']:^12.4f}"
+                       f"{err['Naive Bayes MVG']:^17.4f}\n")
+        fout.write("\n")
+
+        fout.write("Error rates (%)\n")
+        fout.write(f"{'PCA dimensions':<16s}{'MVG':^10s}{'Tied MVG':^12s}{'Naive Bayes MVG':^17s}\n")
+        for (m, err) in error_rates_pca.items():
+            fout.write(f"{m:^16d}"
+                       f"{100 * err['MVG']:^10.2f}"
+                       f"{100 * err['Tied MVG']:^12.2f}"
+                       f"{100 * err['Naive Bayes MVG']:^17.2f}\n")
