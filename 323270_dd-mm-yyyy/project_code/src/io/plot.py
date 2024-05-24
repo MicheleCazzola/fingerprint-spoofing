@@ -167,3 +167,20 @@ def plot_estimated_features(x, y, features):
                        f"estimated_feature_{i + 1}",
                        "pdf")
         i += 1
+
+
+def plot_bayes_errors(eff_prior_log_odds, min_dcf, actual_dcf, eff_prior_log_odd, title, subtitle, x_label, y_label, path, name, extension):
+    plt.figure(name)
+    plt.plot(eff_prior_log_odds, min_dcf, label="Minimum DCF", color="green")
+    plt.plot(eff_prior_log_odds, actual_dcf, label="Actual DCF", color="orange")
+    plt.vlines(x=eff_prior_log_odd, ymin=plt.axis()[2], label="System application", ymax=plt.axis()[3], color="black",
+               linewidth=2, linestyle="dashed")
+    plt.grid()
+    plt.legend()
+    plt.margins(0)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.suptitle(title)
+    plt.title(subtitle, fontsize="medium", fontweight=400)
+    plt.savefig(f"{path}{name}.{extension}")
+    plt.close(name)

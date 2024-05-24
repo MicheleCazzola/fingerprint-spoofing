@@ -1,0 +1,7 @@
+--Applications and associated effective priors--
+Prior  False negative cost (C_fn)  False positive cost (C_fp)  Effective prior 
+ 0.5              1.0                         1.0                    0.5       
+ 0.9              1.0                         1.0                    0.9       
+ 0.1              1.0                         1.0                    0.1       
+ 0.5              1.0                         9.0                    0.1       
+ 0.5              9.0                         1.0                    0.9       

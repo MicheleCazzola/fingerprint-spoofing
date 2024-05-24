@@ -1,0 +1,75 @@
+--Effective prior: 0.1--
+Minimum DCF
+PCA dimensions     MVG      Tied MVG   Naive Bayes MVG 
+       2          0.353      0.363          0.356      
+       3          0.356      0.368          0.365      
+       4          0.301      0.361          0.361      
+       5          0.274      0.365          0.354      
+  Not applied     0.263      0.363          0.257      
+
+Actual DCF
+PCA dimensions     MVG      Tied MVG   Naive Bayes MVG 
+       2          0.388      0.396          0.387      
+       3          0.388      0.408          0.395      
+       4          0.353      0.403          0.397      
+       5          0.304      0.405          0.393      
+  Not applied     0.305      0.406          0.302      
+
+Relative calibration loss (%)
+PCA dimensions     MVG      Tied MVG   Naive Bayes MVG 
+      None        16.06      11.91          17.59      
+       2          10.00       9.09          8.63       
+       3           8.86      10.89          8.36       
+       4          17.17      11.66          9.84       
+       5          11.07      11.03          10.87      
+
+--Effective prior: 0.5--
+Minimum DCF
+PCA dimensions     MVG      Tied MVG   Naive Bayes MVG 
+       2          0.173      0.179          0.171      
+       3          0.173      0.183          0.175      
+       4          0.154      0.182          0.172      
+       5          0.133      0.181          0.174      
+  Not applied     0.130      0.181          0.131      
+
+Actual DCF
+PCA dimensions     MVG      Tied MVG   Naive Bayes MVG 
+       2          0.176      0.185          0.177      
+       3          0.176      0.185          0.180      
+       4          0.161      0.185          0.177      
+       5          0.142      0.186          0.175      
+  Not applied     0.140      0.186          0.144      
+
+Relative calibration loss (%)
+PCA dimensions     MVG      Tied MVG   Naive Bayes MVG 
+      None         7.50       2.64          9.76       
+       2           1.68       3.45          3.48       
+       3           1.42       1.08          3.04       
+       4           4.69       1.60          3.09       
+       5           6.59       2.69          0.75       
+
+--Effective prior: 0.9--
+Minimum DCF
+PCA dimensions     MVG      Tied MVG   Naive Bayes MVG 
+       2          0.438      0.435          0.432      
+       3          0.439      0.434          0.434      
+       4          0.415      0.444          0.431      
+       5          0.351      0.445          0.434      
+  Not applied     0.342      0.442          0.351      
+
+Actual DCF
+PCA dimensions     MVG      Tied MVG   Naive Bayes MVG 
+       2          0.443      0.479          0.442      
+       3          0.468      0.457          0.459      
+       4          0.460      0.462          0.463      
+       5          0.398      0.463          0.466      
+  Not applied     0.400      0.463          0.389      
+
+Relative calibration loss (%)
+PCA dimensions     MVG      Tied MVG   Naive Bayes MVG 
+      None        16.87       4.63          10.92      
+       2           1.15       9.96          2.33       
+       3           6.56       5.14          5.70       
+       4          10.79       3.92          7.35       
+       5          13.33       3.91          7.37       
+

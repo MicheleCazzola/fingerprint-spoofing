@@ -1,5 +1,7 @@
 import numpy as np
-from .constants import LABEL_NAMES
+
+from evaluation.evaluation import relative_mis_calibration, refactor_evaluation_results
+from src.io.constants import LABEL_NAMES
 
 
 def load_csv(filename):
@@ -73,44 +75,117 @@ def build_table(errors):
 
 def save_gaussian_classification_results(error_rates, corr_matrices, error_rates_1_4, error_rates_1_2, error_rates_3_4,
                                          error_rates_pca, path_root, file_name):
+    result = ""
+    result += "--All features--\n"
+    result += build_table(error_rates)
+
+    result += "--Correlation matrices--\n"
+    for (corr_matrix, label) in zip(corr_matrices, LABEL_NAMES.keys()):
+        result += f"{label} class\n"
+        for line in corr_matrix:
+            for element in line:
+                result += f"{element: .2f}\t"
+            result += "\n"
+        result += "\n"
+
+    result += "--Using subsets of features--\n"
+    result += "Features 1-4\n"
+    result += build_table(error_rates_1_4)
+
+    result += "Features 1-2\n"
+    result += build_table(error_rates_1_2)
+
+    result += "Features 3-4\n"
+    result += build_table(error_rates_3_4)
+
+    result += "--PCA preprocessing--\n"
+    result += "Error rates\n"
+    result += f"{'PCA dimensions':<16s}{'MVG':^10s}{'Tied MVG':^12s}{'Naive Bayes MVG':^17s}\n"
+    for (m, err) in error_rates_pca.items():
+        result += (f"{m:^16d}"
+                   f"{err['MVG']:^10.4f}"
+                   f"{err['Tied MVG']:^12.4f}"
+                   f"{err['Naive Bayes MVG']:^17.4f}\n")
+    result += "\n"
+
+    result += "Error rates (%)\n"
+    result += f"{'PCA dimensions':<16s}{'MVG':^10s}{'Tied MVG':^12s}{'Naive Bayes MVG':^17s}\n"
+    for (m, err) in error_rates_pca.items():
+        result += (f"{m:^16d}"
+                   f"{100 * err['MVG']:^10.2f}"
+                   f"{100 * err['Tied MVG']:^12.2f}"
+                   f"{100 * err['Naive Bayes MVG']:^17.2f}\n")
 
     with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
-        fout.write("--All features--\n")
-        fout.write(build_table(error_rates))
+        fout.write(result)
 
-        fout.write("--Correlation matrices--\n")
-        for (corr_matrix, label) in zip(corr_matrices, LABEL_NAMES.keys()):
-            fout.write(f"{label} class\n")
-            for line in corr_matrix:
-                for element in line:
-                    fout.write(f"{element: .2f}\t")
-                fout.write("\n")
-            fout.write("\n")
 
-        fout.write("--Using subsets of features--\n")
-        fout.write("Features 1-4\n")
-        fout.write(build_table(error_rates_1_4))
+def save_application_priors(applications, eff_priors, path_root, file_name):
+    result = ""
+    result += "--Applications and associated effective priors--\n"
+    result += (f"{'Prior':<6s}"
+               f"{'False negative cost (C_fn)':^28s}"
+               f"{'False positive cost (C_fp)':^28s}"
+               f"{'Effective prior':^17s}\n")
 
-        fout.write("Features 1-2\n")
-        fout.write(build_table(error_rates_1_2))
+    for ([prior, c_fn, c_fp], eff_prior) in zip(applications, eff_priors):
+        result += (f"{prior:^6.1f}"
+                   f"{c_fn:^28.1f}"
+                   f"{c_fp:^28.1f}"
+                   f"{eff_prior:^17.1f}\n")
 
-        fout.write("Features 3-4\n")
-        fout.write(build_table(error_rates_3_4))
+    with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
+        fout.write(result)
 
-        fout.write("--PCA preprocessing--\n")
-        fout.write("Error rates\n")
-        fout.write(f"{'PCA dimensions':<16s}{'MVG':^10s}{'Tied MVG':^12s}{'Naive Bayes MVG':^17s}\n")
-        for (m, err) in error_rates_pca.items():
-            fout.write(f"{m:^16d}"
-                       f"{err['MVG']:^10.4f}"
-                       f"{err['Tied MVG']:^12.4f}"
-                       f"{err['Naive Bayes MVG']:^17.4f}\n")
-        fout.write("\n")
 
-        fout.write("Error rates (%)\n")
-        fout.write(f"{'PCA dimensions':<16s}{'MVG':^10s}{'Tied MVG':^12s}{'Naive Bayes MVG':^17s}\n")
-        for (m, err) in error_rates_pca.items():
-            fout.write(f"{m:^16d}"
-                       f"{100 * err['MVG']:^10.2f}"
-                       f"{100 * err['Tied MVG']:^12.2f}"
-                       f"{100 * err['Naive Bayes MVG']:^17.2f}\n")
+def print_DCFs(result, key, m):
+    return (f"{str(m) if m is not None else 'Not applied':^16s}"
+            f"{result['MVG'][key]:^10.3f}"
+            f"{result['Tied MVG'][key]:^12.3f}"
+            f"{result['Naive Bayes MVG'][key]:^17.3f}\n")
+
+
+def print_mis_calibrations(result, m="Not applied"):
+    return (f"{str(m):^16s}"
+            f"{relative_mis_calibration(result['MVG']):^10.2f}"
+            f"{relative_mis_calibration(result['Tied MVG']):^12.2f}"
+            f"{relative_mis_calibration(result['Naive Bayes MVG']):^17.2f}\n")
+
+
+def write_tables(results):
+    print_string = "Minimum DCF\n"
+    print_string += f"{'PCA dimensions':<16s}{'MVG':^10s}{'Tied MVG':^12s}{'Naive Bayes MVG':^17s}\n"
+    for (m, result) in sorted(results.items(), key=lambda x: x[0] if x[0] is not None else np.inf):
+        print_string += print_DCFs(result, "min_dcf", m)
+    print_string += "\n"
+
+    print_string += "Actual DCF\n"
+    print_string += f"{'PCA dimensions':<16s}{'MVG':^10s}{'Tied MVG':^12s}{'Naive Bayes MVG':^17s}\n"
+    for (m, result) in sorted(results.items(), key=lambda x: x[0] if x[0] is not None else np.inf):
+        print_string += print_DCFs(result, "dcf", m)
+    print_string += "\n"
+
+    print_string += "Relative calibration loss (%)\n"
+    print_string += f"{'PCA dimensions':<16s}{'MVG':^10s}{'Tied MVG':^12s}{'Naive Bayes MVG':^17s}\n"
+    for (m, result) in results.items():
+        print_string += print_mis_calibrations(result, m)
+    print_string += "\n"
+
+    return print_string
+
+
+def write_results(eval_results):
+    print_string = ""
+    for (eff_prior, results) in sorted(eval_results.items(), key=lambda x: x[0]):
+        print_string += f"--Effective prior: {eff_prior}--\n"
+        print_string += write_tables(results)
+
+    return print_string
+
+
+def save_gaussian_evaluation_results(results, path_root, file_name):
+    results_formatted = refactor_evaluation_results(results)
+    print_string = write_results(results_formatted)
+
+    with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
+        fout.write(print_string)

@@ -73,3 +73,13 @@ def project(D, M):
     :return: projected dataset
     """
     return M.T @ D
+
+
+def effective_prior(application):
+    """
+    Computes the effective prior of an application
+
+    :param application: application triplet (prior, false negative cost, false positive cost)
+    :return: effective prior
+    """
+    return application[0] * application[1] / (application[0] * application[1] + (1 - application[0]) * application[2])

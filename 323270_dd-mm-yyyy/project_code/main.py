@@ -1,6 +1,10 @@
 from sys import argv
 
-from gaussian import MVG, gaussian_classification
+import numpy as np
+
+from constants import APPLICATIONS, FILE_PATH_GENERATIVE_GAUSSIAN, PLOT_PATH_GENERATIVE_GAUSSIAN
+from fio import save_application_priors, save_gaussian_evaluation_results
+from gaussian import gaussian_classification
 from src.dimred import lda, pca
 from src.io import fio, constants, plot
 from src.utilities import utilities
@@ -48,34 +52,34 @@ if __name__ == "__main__":
     features_projected_LDA = lda.apply(features, labels)
 
     plot.plot_hist(features_projected_LDA[:, labels == 0],
-                    features_projected_LDA[:, labels == 1],
+                   features_projected_LDA[:, labels == 1],
                    0,
-                    f"{constants.PLOT_PATH_LDA}histograms/",
-                    f"LDA direction",
-                    f"LDA direction",
-                    f"LDA_histogram",
-                    "pdf")
+                   f"{constants.PLOT_PATH_LDA}histograms/",
+                   f"LDA direction",
+                   f"LDA direction",
+                   f"LDA_histogram",
+                   "pdf")
 
     PVAL, error_rate, threshold_default = lda.classify(features, labels)
 
     error_rate_trend, red_error_rate_trend = lda.classify_best_threshold(features, labels)
 
     plot.plot_line(error_rate_trend[0], error_rate_trend[1],
-                         f"{constants.PLOT_PATH_LDA}lines/",
-                         "Error rate vs. threshold",
-                         "Threshold",
-                         "Error rate",
-                         "error_rate_threshold",
-                         "pdf",
+                   f"{constants.PLOT_PATH_LDA}lines/",
+                   "Error rate vs. threshold",
+                   "Threshold",
+                   "Error rate",
+                   "error_rate_threshold",
+                   "pdf",
                    (threshold_default, error_rate))
 
     plot.plot_line(red_error_rate_trend[0], red_error_rate_trend[1],
-                         f"{constants.PLOT_PATH_LDA}lines/",
-                         "Error rate vs. threshold",
-                         "Threshold",
-                         "Error rate",
-                         "error_rate_threshold_compact",
-                         "pdf",
+                   f"{constants.PLOT_PATH_LDA}lines/",
+                   "Error rate vs. threshold",
+                   "Threshold",
+                   "Error rate",
+                   "error_rate_threshold_compact",
+                   "pdf",
                    (threshold_default, error_rate))
 
     PCA_preprocessing_dimensions, error_rates = lda.classify_PCA_preprocess(features, labels)
@@ -87,4 +91,27 @@ if __name__ == "__main__":
 
     plot.plot_estimated_features(x_domain, y_estimations, features_per_class)
 
-    gaussian_classification(features, labels)
+    application_priors, evaluation_results, bayes_errors, eff_prior_log_odd = gaussian_classification(features, labels)
+
+    # Save application priors
+    save_application_priors(APPLICATIONS, application_priors,
+                            FILE_PATH_GENERATIVE_GAUSSIAN, "gaussian_application_priors.txt")
+
+    # Save classification results
+    save_gaussian_evaluation_results(evaluation_results,
+                                     FILE_PATH_GENERATIVE_GAUSSIAN,
+                                     "gaussian_evaluation_results.txt")
+
+    # Plot bayes error plots
+    _ = [plot.plot_bayes_errors(model_best_info[1][0],
+                                model_best_info[1][1]["min_dcf"],
+                                model_best_info[1][1]["dcf"],
+                                eff_prior_log_odd,
+                                f"Bayes error plot - {model_name}",
+                                f"PCA {'not applied' if model_best_info[0] is None else f'with {model_best_info[0]} components'}",
+                                "Prior log-odds",
+                                "DCF value",
+                                PLOT_PATH_GENERATIVE_GAUSSIAN,
+                                f"bayes_error_{model_name.replace(' ', '_')}",
+                                "pdf")
+         for (model_name, model_best_info) in bayes_errors.items()]
