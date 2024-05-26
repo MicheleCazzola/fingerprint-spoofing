@@ -76,7 +76,7 @@ class Evaluator:
         M = np.zeros((n_classes, n_classes), dtype=np.int32)
 
         # print(LPR.shape, LTE.shape)
-        for (p, c) in zip(LPR, LTE):
+        for (p, c) in zip(LPR.ravel(), LTE.ravel()):
             M[p, c] += 1
 
         return M
