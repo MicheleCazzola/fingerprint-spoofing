@@ -1,24 +1,11 @@
 from pprint import pprint
 
 import numpy as np
+from src.io.constants import LR_STANDARD, PRIOR_WEIGHTED_LR, GAUSSIAN
+
 
 def relative_mis_calibration(dcfs):
     return 100 * (dcfs["dcf"] - dcfs["min_dcf"]) / dcfs["min_dcf"]
-
-
-def refactor_evaluation_results(results):
-    formatted = {}
-    for (model_name, model_results) in results.items():
-        for result in model_results:
-            prior, data = next(iter(result.items()))
-            m_pca = data.pop('pca')
-            entry = formatted.get(prior, {})
-            entry_data = entry.get(m_pca, {})
-            entry_data[model_name] = data
-            entry[m_pca] = entry_data
-            formatted[prior] = entry
-
-    return formatted
 
 
 class Evaluator:
@@ -50,26 +37,45 @@ class Evaluator:
                 }
             })
 
+    def evaluate2(self, llr, LPR, LTE, **model_params):
+        eff_prior = model_params['eff_prior']
+        M = self.compute_confusion_matrix(LPR, LTE, 2)
+        dummy_risk = Evaluator.dummy_risk(eff_prior, 1, 1)
+        dcf = Evaluator.normalized_DCF(M, eff_prior, dummy_risk)
+        min_dcf = Evaluator.minimum_DCF(llr, LTE, eff_prior, dummy_risk)
+
+        model_results = {
+            "dcf": dcf,
+            "min_dcf": min_dcf,
+            "llr": llr,
+            "LTE": LTE
+        }
+
+        return {
+            "params": model_params,
+            "results": model_results
+        }
+
     def get_results(self):
         return self.results
 
-    def best_configuration(self, eff_prior=None):
-        results, config = self.results, self.data_models
+    @staticmethod
+    def _best_configuration_gaussian(eval_results_prior):
+        best = {"MVG": {}, "Tied MVG": {}, "Naive Bayes MVG": {}}
+        for pca in eval_results_prior:
+            for model_name in eval_results_prior[pca]:
+                config_value = eval_results_prior[pca][model_name]
+                if config_value["min_dcf"] < best[model_name].get("min_dcf", 1):
+                    best[model_name] = config_value
+                    best[model_name]["pca"] = pca if pca != "Not applied" else None
 
-        if eff_prior is not None:
-            results = filter(lambda x: next(iter(x.items()))[0] == eff_prior, self.results)
-            config = filter(lambda x: next(iter(x.items()))[0] == eff_prior, self.data_models)
+        return best
 
-        best_min_dcf = np.inf
-        best_config = {}
-        for (res, conf) in zip(results, config):
-            res_value = next(iter(res.items()))[1]
-            config_value = next(iter(conf.items()))[1]
-            if res_value["min_dcf"] < best_min_dcf:
-                best_min_dcf = res_value["min_dcf"]
-                best_config = config_value
+    @staticmethod
+    def best_configuration(eval_results, mode, eff_prior):
 
-        return best_config
+        if mode == GAUSSIAN:
+            return Evaluator._best_configuration_gaussian(eval_results[eff_prior])
 
     @staticmethod
     def compute_confusion_matrix(LPR, LTE, n_classes):

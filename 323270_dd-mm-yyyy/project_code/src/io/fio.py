@@ -1,6 +1,6 @@
 import numpy as np
 
-from evaluation.evaluation import relative_mis_calibration, refactor_evaluation_results
+from evaluation.evaluation import relative_mis_calibration
 from src.io.constants import LABEL_NAMES
 
 
@@ -155,19 +155,19 @@ def print_mis_calibrations(result, m="Not applied"):
 def write_tables(results):
     print_string = "Minimum DCF\n"
     print_string += f"{'PCA dimensions':<16s}{'MVG':^10s}{'Tied MVG':^12s}{'Naive Bayes MVG':^17s}\n"
-    for (m, result) in sorted(results.items(), key=lambda x: x[0] if x[0] is not None else np.inf):
+    for (m, result) in sorted(results.items(), key=lambda x: x[0] if x[0] != "Not applied" else np.inf):
         print_string += print_DCFs(result, "min_dcf", m)
     print_string += "\n"
 
     print_string += "Actual DCF\n"
     print_string += f"{'PCA dimensions':<16s}{'MVG':^10s}{'Tied MVG':^12s}{'Naive Bayes MVG':^17s}\n"
-    for (m, result) in sorted(results.items(), key=lambda x: x[0] if x[0] is not None else np.inf):
+    for (m, result) in sorted(results.items(), key=lambda x: x[0] if x[0] != "Not applied" else np.inf):
         print_string += print_DCFs(result, "dcf", m)
     print_string += "\n"
 
     print_string += "Relative calibration loss (%)\n"
     print_string += f"{'PCA dimensions':<16s}{'MVG':^10s}{'Tied MVG':^12s}{'Naive Bayes MVG':^17s}\n"
-    for (m, result) in results.items():
+    for (m, result) in sorted(results.items(), key=lambda x: x[0] if x[0] != "Not applied" else np.inf):
         print_string += print_mis_calibrations(result, m)
     print_string += "\n"
 
@@ -184,8 +184,7 @@ def write_results(eval_results):
 
 
 def save_gaussian_evaluation_results(results, path_root, file_name):
-    results_formatted = refactor_evaluation_results(results)
-    print_string = write_results(results_formatted)
+    print_string = write_results(results)
 
     with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
         fout.write(print_string)

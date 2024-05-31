@@ -4,6 +4,8 @@ LABEL_NAMES = {
     True: "Genuine"
 }
 GAUSSIAN_MODELS = ["MVG", "Tied MVG", "Naive Bayes MVG"]
+LR_STANDARD = "LR"
+PRIOR_WEIGHTED_LR = "PWLR"
 
 # PATHS
 PLOT_PATH_ESTIMATIONS = "output/plots/feature_estimation/"
@@ -29,3 +31,7 @@ APPLICATIONS = [
     (0.5, 1.0, 9.0),
     (0.5, 9.0, 1.0)
 ]
+
+# MODELS
+GAUSSIAN = 0
+LOG_REG = 1
