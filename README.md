@@ -172,3 +172,32 @@ minimum DCF on our validation set. Compare all models that you have trained up t
 Gaussian models, in terms of minDCF for the target application π T = 0.1 . Which model(s) achieve(s)
 the best results? What kind of separation rules or distribution assumptions characterize this / these
 model(s)? How are the results related to the characteristics of the dataset features?
+
+## Lab 9 - Support vector machine
+1. Apply the SVM to the project data. Start with the linear model (to avoid excessive training time we
+consider only the models trained with K = 1.0). Train the model with different values of C. As for
+logistic regression, you should employ a logarithmic scale for the values of C. Reasonable values are
+given by numpy.logspace(-5, 0, 11) . Plot the minDCF and actDCF (πT = 0.1) as a function of C
+(again, use a logarithmic scale for the x-axis). What do you observe? Does the regularization coefficient
+significantly affect the results for one or both metrics (remember that, for SVM, low values of C imply
+strong regularization, while large values of C imply weak regularization)? Are the scores well calibrated
+for the target application? What can we conclude on linear SVM? How does it perform compared to
+other linear models? Repeat the analysis with centered data. Are the result significantly different?
+2. We now consider the polynomial kernel. For simplicity, we consider only the kernel with d = 2, c = 1 (but
+better results may be possible with different configurations), and we set ξ = 0 , since the kernel already
+implicitly accounts for the bias term (due to c = 1 ). We also consider only the original, non-centered
+features (again, different pre-processing strategies may lead to better results). Train the model with
+different values of C, and compare the results in terms of minDCF and actDCF. What do you observe
+with quadratic models? In light of the characteristics of the dataset and of the classifier, are the results
+consistent with previous models (logistic regression and MVG models) in terms of minDCF? What about
+actDCF?
+3. For RBF kernel we need to optimize both γ and C (since the RBF kernel does not implicitly account
+for the bias term we set ξ = 1 ). We adopt a grid search approach, i.e., we consider different values
+of γ and different values of C , and try all possible combinations. For γ we suggest you analyze values
+γ ∈ [e-4, e-3, e-2, e-1], while for C, to avoid excessive time but obtain a good coverage of possible
+good values we suggest log-spaced values numpy.logspace(-3, 2, 11) (of course, you are free to
+experiment with other values if you so wish). Train all models obtained by combining the values of γ
+and of C . Plot minDCF and actDCF as a function of C , with a different line for each value of γ (i.e.,
+four lines for minDCF and four lines for actDCF). Analyze the results. Are there values of γ and C that
+provide better results? Are the scores well calibrated? How the result compare to previous models? Are
+there characteristics of the dataset that can be better captured by RBF kernels?
