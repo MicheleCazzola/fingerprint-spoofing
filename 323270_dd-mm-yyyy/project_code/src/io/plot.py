@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from .constants import LABEL_NAMES, PLOT_PATH_ESTIMATIONS
+from src.io.constants import LABEL_NAMES, PLOT_PATH_ESTIMATIONS
 
 
 def plot_feature_distributions(features, labels, path_root, title_prefix, axes_prefix, name_prefix_hist,
@@ -169,7 +169,8 @@ def plot_estimated_features(x, y, features):
         i += 1
 
 
-def plot_bayes_errors(eff_prior_log_odds, min_dcf, actual_dcf, eff_prior_log_odd, title, subtitle, x_label, y_label, path, name, extension):
+def plot_bayes_errors(eff_prior_log_odds, min_dcf, actual_dcf, eff_prior_log_odd, title, subtitle, x_label, y_label,
+                      path, name, extension):
     plt.figure(name)
     plt.plot(eff_prior_log_odds, min_dcf, label="Minimum DCF", color="green")
     plt.plot(eff_prior_log_odds, actual_dcf, label="Actual DCF", color="orange")
@@ -182,5 +183,23 @@ def plot_bayes_errors(eff_prior_log_odds, min_dcf, actual_dcf, eff_prior_log_odd
     plt.ylabel(y_label)
     plt.suptitle(title)
     plt.title(subtitle, fontsize="medium", fontweight=400)
+    plt.savefig(f"{path}{name}.{extension}")
+    plt.close(name)
+
+
+def plot_log_double_line(x, y1, y2, title, subtitle, x_label, y_label, legend1, legend2, path, name, extension):
+    plt.figure(name)
+    plt.xscale('log', base=10)
+    plt.plot(x, y1, label=legend1)
+    plt.plot(x, y2, label=legend2)
+    plt.grid()
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.legend()
+    if subtitle:
+        plt.suptitle(title, fontsize="large")
+        plt.title(subtitle, fontsize="medium")
+    else:
+        plt.title(title)
     plt.savefig(f"{path}{name}.{extension}")
     plt.close(name)

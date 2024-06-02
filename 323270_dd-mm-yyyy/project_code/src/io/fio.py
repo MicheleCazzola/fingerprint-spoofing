@@ -174,7 +174,7 @@ def write_tables(results):
     return print_string
 
 
-def write_results(eval_results):
+def write_gaussian_results(eval_results):
     print_string = ""
     for (eff_prior, results) in sorted(eval_results.items(), key=lambda x: x[0]):
         print_string += f"--Effective prior: {eff_prior}--\n"
@@ -184,7 +184,22 @@ def write_results(eval_results):
 
 
 def save_gaussian_evaluation_results(results, path_root, file_name):
-    print_string = write_results(results)
+    print_string = write_gaussian_results(results)
+
+    with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
+        fout.write(print_string)
+
+
+def write_LR_results(eval_results):
+    print_string = "--Minimum DCFs--\n"
+    for (min_dcf, reg_coeff, task_name) in eval_results:
+        print_string += f"{task_name:<70s}: {min_dcf:.3f} (λ = {reg_coeff:.2f})\n"
+
+    return print_string
+
+
+def save_LR_evaluation_results(results, path_root, file_name):
+    print_string = write_LR_results(results)
 
     with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
         fout.write(print_string)

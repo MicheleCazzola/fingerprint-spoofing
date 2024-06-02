@@ -13,9 +13,11 @@ PLOT_PATH_PCA = "output/plots/PCA_features/"
 PLOT_PATH_LDA = "output/plots/LDA/"
 PLOT_PATH = "output/plots/original_features/"
 PLOT_PATH_GENERATIVE_GAUSSIAN = "output/plots/generative_models/gaussian/"
+PLOT_PATH_LOGISTIC_REGRESSION = "output/plots/logistic_regression/"
 FILE_PATH = "output/files/original_features/"
 FILE_PATH_LDA = "output/files/LDA/"
 FILE_PATH_GENERATIVE_GAUSSIAN = "output/files/generative_models/gaussian/"
+FILE_PATH_LOGISTIC_REGRESSION = "output/files/logistic_regression/"
 
 
 # FILE NAMES

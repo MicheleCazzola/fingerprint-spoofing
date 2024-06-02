@@ -1,0 +1,6 @@
+--Minimum DCFs--
+Logistic Regression for standard non-weighted model data centering    : 0.361 (λ = 0.01)
+Logistic Regression for filtered non-weighted model data centering    : 0.378 (λ = 10.00)
+Prior-weighted Logistic Regression data centering                     : 0.362 (λ = 31.62)
+Prior-weighted Logistic Regression with expanded feature space data centering: 0.244 (λ = 0.03)
+Prior-weighted Logistic Regression with preprocessing data centering  : 0.362 (λ = 31.62)

@@ -1,10 +1,9 @@
 from sys import argv
-
-import numpy as np
-
-from constants import APPLICATIONS, FILE_PATH_GENERATIVE_GAUSSIAN, PLOT_PATH_GENERATIVE_GAUSSIAN
-from fio import save_application_priors, save_gaussian_evaluation_results
+from constants import (APPLICATIONS, FILE_PATH_GENERATIVE_GAUSSIAN, PLOT_PATH_GENERATIVE_GAUSSIAN,
+                       FILE_PATH_LOGISTIC_REGRESSION)
+from fio import save_application_priors, save_gaussian_evaluation_results, save_LR_evaluation_results
 from gaussian import gaussian_classification
+from discriminative.logreg import LR_classification
 from src.dimred import lda, pca
 from src.io import fio, constants, plot
 from src.utilities import utilities
@@ -20,7 +19,6 @@ if __name__ == "__main__":
     except FileNotFoundError:
         exit(f"File {argv[1]} not found")
 
-    '''
     # Plot distributions of the features
     plot.plot_feature_distributions(features, labels,
                                     constants.PLOT_PATH,
@@ -91,7 +89,6 @@ if __name__ == "__main__":
     x_domain, y_estimations, features_per_class = fitting.gaussian_estimation(features, labels)
 
     plot.plot_estimated_features(x_domain, y_estimations, features_per_class)
-    '''
 
     application_priors, evaluation_results, bayes_errors, eff_prior_log_odd = gaussian_classification(features, labels)
 
@@ -110,10 +107,15 @@ if __name__ == "__main__":
                                 model_best_info[1][1]["dcf"],
                                 eff_prior_log_odd,
                                 f"Bayes error plot - {model_name}",
-                                f"PCA {'not applied' if model_best_info[0] is None else (f'with {model_best_info[0]} components')}",
+                                f'''PCA {'not applied' if model_best_info[0] is None else
+                                    f'with {model_best_info[0]} components'}''',
                                 "Prior log-odds",
                                 "DCF value",
                                 PLOT_PATH_GENERATIVE_GAUSSIAN,
                                 f"bayes_error_{model_name.replace(' ', '_')}",
                                 "pdf")
          for (model_name, model_best_info) in bayes_errors.items()]
+
+    eval_results_best = LR_classification(features, labels)
+
+    save_LR_evaluation_results(eval_results_best, FILE_PATH_LOGISTIC_REGRESSION, "LR_evaluation_results.txt")

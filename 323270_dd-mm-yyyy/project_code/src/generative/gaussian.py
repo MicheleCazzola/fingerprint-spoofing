@@ -1,5 +1,3 @@
-from pprint import pprint
-
 import numpy as np
 
 from constants import FILE_PATH_GENERATIVE_GAUSSIAN, GAUSSIAN_ERROR_RATES, GAUSSIAN_MODELS, APPLICATIONS, GAUSSIAN
@@ -64,18 +62,9 @@ def compute_predictions(DTE, LTE, mu_c, cov_c, thresholds):
     return llr, LPRs
 
 
-
 def classify(DTE, LTE, mu_c, cov_c, eff_priors, m_pca, evaluate, eval_results, model_name):
-
     thresholds = [set_threshold(1 - eff_prior, eff_prior) for eff_prior in eff_priors]
-    '''
-    if evaluate:
-        llr, LPRs = compute_predictions(DTE, LTE, mu_c, cov_c, thresholds)
-    else:
-        llr, LPRs = compute_predictions(DTE, LTE, mu_c, cov_c, thresholds)
-    '''
     llr, LPRs = compute_predictions(DTE, LTE, mu_c, cov_c, thresholds)
-    #eval_result = {}
     if evaluate:
         evaluator = Evaluator("Gaussian")
         for (eff_prior, LPR) in zip(eff_priors, LPRs):
@@ -102,7 +91,8 @@ def TiedMVG(DTE, LTE, mu_c, cov_c, DTR, LTR, eff_priors, m_pca, evaluate, eval_r
 
 
 def Naive_BayesMVG(DTE, LTE, mu_c, cov_c, eff_priors, m_pca, evaluate, eval_results):
-    return classify(DTE, LTE, mu_c, compute_cov_naive_approx(cov_c), eff_priors, m_pca, evaluate, eval_results, "Naive Bayes MVG")
+    return classify(DTE, LTE, mu_c, compute_cov_naive_approx(cov_c), eff_priors, m_pca, evaluate, eval_results,
+                    "Naive Bayes MVG")
 
 
 def compute_correlations(DTR, LTR):
@@ -145,7 +135,8 @@ def gaussian_classification(D, L):
     # 2: 9.3 % (same as LDA)
     # 3: 7.2 %
     eval_results = {0.1: {}, 0.5: {}, 0.9: {}}
-    error_rates = classification_analysis(DTR, LTR, DTE, LTE, system_applications, evaluate=True, eval_results=eval_results)
+    error_rates = classification_analysis(DTR, LTR, DTE, LTE, system_applications, evaluate=True,
+                                          eval_results=eval_results)
 
     # 4: low correlation, but not null -> Indeed Naive is good, but little worse than MVG
     corr_matrices = compute_correlations(DTR, LTR)
@@ -182,7 +173,6 @@ def gaussian_classification(D, L):
     # Get the best configuration for each evaluator
     eff_prior_conf = 0.1
     best_configurations = Evaluator.best_configuration(eval_results, GAUSSIAN, eff_prior_conf)
-    #best_configurations = {model_name: Evaluator.best_configuration(0.1) for (model_name, evaluator) in evaluators.items()}
 
     # Compute bayes errors
     bayes_errors = {model_name: (config["pca"], Evaluator.bayes_error(config["llr"], config["LTE"]))
