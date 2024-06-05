@@ -166,16 +166,17 @@ def LR_classification(D, L):
     eval_results_best = []
     for (result, title, file_name) in zip(results, titles, file_names):
         [dcf, min_dcf, reg_coeff] = result["results"]
-        eval_results_best.append((np.min(min_dcf), reg_coeff[np.argmin(min_dcf)], title.replace(" DCFs", "") + " data centering" ))
+        eval_results_best.append([np.min(min_dcf), reg_coeff[np.argmin(min_dcf)], title.replace(" DCFs", "")])
         plot_log_double_line(reg_coefficients, dcf, min_dcf,
-                             title,
-                             result["preprocess"] if result["preprocess"] is not None else "",
-                             "Regularization coefficient",
-                             "DCF value",
-                             "DCF",
-                             "Min. DCF",
-                             PLOT_PATH_LOGISTIC_REGRESSION,
-                             file_name,
-                             "pdf")
+                                title,
+                                "Regularization coefficient",
+                                "DCF value",
+                                "DCF",
+                                "Min. DCF",
+                                PLOT_PATH_LOGISTIC_REGRESSION,
+                                file_name,
+                                "pdf",
+                                result["preprocess"] if result["preprocess"] is not None else "")
+    eval_results_best[-1][2] += " (data centering)"
 
     return eval_results_best

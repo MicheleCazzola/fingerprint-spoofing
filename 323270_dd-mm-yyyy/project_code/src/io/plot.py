@@ -187,12 +187,13 @@ def plot_bayes_errors(eff_prior_log_odds, min_dcf, actual_dcf, eff_prior_log_odd
     plt.close(name)
 
 
-def plot_log_double_line(x, y1, y2, title, subtitle, x_label, y_label, legend1, legend2, path, name, extension):
+def plot_log_double_line(x, y1, y2, title, x_label, y_label, legend1, legend2, path, name, extension, subtitle=None):
     plt.figure(name)
     plt.xscale('log', base=10)
     plt.plot(x, y1, label=legend1)
     plt.plot(x, y2, label=legend2)
     plt.grid()
+    plt.margins(0.1)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.legend()
@@ -201,5 +202,21 @@ def plot_log_double_line(x, y1, y2, title, subtitle, x_label, y_label, legend1, 
         plt.title(subtitle, fontsize="medium")
     else:
         plt.title(title)
+    plt.savefig(f"{path}{name}.{extension}")
+    plt.close(name)
+
+
+def plot_log_N_double_lines(x, ys1, ys2, title, x_label, y_label, legends1, legends2, path, name, extension):
+    plt.figure(name)
+    plt.xscale('log', base=10)
+    for (y1, y2, legend1, legend2) in zip(ys1, ys2, legends1, legends2):
+        plt.plot(x, ys1[y1], label=legend1)
+        plt.plot(x, ys2[y2], label=legend2)
+    plt.grid()
+    plt.margins(0.1)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.legend()
+    plt.title(title)
     plt.savefig(f"{path}{name}.{extension}")
     plt.close(name)

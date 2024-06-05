@@ -192,7 +192,7 @@ def save_gaussian_evaluation_results(results, path_root, file_name):
 
 def write_LR_results(eval_results):
     print_string = "--Minimum DCFs--\n"
-    for (min_dcf, reg_coeff, task_name) in eval_results:
+    for [min_dcf, reg_coeff, task_name] in eval_results:
         print_string += f"{task_name:<70s}: {min_dcf:.3f} (λ = {reg_coeff:.2f})\n"
 
     return print_string
@@ -200,6 +200,29 @@ def write_LR_results(eval_results):
 
 def save_LR_evaluation_results(results, path_root, file_name):
     print_string = write_LR_results(results)
+
+    with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
+        fout.write(print_string)
+
+
+def write_SVM_results(results):
+    task_names = results["tasks"]
+    best_results = results["results"]
+
+    print_string = "--Minimum DCFs--\n"
+    for (task_name, best_result) in zip(task_names[:-1], best_results[:-1]):
+        print_string += f"{task_name}: {best_result[1]:.3f} (C = {best_result[0]:.3f})\n"
+
+    print_string += f"{task_names[-1]}:\n"
+    print_string += f"{'Scale':^7s}{'Minimum DCF':^13s}{'C':^7s}\n"
+    for (rbf, best_rbf) in best_results[-1].items():
+        print_string += f"{rbf:^7.3f}{best_rbf[1]:^13.3f}{best_rbf[0]:^7.3f}\n"
+
+    return print_string
+
+
+def save_SVM_evaluation_results(results, path_root, file_name):
+    print_string = write_SVM_results(results)
 
     with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
         fout.write(print_string)

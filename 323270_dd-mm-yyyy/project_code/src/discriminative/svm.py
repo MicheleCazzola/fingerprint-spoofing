@@ -1,22 +1,20 @@
-from pprint import pprint
-from sys import argv
-
 import numpy as np
 import scipy.optimize as scopt
 import scipy.linalg as alg
-from matplotlib import pyplot as plt
 
+from constants import PLOT_PATH_SVM
 from evaluation.evaluation import Evaluator
-from fio import load_csv
-from utilities.utilities import split_db_2to1
+from plot import plot_log_double_line, plot_log_N_double_lines
+from utilities.utilities import split_db_2to1, vcol, vrow
 
 
-def vrow(array):
-    return array.reshape(1, array.size)
+def optimal_bayes(svm, evaluator, DVAL, LVAL, app_prior):
+    llr = svm.score(DVAL)
+    LPR = svm.predict(DVAL, app_prior)
 
-
-def vcol(array):
-    return array.reshape(array.size, 1)
+    min_dcf, dcf = map(evaluator.evaluate2(llr, LPR, LVAL, eff_prior=app_prior).get("results").get,
+                       ["min_dcf", "dcf"])
+    return min_dcf, dcf
 
 
 class SupportVectorMachine:
@@ -68,7 +66,6 @@ class SupportVectorMachine:
     def fit(self, DTR, LTR, C, primal=False, **kernel_args):
         self.setParams(C=C)
         n = DTR.shape[1]
-        D = DTR.shape[0]
 
         self.kernel_args = kernel_args
         G = self._kernel_fun(DTR, DTR, kernel_args)
@@ -117,182 +114,132 @@ class SupportVectorMachine:
         return LPR
 
 
-def linear_svm(DTR, LTR, DVAL, LVAL, app_prior):
+def linear_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator, c_values):
     results_min_dcf, results_dcf = [], []
-    svm = SupportVectorMachine(K=1.0)
-    evaluator = Evaluator("SVM_linear")
-    cv = np.logspace(-5, 0, 11)
 
-    print("--LINEAR KERNEL--")
-    print("K,C,Primal loss,Dual loss,Duality gap,Error rate (%),Minimum DCF,DCF")
-    for c in cv:
+    for c in c_values:
         svm.fit(DTR, LTR, c, primal=True, degree=1, offset=0)
 
-        llr = svm.score(DVAL)
-        LPR = svm.predict(DVAL, app_prior)
+        min_dcf, dcf = optimal_bayes(svm, evaluator, DVAL, LVAL, app_prior)
 
-        error_rate = 100 * np.sum(LPR != LVAL) / LVAL.shape[0]
-        min_dcf, dcf = map(evaluator.evaluate2(llr, LPR, LVAL, eff_prior=app_prior).get("results").get, ["min_dcf", "dcf"])
-        p_loss, d_loss, d_gap = svm.primal_loss, svm.dual_loss, svm.duality_gap
-
-        print(f"1,{c},{p_loss:.6e},{d_loss:.6e},{d_gap:.6e},{error_rate:.1f},{min_dcf:.4f},{dcf:.4f}")
         results_min_dcf.append(min_dcf)
         results_dcf.append(dcf)
 
-    return cv, results_min_dcf, results_dcf
+    return results_min_dcf, results_dcf
 
 
-def poly_svm(DTR, LTR, DVAL, LVAL, app_prior):
+def poly_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator, c_values):
     results_min_dcf, results_dcf = [], []
-    svm = SupportVectorMachine(K=0)
-    evaluator = Evaluator("SVM_linear")
-    cv = np.logspace(-5, 0, 11)
 
-    print("--Polynomial KERNEL (degree=2, offset=1)--")
-    print("K,C,Dual loss,Error rate (%),Minimum DCF,DCF")
-    for c in cv:
+    for c in c_values:
         svm.fit(DTR, LTR, c, primal=False, degree=2, offset=1)
 
-        llr = svm.score(DVAL)
-        LPR = svm.predict(DVAL, app_prior)
+        min_dcf, dcf = optimal_bayes(svm, evaluator, DVAL, LVAL, app_prior)
 
-        error_rate = 100 * np.sum(LPR != LVAL) / LVAL.shape[0]
-        min_dcf, dcf = map(evaluator.evaluate2(llr, LPR, LVAL, eff_prior=app_prior).get("results").get,
-                           ["min_dcf", "dcf"])
-        _, d_loss, _ = svm.primal_loss, svm.dual_loss, svm.duality_gap
-
-        print(f"1,{c},{d_loss:.6e},{error_rate:.1f},{min_dcf:.4f},{dcf:.4f}")
         results_min_dcf.append(min_dcf)
         results_dcf.append(dcf)
 
-    return cv, results_min_dcf, results_dcf
+    return results_min_dcf, results_dcf
 
 
-def rbf_svm(DTR, LTR, DVAL, LVAL, app_prior):
+def rbf_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator, c_values, scale_values):
     results_min_dcf, results_dcf = {}, {}
-    svm = SupportVectorMachine(K=1)
-    evaluator = Evaluator("SVM_linear")
-    cv = np.logspace(-5, 0, 11)
-    scale_values = np.exp(np.array(range(-4,0)))
 
-    print("--RBF KERNEL (bias = 1)--")
-    print("K,C,Dual loss,Error rate (%),Minimum DCF,DCF")
     for scale in scale_values:
         res_min, res_act = [], []
-        for c in cv:
+        for c in c_values:
             svm.setParams(ker_type='rbf')
             svm.fit(DTR, LTR, c, primal=False, scale=scale)
 
-            llr = svm.score(DVAL)
-            LPR = svm.predict(DVAL, app_prior)
+            min_dcf, dcf = optimal_bayes(svm, evaluator, DVAL, LVAL, app_prior)
 
-            error_rate = 100 * np.sum(LPR != LVAL) / LVAL.shape[0]
-            min_dcf, dcf = map(evaluator.evaluate2(llr, LPR, LVAL, eff_prior=app_prior).get("results").get,
-                               ["min_dcf", "dcf"])
-            _, d_loss, _ = svm.primal_loss, svm.dual_loss, svm.duality_gap
-
-            print(f"1,{c},{d_loss:.6e},{error_rate:.1f},{min_dcf:.4f},{dcf:.4f}")
             res_min.append(min_dcf)
             res_act.append(dcf)
 
         results_min_dcf[scale] = res_min
         results_dcf[scale] = res_act
 
-    return cv, results_min_dcf, results_dcf
+    return results_min_dcf, results_dcf
 
 
-def plot_log_double_line(x, y1, y2, title, x_label, y_label, legend1, legend2):
-    plt.figure(title)
-    plt.xscale('log', base=10)
-    plt.plot(x, y1, label=legend1)
-    plt.plot(x, y2, label=legend2)
-    plt.grid()
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    plt.legend()
-    plt.title(title)
-
-
-def plot_log_N_double_lines(x, ys1, ys2, title, x_label, y_label, legends1, legends2):
-    plt.figure(title)
-    plt.xscale('log', base=10)
-    for (y1, y2, legend1, legend2) in zip(ys1, ys2, legends1, legends2):
-        plt.plot(x, ys1[y1], label=legend1)
-        plt.plot(x, ys2[y2], label=legend2)
-    plt.grid()
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    plt.legend()
-    plt.title(title)
-
-
-def main():
-    D, L = load_csv(argv[1])
+def svm(D, L):
+    # Dataset random filtering (1/3)
     np.random.seed(0)
-    idx = np.random.permutation(D.shape[1])[0:D.shape[1] // 3]
+    idx = np.random.permutation(D.shape[1])[0:D.shape[1] // 6]
     D = D[:, idx]
     L = L[idx]
     (DTR, LTR), (DVAL, LVAL) = split_db_2to1(D, L)
 
     app_prior = 0.1
+    c_values = np.logspace(-5, 0, 11)
+    scale_values_rbf = np.exp(np.array(range(-4, 0)))
+    svm = SupportVectorMachine(K=1.0)
+    evaluator = Evaluator("SVM")
+
+    eval_results = [{"min_dcf": [], "dcf": []} for _ in range(0, 4)]
+    best_results = [()] * 3 + [{}]
+    task_names = [
+        "SVM with linear kernel",
+        "SVM with linear kernel and data centering",
+        "SVM with polynomial kernel",
+        "SVM with RBF kernel"
+    ]
+
+    titles = [
+        "SVM linear kernel no preprocess",
+        "SVM linear kernel with data centering",
+        "SVM polynomial kernel (degree=2, offset=1)",
+        "SVM RBF kernel (bias = 1)"
+    ]
+
+    names = [
+        "linear_no_preprocessing",
+        "linear_data_centering",
+        "quadratic_no_preprocessing",
+        "RBF_kernel_bias1",
+    ]
 
     # Linear SVM, no preprocessing
-    cv, eval_results_min_dcf, eval_results_dcf = linear_svm(DTR, LTR, DVAL, LVAL, app_prior)
-
-    plot_log_double_line(cv, eval_results_min_dcf, eval_results_dcf,
-                         "SVM linear kernel no preprocess",
-                         "Regularization values",
-                         "DCF values",
-                         "Min. DCF",
-                         "DCF")
-
-    best_linear = (cv[np.argmin(eval_results_min_dcf)], np.min(eval_results_min_dcf))
+    eval_results[0]["min_dcf"], eval_results[0]["dcf"] = linear_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator,
+                                                                    c_values)
 
     # Linear SVM, data centering
     DTR_mean = vcol(np.sum(DTR, axis=1)) / DTR.shape[1]
     DTR_preprocess, DVAL_preprocess = DTR - DTR_mean, DVAL - DTR_mean
-    cv, eval_results_min_dcf, eval_results_dcf = linear_svm(DTR_preprocess, LTR, DVAL_preprocess, LVAL, app_prior)
-
-    plot_log_double_line(cv, eval_results_min_dcf, eval_results_dcf,
-                         "SVM linear kernel with data centering",
-                         "Regularization values",
-                         "DCF values",
-                         "Min. DCF",
-                         "DCF")
-
-    best_linear_preprocess = (cv[np.argmin(eval_results_min_dcf)], np.min(eval_results_min_dcf))
+    eval_results[1]["min_dcf"], eval_results[1]["dcf"] = linear_svm(DTR_preprocess, LTR, DVAL_preprocess, LVAL,
+                                                                    app_prior, svm,
+                                                                    evaluator, c_values)
 
     # Polynomial SVM (degree=2, offset=1)
-    cv, eval_results_min_dcf, eval_results_dcf = poly_svm(DTR, LTR, DVAL, LVAL, app_prior)
-
-    plot_log_double_line(cv, eval_results_min_dcf, eval_results_dcf,
-                         "SVM polynomial kernel (degree=2, offset=1)",
-                         "Regularization values",
-                         "DCF values",
-                         "Min. DCF",
-                         "DCF")
-
-    best_poly = (cv[np.argmin(eval_results_min_dcf)], np.min(eval_results_min_dcf))
+    svm.setParams(K=0.0)
+    eval_results[2]["min_dcf"], eval_results[2]["dcf"] = poly_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator,
+                                                                  c_values)
 
     # RBF SVM (bias = 1), scale = [e-4, e-3, e-2, e-1]
-    cv, eval_results_min_dcf, eval_results_dcf = rbf_svm(DTR, LTR, DVAL, LVAL, app_prior)
+    svm.setParams(K=1.0, ker_type="rbf")
+    eval_results[3]["min_dcf"], eval_results[3]["dcf"] = rbf_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator,
+                                                                 c_values, scale_values_rbf)
 
-    plot_log_N_double_lines(cv, eval_results_min_dcf, eval_results_dcf,
-                            "SVM RBF kernel (bias = 1)",
-                            "Regularization values",
-                            "DCF values",
+    for i in range(len(best_results[:-1])):
+        eval_result = eval_results[i]
+        best_results[i] = (c_values[np.argmin(eval_result["min_dcf"])], np.min(eval_result["dcf"]))
+
+    best_results[-1] = {
+        scale: (c_values[np.argmin(eval_results[-1]["min_dcf"][scale])], np.min(eval_results[-1]["min_dcf"][scale]))
+        for scale in eval_results[-1]["min_dcf"]}
+
+    for (eval_result, title, name) in zip(eval_results[:-1], titles[:-1], names[:-1]):
+        plot_log_double_line(c_values, eval_result["min_dcf"], eval_result["dcf"],
+                             title, "Regularization values", "DCF values", "Min. DCF", "DCF",
+                             PLOT_PATH_SVM, name, "pdf")
+
+    plot_log_N_double_lines(c_values, eval_results[-1]["min_dcf"], eval_results[-1]["dcf"],
+                            titles[-1], "Regularization values", "DCF values",
                             ["Min. DCF (g=e-4)", "Min. DCF (g=e-3)", "Min. DCF (g=e-2)", "Min. DCF (g=e-1)"],
-                            ["DCF (g=e-4)", "DCF (g=e-3)", "DCF (g=e-2)", "DCF (g=e-1)"])
+                            ["DCF (g=e-4)", "DCF (g=e-3)", "DCF (g=e-2)", "DCF (g=e-1)"],
+                            PLOT_PATH_SVM, names[-1], "pdf")
 
-    best_rbf = {scale: (cv[np.argmin(eval_results_min_dcf[scale])], np.min(eval_results_min_dcf[scale])) for scale in eval_results_min_dcf}
-
-    pprint(best_linear)
-    pprint(best_linear_preprocess)
-    pprint(best_poly)
-    pprint(best_rbf)
-
-    plt.show()
-
-
-if __name__ == '__main__':
-    main()
+    return {
+        "tasks": task_names,
+        "results": best_results
+    }
