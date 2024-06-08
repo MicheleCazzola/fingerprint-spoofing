@@ -5,7 +5,8 @@ from fio import save_application_priors, save_gaussian_evaluation_results, save_
 from gaussian import gaussian_classification
 from discriminative.logreg import LR_classification
 from discriminative.svm import svm
-from src.dimred import lda, pca
+from src.dimred import lda, pca_old
+from src.dimred.pca import PCA
 from src.io import fio, constants, plot
 from src.utilities import utilities
 from src.fitting import fitting
@@ -20,35 +21,37 @@ if __name__ == "__main__":
     except FileNotFoundError:
         exit(f"File {argv[1]} not found")
 
+    pca = PCA()
+
     # Plot distributions of the features
-    # plot.plot_feature_distributions(features, labels,
-    #                                 constants.PLOT_PATH,
-    #                                 "Feature",
-    #                                 "Feature",
-    #                                 "histogram",
-    #                                 "scatter",
-    #                                 "pdf")
-    #
-    # # Compute and print mean and variance per class for each feature
-    # statistics = utilities.compute_statistics(features, labels,
-    #                                           Mean=lambda array, ax, labels: (
-    #                                               array[:, labels == 0].mean(axis=ax),
-    #                                               array[:, labels == 1].mean(axis=ax)),
-    #                                           Variance=lambda array, ax, labels: (
-    #                                               array[:, labels == 0].var(axis=ax),
-    #                                               array[:, labels == 1].var(axis=ax)))
-    #
-    # fio.save_statistics(statistics, constants.FILE_PATH, "feature_statistics.txt")
-    #
-    # features_projected_PCA = pca.apply(features, 6)
-    #
-    # plot.plot_feature_distributions(features_projected_PCA, labels, constants.PLOT_PATH_PCA,
-    #                                 "PCA feature",
-    #                                 "PCA feature",
-    #                                 "PCA_histogram",
-    #                                 "PCA_scatter",
-    #                                 "pdf")
-    #
+    plot.plot_feature_distributions(features, labels,
+                                    constants.PLOT_PATH,
+                                    "Feature",
+                                    "Feature",
+                                    "histogram",
+                                    "scatter",
+                                    "pdf")
+
+    # Compute and print mean and variance per class for each feature
+    statistics = utilities.compute_statistics(features, labels,
+                                              Mean=lambda array, ax, labels: (
+                                                  array[:, labels == 0].mean(axis=ax),
+                                                  array[:, labels == 1].mean(axis=ax)),
+                                              Variance=lambda array, ax, labels: (
+                                                  array[:, labels == 0].var(axis=ax),
+                                                  array[:, labels == 1].var(axis=ax)))
+
+    fio.save_statistics(statistics, constants.FILE_PATH, "feature_statistics.txt")
+
+    features_projected_PCA = pca.fit_transform(features, n_components=6)
+
+    plot.plot_feature_distributions(features_projected_PCA, labels, constants.PLOT_PATH_PCA,
+                                    "PCA feature",
+                                    "PCA feature",
+                                    "PCA_histogram",
+                                    "PCA_scatter",
+                                    "pdf")
+
     # features_projected_LDA = lda.apply(features, labels)
     #
     # plot.plot_hist(features_projected_LDA[:, labels == 0],
@@ -117,10 +120,10 @@ if __name__ == "__main__":
     #                             "pdf")
     #      for (model_name, model_best_info) in bayes_errors.items()]
     #
-    eval_results_best = LR_classification(features, labels)
+    # eval_results_best = LR_classification(features, labels)
     #
-    save_LR_evaluation_results(eval_results_best, FILE_PATH_LOGISTIC_REGRESSION, "LR_evaluation_results.txt")
-
-    best_results = svm(features, labels)
-
-    save_SVM_evaluation_results(best_results, FILE_PATH_SVM, "SVM_evaluation_results.txt")
+    # save_LR_evaluation_results(eval_results_best, FILE_PATH_LOGISTIC_REGRESSION, "LR_evaluation_results.txt")
+    #
+    # best_results = svm(features, labels)
+    #
+    # save_SVM_evaluation_results(best_results, FILE_PATH_SVM, "SVM_evaluation_results.txt")

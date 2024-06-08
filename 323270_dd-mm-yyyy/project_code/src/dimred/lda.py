@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.linalg import linalg
-from . import pca
+from . import pca_old
 from src.utilities.utilities import vcol, split_db_2to1, project
 
 

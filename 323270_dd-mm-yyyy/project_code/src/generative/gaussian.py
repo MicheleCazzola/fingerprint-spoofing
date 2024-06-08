@@ -3,7 +3,7 @@ import numpy as np
 from constants import FILE_PATH_GENERATIVE_GAUSSIAN, GAUSSIAN_ERROR_RATES, GAUSSIAN_MODELS, APPLICATIONS, GAUSSIAN
 from evaluation.evaluation import Evaluator
 from fitting.fitting import logpdf_GAU_ND, compute_estimators
-from pca import reduce
+from pca_old import reduce
 from src.io.fio import save_gaussian_classification_results
 from utilities.utilities import vcol, split_db_2to1, vrow, project, effective_prior
 

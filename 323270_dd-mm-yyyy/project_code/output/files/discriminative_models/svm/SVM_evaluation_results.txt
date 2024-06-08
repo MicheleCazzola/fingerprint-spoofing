@@ -1,10 +1,10 @@
 --Minimum DCFs--
-SVM with linear kernel: 0.657 (C = 0.000)
-SVM with linear kernel and data centering: 0.657 (C = 0.000)
-SVM with polynomial kernel: 0.394 (C = 0.316)
+SVM with linear kernel: 0.489 (C = 0.100)
+SVM with linear kernel and data centering: 0.489 (C = 0.100)
+SVM with polynomial kernel: 0.386 (C = 0.032)
 SVM with RBF kernel:
  Scale  Minimum DCF    C   
- 0.018     0.458     0.316 
- 0.050     0.443     0.100 
- 0.135     0.418     1.000 
- 0.368     0.373     1.000 
+ 0.018     0.281     1.000 
+ 0.050     0.243     1.000 
+ 0.135     0.236     1.000 
+ 0.368     0.183     1.000 

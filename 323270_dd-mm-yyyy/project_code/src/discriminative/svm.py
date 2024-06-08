@@ -163,12 +163,15 @@ def rbf_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator, c_values, scale_val
 
 
 def svm(D, L):
-    # Dataset random filtering (1/3)
+    '''
+    # Dataset random filtering (1/6)
     np.random.seed(0)
     idx = np.random.permutation(D.shape[1])[0:D.shape[1] // 6]
     D = D[:, idx]
     L = L[idx]
+    '''
     (DTR, LTR), (DVAL, LVAL) = split_db_2to1(D, L)
+    print(f"SVM dataset: {DTR.shape}, {DVAL.shape}")
 
     app_prior = 0.1
     c_values = np.logspace(-5, 0, 11)
@@ -199,10 +202,12 @@ def svm(D, L):
         "RBF_kernel_bias1",
     ]
 
+    print("SVM: linear kernel")
     # Linear SVM, no preprocessing
     eval_results[0]["min_dcf"], eval_results[0]["dcf"] = linear_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator,
                                                                     c_values)
 
+    print("SVM: linear kernel with preprocessing")
     # Linear SVM, data centering
     DTR_mean = vcol(np.sum(DTR, axis=1)) / DTR.shape[1]
     DTR_preprocess, DVAL_preprocess = DTR - DTR_mean, DVAL - DTR_mean
@@ -210,11 +215,13 @@ def svm(D, L):
                                                                     app_prior, svm,
                                                                     evaluator, c_values)
 
+    print("SVM: polynomial kernel")
     # Polynomial SVM (degree=2, offset=1)
     svm.setParams(K=0.0)
     eval_results[2]["min_dcf"], eval_results[2]["dcf"] = poly_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator,
                                                                   c_values)
 
+    print("SVM: RBF kernel")
     # RBF SVM (bias = 1), scale = [e-4, e-3, e-2, e-1]
     svm.setParams(K=1.0, ker_type="rbf")
     eval_results[3]["min_dcf"], eval_results[3]["dcf"] = rbf_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator,
