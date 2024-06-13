@@ -211,18 +211,38 @@ def write_SVM_results(results):
 
     print_string = "--Minimum DCFs--\n"
     for (task_name, best_result) in zip(task_names[:-1], best_results[:-1]):
-        print_string += f"{task_name}: {best_result[1]:.3f} (C = {best_result[0]:.3f})\n"
+        print_string += f"{task_name}: {best_result[1]:.3f} (C = {best_result[0]:.3f}, K = {best_result[2]:.1f})\n"
 
     print_string += f"{task_names[-1]}:\n"
-    print_string += f"{'Scale':^7s}{'Minimum DCF':^13s}{'C':^7s}\n"
+    print_string += f"{'Scale':^7s}{'Minimum DCF':^13s}{'C':^7s}{'K':^5s}\n"
     for (rbf, best_rbf) in best_results[-1].items():
-        print_string += f"{rbf:^7.3f}{best_rbf[1]:^13.3f}{best_rbf[0]:^7.3f}\n"
+        print_string += f"{rbf:^7.3f}{best_rbf[1]:^13.3f}{best_rbf[0]:^7.3f}{best_rbf[2]:^5.1f}\n"
 
     return print_string
 
 
 def save_SVM_evaluation_results(results, path_root, file_name):
     print_string = write_SVM_results(results)
+
+    with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
+        fout.write(print_string)
+
+
+def write_GMM_results(results):
+    print_string = ""
+    for (variant, results) in results.items():
+        print_string += f"--{'Full covariance' if variant == 'full' else 'Diagonal covariance'} matrices--\n"
+        print_string += f"{'GMM components':<15s}{'Minimum DCF':^13s}{'Actual DCF':^12s}\n"
+        for (num_components, result) in results.items():
+            min_dcf, dcf = map(result.get, ["min_dcf", "dcf"])
+            print_string += f"{num_components:^15d}{min_dcf:^13.4f}{dcf:^12.4f}\n"
+        print_string += "\n"
+
+    return print_string
+
+
+def save_GMM_results(results, path_root, file_name):
+    print_string = write_GMM_results(results)
 
     with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
         fout.write(print_string)

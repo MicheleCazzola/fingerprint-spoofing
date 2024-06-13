@@ -201,3 +201,26 @@ and of C . Plot minDCF and actDCF as a function of C , with a different line for
 four lines for minDCF and four lines for actDCF). Analyze the results. Are there values of γ and C that
 provide better results? Are the scores well calibrated? How the result compare to previous models? Are
 there characteristics of the dataset that can be better captured by RBF kernels?
+
+## Lab10 - Gaussian Mixture Model
+In this section we apply the GMM models to classification of the project data.
+1. For each of the two classes, we need to decide the number of Gaussian components (hyperparameter of
+the model). Train full covariance models with different number of components for each class (suggestion:
+to avoid excessive training time you can restrict yourself to models with up to 32 components). Evaluate
+the performance on the validation set to perform model selection (again, you can use the minimum DCF
+of the different models for the target application). Repeat the analysis for diagonal models. What do you
+observe? Are there combinations which work better? Are the results in line with your expectation, given
+the characteristics that you observed in the dataset? Are there results that are surprising? (Optional)
+Can you find an explanation for these surprising results?
+2. We have analyzed all the classifiers of the course. For each of the main methods (GMM, logistic regression,
+SVM — we ignore MVG since its results should be significantly worse than those of the other
+models, but feel free to test it as well) select the best performing candidate. Compare the models in
+terms of minimum and actual DCF. Which is the most promising method for the given application?
+3. Now consider possible alternative applications. Perform a qualitative analysis of the performance of the
+three approaches for different applications (keep the models that you selected in the previous step). You
+can employ a Bayes error plot and visualize, for each model, actual and minimum DCF over a wide
+range of operating points (e.g. log-odds ranging from −4 to +4 ). What do you observe? In terms of
+minimum DCF, are the results consistent, preserving the relative ranking of the systems? What about
+actual DCF? Are there models that are well calibrated for most of the operating point range? Are there
+models that show significant miscalibration? Are there models that are harmful for some applications?
+We will see how to deal with these issue in the last laboratory.

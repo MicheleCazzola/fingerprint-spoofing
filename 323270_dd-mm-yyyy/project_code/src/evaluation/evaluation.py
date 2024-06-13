@@ -37,8 +37,7 @@ class Evaluator:
                 }
             })
 
-    def evaluate2(self, llr, LPR, LTE, **model_params):
-        eff_prior = model_params['eff_prior']
+    def evaluate2(self, llr, LPR, LTE, eff_prior, **model_params):
         M = self.compute_confusion_matrix(LPR, LTE, 2)
         dummy_risk = Evaluator.dummy_risk(eff_prior, 1, 1)
         dcf = Evaluator.normalized_DCF(M, eff_prior, dummy_risk)
@@ -50,6 +49,8 @@ class Evaluator:
             "llr": llr,
             "LTE": LTE
         }
+
+        model_params["eff_prior"] = eff_prior
 
         return {
             "params": model_params,

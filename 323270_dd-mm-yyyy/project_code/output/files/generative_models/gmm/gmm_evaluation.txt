@@ -1,0 +1,18 @@
+--Full covariance matrices--
+GMM components  Minimum DCF  Actual DCF 
+       1          0.2629       0.6641   
+       2          0.2160       0.6152   
+       4          0.2161       0.4257   
+       8          0.1786       0.2888   
+      16          0.1631       0.2787   
+      32          0.2337       0.4176   
+
+--Diagonal covariance matrices--
+GMM components  Minimum DCF  Actual DCF 
+       1          0.2570       0.6843   
+       2          0.2489       0.6593   
+       4          0.1481       0.4179   
+       8          0.1463       0.4078   
+      16          0.1622       0.3735   
+      32          0.1766       0.2596   
+

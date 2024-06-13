@@ -15,17 +15,21 @@ PLOT_PATH = "output/plots/original_features/"
 PLOT_PATH_GENERATIVE_GAUSSIAN = "output/plots/generative_models/gaussian/"
 PLOT_PATH_LOGISTIC_REGRESSION = "output/plots/discriminative_models/logistic_regression/"
 PLOT_PATH_SVM = "output/plots/discriminative_models/svm/"
+PLOT_PATH_GMM = "output/plots/generative_models/gmm/"
+
 FILE_PATH = "output/files/original_features/"
 FILE_PATH_LDA = "output/files/LDA/"
 FILE_PATH_GENERATIVE_GAUSSIAN = "output/files/generative_models/gaussian/"
 FILE_PATH_LOGISTIC_REGRESSION = "output/files/discriminative_models/logistic_regression/"
 FILE_PATH_SVM = "output/files/discriminative_models/svm/"
+FILE_PATH_GMM = "output/files/generative_models/gmm/"
 
 
 # FILE NAMES
 FEATURES_STATISTICS = "feature_statistics"
 LDA_ERROR_RATES = "LDA_error_rates"
 GAUSSIAN_ERROR_RATES = "gaussian_error_rates.txt"
+GMM_EVALUATION = "gmm_evaluation.txt"
 
 # NUMERIC
 APPLICATIONS = [

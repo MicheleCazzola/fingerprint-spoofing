@@ -1,11 +1,12 @@
 from sys import argv
 from constants import (APPLICATIONS, FILE_PATH_GENERATIVE_GAUSSIAN, PLOT_PATH_GENERATIVE_GAUSSIAN,
-                       FILE_PATH_LOGISTIC_REGRESSION, FILE_PATH_SVM)
-from fio import save_application_priors, save_gaussian_evaluation_results, save_LR_evaluation_results, save_SVM_evaluation_results
+                       FILE_PATH_LOGISTIC_REGRESSION, FILE_PATH_SVM, FILE_PATH_GMM, GMM_EVALUATION)
+from fio import save_application_priors, save_gaussian_evaluation_results, save_LR_evaluation_results, save_SVM_evaluation_results, save_GMM_results
 from gaussian import gaussian_classification
+from gmm import gmm_task
 from discriminative.logreg import LR_classification
 from discriminative.svm import svm
-from src.dimred import lda, pca_old
+from src.dimred import lda
 from src.dimred.pca import PCA
 from src.io import fio, constants, plot
 from src.utilities import utilities
@@ -21,37 +22,37 @@ if __name__ == "__main__":
     except FileNotFoundError:
         exit(f"File {argv[1]} not found")
 
-    pca = PCA()
-
-    # Plot distributions of the features
-    plot.plot_feature_distributions(features, labels,
-                                    constants.PLOT_PATH,
-                                    "Feature",
-                                    "Feature",
-                                    "histogram",
-                                    "scatter",
-                                    "pdf")
-
-    # Compute and print mean and variance per class for each feature
-    statistics = utilities.compute_statistics(features, labels,
-                                              Mean=lambda array, ax, labels: (
-                                                  array[:, labels == 0].mean(axis=ax),
-                                                  array[:, labels == 1].mean(axis=ax)),
-                                              Variance=lambda array, ax, labels: (
-                                                  array[:, labels == 0].var(axis=ax),
-                                                  array[:, labels == 1].var(axis=ax)))
-
-    fio.save_statistics(statistics, constants.FILE_PATH, "feature_statistics.txt")
-
-    features_projected_PCA = pca.fit_transform(features, n_components=6)
-
-    plot.plot_feature_distributions(features_projected_PCA, labels, constants.PLOT_PATH_PCA,
-                                    "PCA feature",
-                                    "PCA feature",
-                                    "PCA_histogram",
-                                    "PCA_scatter",
-                                    "pdf")
-
+    # pca = PCA()
+    #
+    # # Plot distributions of the features
+    # plot.plot_feature_distributions(features, labels,
+    #                                 constants.PLOT_PATH,
+    #                                 "Feature",
+    #                                 "Feature",
+    #                                 "histogram",
+    #                                 "scatter",
+    #                                 "pdf")
+    #
+    # # Compute and print mean and variance per class for each feature
+    # statistics = utilities.compute_statistics(features, labels,
+    #                                           Mean=lambda array, ax, labels: (
+    #                                               array[:, labels == 0].mean(axis=ax),
+    #                                               array[:, labels == 1].mean(axis=ax)),
+    #                                           Variance=lambda array, ax, labels: (
+    #                                               array[:, labels == 0].var(axis=ax),
+    #                                               array[:, labels == 1].var(axis=ax)))
+    #
+    # fio.save_statistics(statistics, constants.FILE_PATH, "feature_statistics.txt")
+    #
+    # features_projected_PCA = pca.fit_transform(features, n_components=6)
+    #
+    # plot.plot_feature_distributions(features_projected_PCA, labels, constants.PLOT_PATH_PCA,
+    #                                 "PCA feature",
+    #                                 "PCA feature",
+    #                                 "PCA_histogram",
+    #                                 "PCA_scatter",
+    #                                 "pdf")
+    #
     # features_projected_LDA = lda.apply(features, labels)
     #
     # plot.plot_hist(features_projected_LDA[:, labels == 0],
@@ -124,6 +125,10 @@ if __name__ == "__main__":
     #
     # save_LR_evaluation_results(eval_results_best, FILE_PATH_LOGISTIC_REGRESSION, "LR_evaluation_results.txt")
     #
-    # best_results = svm(features, labels)
-    #
-    # save_SVM_evaluation_results(best_results, FILE_PATH_SVM, "SVM_evaluation_results.txt")
+    best_results = svm(features, labels)
+
+    save_SVM_evaluation_results(best_results, FILE_PATH_SVM, "SVM_evaluation_results.txt")
+
+    gmm_results = gmm_task(features, labels)
+
+    save_GMM_results(gmm_results, FILE_PATH_GMM, GMM_EVALUATION)
