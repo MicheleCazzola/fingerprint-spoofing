@@ -224,3 +224,50 @@ minimum DCF, are the results consistent, preserving the relative ranking of the 
 actual DCF? Are there models that are well calibrated for most of the operating point range? Are there
 models that show significant miscalibration? Are there models that are harmful for some applications?
 We will see how to deal with these issue in the last laboratory.
+
+## Lab11 - Score calibration and fusion
+### Calibration and fusion
+Consider the different classifiers that you trained in previous laboratories.
+1. For each of the main methods
+(GMM, logistic regression, SVM — see Laboratory 10) compute a calibration transformation for the
+scores of the best-performing classifier you selected earlier. The calibration model should be trained using
+the validation set that you employed in previous laboratories (i.e., the validation split that you used
+to measure the systems performance). Apply a K-fold approach to compute and evaluate the calibration
+transformation. You can test different priors for training the logistic regression model, and evaluate the
+performance of the calibration transformation in terms of actual DCF for the target application (i.e.,
+the training prior may be different from the target application prior, but evaluation should be done for
+the target application).
+2. For each model, select the best performing calibration transformation (i.e. the
+one providing the lowest actual DCF in the K-fold cross validation procedure for the target application).
+Compute also the minimum DCF, and compare it to the actual DCF, of the calibrated scores for the
+different systems. What do you observe? Has calibration improved for the target application? What
+about different applications (Bayes error plots)?
+3. Compute a score-level fusion of the best-performing models. Again, you can try different priors for
+training logistic regression, but you should select the best model in terms of actual DCF computed for
+the target application. Compute also the minimum DCF of the resulting model. How is the fusion performing?
+Is it improving actual DCF with respect to single systems? Are the fused scores well calibrated?
+Choose the final model that will be used as “delivered” system, i.e. the final system that will be used for
+application data. Justify your choice.
+### Evaluation
+We now evaluate the final delivered system, and perform further analysis to understand whether our
+design choices were indeed good for our application. The file Project/evalData.txt contains an
+evaluation dataset (with the same format as the training dataset). Evaluate your chosen model on this
+dataset (note: the evaluation dataset must not be used to estimate anything, we are evaluating the
+models that we already trained).
+1. Compute minimum and actual DCF, and Bayes error plots for the delivered system. What do you
+observe? Are scores well calibrated for the target application? And for other possible applications?
+2. Consider the three best performing systems, and their fusion. Evaluate the corresponding actual
+DCF, and compare their actual DCF error plots. What do you observe? Was your final model
+choice effective? Would another model / fusion of models have been more effective?
+3. Consider again the three best systems. Evaluate minimum and actual DCF for the target application,
+and analyze the corresponding Bayes error plots. What do you observe? Was the calibration
+strategy effective for the different approaches?
+4. Now consider one of the three approaches (we should repeat this part of the analysis for all systems,
+but for the report you can consider only a single method). Analyze whether your training strategy
+was effective. For this, consider all models that you trained for the selected approach (e.g., if you
+chose the logistic regression method, the different hyperparameter / pre-processing combinations
+of logistic regression models). Evaluate the minimum DCF of the considered systems on the
+evaluation, and compare it to the minimum DCF of the selected model (it would be better to
+analyze actual DCF, but this would require to re-calibrated all models, for brevity we skip this
+step). What do you observe? Was your chosen model optimal or close to optimal for the evaluation
+data? Were there different choices that would have led to better performance?

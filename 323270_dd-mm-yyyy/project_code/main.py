@@ -1,16 +1,23 @@
 from sys import argv
-from constants import (APPLICATIONS, FILE_PATH_GENERATIVE_GAUSSIAN, PLOT_PATH_GENERATIVE_GAUSSIAN,
-                       FILE_PATH_LOGISTIC_REGRESSION, FILE_PATH_SVM, FILE_PATH_GMM, GMM_EVALUATION)
-from fio import save_application_priors, save_gaussian_evaluation_results, save_LR_evaluation_results, save_SVM_evaluation_results, save_GMM_results
+
+import numpy as np
+
+from constants import (APPLICATIONS, FILE_PATH_GENERATIVE_GAUSSIAN, PLOT_PATH_GENERATIVE_GAUSSIAN, PLOT_PATH_CMP,
+                       FILE_PATH_LOGISTIC_REGRESSION, FILE_PATH_SVM, FILE_PATH_GMM, GMM_EVALUATION, LR, SVM, GMM,
+                       FILE_PATH_CMP)
+from fio import save_application_priors, save_gaussian_evaluation_results, save_LR_evaluation_results, \
+    save_SVM_evaluation_results, save_GMM_results, save_best_results
+from plot import plot_bayes_errors
 from gaussian import gaussian_classification
 from gmm import gmm_task
-from discriminative.logreg import LR_classification
-from discriminative.svm import svm
+from discriminative.logreg import LR_task
+from discriminative.svm import svm_task
 from src.dimred import lda
 from src.dimred.pca import PCA
 from src.io import fio, constants, plot
 from src.utilities import utilities
 from src.fitting import fitting
+from evaluation.evaluation import Evaluator
 
 if __name__ == "__main__":
 
@@ -21,6 +28,8 @@ if __name__ == "__main__":
         exit("Missing argument: name of training data file")
     except FileNotFoundError:
         exit(f"File {argv[1]} not found")
+
+    (features_tr, labels_tr), (features_val, labels_val) = utilities.split_db_2to1(features, labels)
 
     # pca = PCA()
     #
@@ -108,8 +117,8 @@ if __name__ == "__main__":
     #
     # # Plot bayes error plots
     # _ = [plot.plot_bayes_errors(model_best_info[1][0],
-    #                             model_best_info[1][1]["min_dcf"],
-    #                             model_best_info[1][1]["dcf"],
+    #                             [model_best_info[1][1]["min_dcf"]],
+    #                             [model_best_info[1][1]["dcf"]],
     #                             eff_prior_log_odd,
     #                             f"Bayes error plot - {model_name}",
     #                             f'''PCA {'not applied' if model_best_info[0] is None else
@@ -121,14 +130,48 @@ if __name__ == "__main__":
     #                             "pdf")
     #      for (model_name, model_best_info) in bayes_errors.items()]
     #
-    # eval_results_best = LR_classification(features, labels)
-    #
-    # save_LR_evaluation_results(eval_results_best, FILE_PATH_LOGISTIC_REGRESSION, "LR_evaluation_results.txt")
-    #
-    best_results = svm(features, labels)
 
-    save_SVM_evaluation_results(best_results, FILE_PATH_SVM, "SVM_evaluation_results.txt")
+    np.random.seed(0)
+    idx = np.random.permutation(features.shape[1])[0:features.shape[1] // 10]
+    reduced_features, reduced_labels = features[:, idx], labels[idx]
+    _, (red_feat_val, red_lab_val) = utilities.split_db_2to1(reduced_features, reduced_labels)
 
-    gmm_results = gmm_task(features, labels)
+    lr_results = LR_task(reduced_features, reduced_labels)
+    best_LR = Evaluator.best_configuration(lr_results, LR)
+    save_LR_evaluation_results(lr_results, FILE_PATH_LOGISTIC_REGRESSION, "LR_evaluation_results.txt")
 
+    svm_results = svm_task(reduced_features, reduced_labels)
+    best_svm = Evaluator.best_configuration(svm_results["results"], SVM)
+    save_SVM_evaluation_results(svm_results, FILE_PATH_SVM, "SVM_evaluation_results.txt")
+
+    gmm_results = gmm_task(reduced_features, reduced_labels)
+    best_gmm = Evaluator.best_configuration(gmm_results, GMM)
     save_GMM_results(gmm_results, FILE_PATH_GMM, GMM_EVALUATION)
+
+    app_prior = 0.1
+    model_results = {
+        LR: best_LR,
+        SVM: best_svm,
+        GMM: best_gmm
+    }
+    save_best_results(model_results, FILE_PATH_CMP, "best_results.txt")
+    best_model = Evaluator.best_model(model_results, "min_dcf")
+
+    eff_prior_log_odds = np.linspace(-4, 4, 101)
+    bayes_errors = list(map(Evaluator.bayes_error,
+                       [result["llr"] for result in model_results.values()],
+                       [red_lab_val for i in range(len(model_results))],
+                       [eff_prior_log_odds for i in range(len(model_results))]))
+
+    min_dcfs = [error["min_dcf"] for error in bayes_errors]
+    dcfs = [error["dcf"] for error in bayes_errors]
+    log_odd_application = np.log(app_prior / (1 - app_prior))
+    plot_bayes_errors(eff_prior_log_odds, min_dcfs, dcfs, log_odd_application,
+                      "Bayes error plots comparison",
+                      "",
+                      "Prior log-odds",
+                      "DCF value",
+                      PLOT_PATH_CMP,
+                      "bayes_error_comparison",
+                      "pdf",
+                      model_results.keys())

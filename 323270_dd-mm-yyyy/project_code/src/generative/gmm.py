@@ -188,11 +188,12 @@ def gmm_task(D, L):
         llr = gmm.llr(DVAL, LVAL)
         LPR = gmm.predict(DVAL, LVAL)
 
-        min_dcf, dcf = map(evaluator.evaluate2(llr, LPR, LVAL, app_prior).get("results").get, ["min_dcf", "dcf"])
+        min_dcf, dcf, llr = map(evaluator.evaluate2(llr, LPR, LVAL, app_prior).get("results").get, ["min_dcf", "dcf", "llr"])
 
         gmm_results["full"][num_components] = {
             "min_dcf": min_dcf,
-            "dcf": dcf
+            "dcf": dcf,
+            "llr": llr
         }
 
         print(f"{num_components:^15d}{min_dcf:^13.4f}{dcf:^12.4f}")
@@ -207,11 +208,12 @@ def gmm_task(D, L):
         llr = gmm.llr(DVAL, LVAL)
         LPR = gmm.predict(DVAL, LVAL)
 
-        min_dcf, dcf = map(evaluator.evaluate2(llr, LPR, LVAL, app_prior).get("results").get, ["min_dcf", "dcf"])
+        min_dcf, dcf, llr = map(evaluator.evaluate2(llr, LPR, LVAL, app_prior).get("results").get, ["min_dcf", "dcf", "llr"])
 
         gmm_results["diag"][num_components] = {
             "min_dcf": min_dcf,
-            "dcf": dcf
+            "dcf": dcf,
+            "llr": llr
         }
 
         print(f"{num_components:^15d}{min_dcf:^13.4f}{dcf:^12.4f}")

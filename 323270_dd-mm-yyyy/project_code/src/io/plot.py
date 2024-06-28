@@ -170,10 +170,15 @@ def plot_estimated_features(x, y, features):
 
 
 def plot_bayes_errors(eff_prior_log_odds, min_dcf, actual_dcf, eff_prior_log_odd, title, subtitle, x_label, y_label,
-                      path, name, extension):
+                      path, name, extension, models=None):
+    if models is None:
+        models = [None] * len(min_dcf)
+
     plt.figure(name)
-    plt.plot(eff_prior_log_odds, min_dcf, label="Minimum DCF", color="green")
-    plt.plot(eff_prior_log_odds, actual_dcf, label="Actual DCF", color="orange")
+    for (min_dcf_val, act_dcf_val, model) in zip(min_dcf, actual_dcf, models):
+        model_lab = "" if model is None else f" - {model}"
+        plt.plot(eff_prior_log_odds, min_dcf_val, label=f"Minimum DCF{model_lab}")
+        plt.plot(eff_prior_log_odds, act_dcf_val, label=f"Actual DCF{model_lab}")
     plt.vlines(x=eff_prior_log_odd, ymin=plt.axis()[2], label="System application", ymax=plt.axis()[3], color="black",
                linewidth=2, linestyle="dashed")
     plt.grid()

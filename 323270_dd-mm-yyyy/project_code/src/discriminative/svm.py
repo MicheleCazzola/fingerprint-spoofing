@@ -14,7 +14,7 @@ def optimal_bayes(svm, evaluator, DVAL, LVAL, app_prior):
 
     min_dcf, dcf = map(evaluator.evaluate2(llr, LPR, LVAL, eff_prior=app_prior).get("results").get,
                        ["min_dcf", "dcf"])
-    return min_dcf, dcf
+    return min_dcf, dcf, llr
 
 
 class SupportVectorMachine:
@@ -115,61 +115,58 @@ class SupportVectorMachine:
 
 
 def linear_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator, c_values):
-    results_min_dcf, results_dcf = [], []
+    results_min_dcf, results_dcf, llrs = [], [], []
 
     for c in c_values:
         svm.fit(DTR, LTR, c, primal=True, degree=1, offset=0)
 
-        min_dcf, dcf = optimal_bayes(svm, evaluator, DVAL, LVAL, app_prior)
+        min_dcf, dcf, llr = optimal_bayes(svm, evaluator, DVAL, LVAL, app_prior)
 
         results_min_dcf.append(min_dcf)
         results_dcf.append(dcf)
+        llrs.append(llr)
 
-    return results_min_dcf, results_dcf
+    return results_min_dcf, results_dcf, llrs
 
 
 def poly_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator, c_values):
-    results_min_dcf, results_dcf = [], []
+    results_min_dcf, results_dcf, llrs = [], [], []
 
     for c in c_values:
         svm.fit(DTR, LTR, c, primal=False, degree=2, offset=1)
 
-        min_dcf, dcf = optimal_bayes(svm, evaluator, DVAL, LVAL, app_prior)
+        min_dcf, dcf, llr = optimal_bayes(svm, evaluator, DVAL, LVAL, app_prior)
 
         results_min_dcf.append(min_dcf)
         results_dcf.append(dcf)
+        llrs.append(llr)
 
-    return results_min_dcf, results_dcf
+    return results_min_dcf, results_dcf, llrs
 
 
 def rbf_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator, c_values, scale_values):
-    results_min_dcf, results_dcf = {}, {}
+    results_min_dcf, results_dcf, llrs = {}, {}, {}
 
     for scale in scale_values:
-        res_min, res_act = [], []
+        res_min, res_act, llrs_scale = [], [], []
         for c in c_values:
             svm.setParams(ker_type='rbf')
             svm.fit(DTR, LTR, c, primal=False, scale=scale)
 
-            min_dcf, dcf = optimal_bayes(svm, evaluator, DVAL, LVAL, app_prior)
+            min_dcf, dcf, llr = optimal_bayes(svm, evaluator, DVAL, LVAL, app_prior)
 
             res_min.append(min_dcf)
             res_act.append(dcf)
+            llrs_scale.append(llr)
 
         results_min_dcf[scale] = res_min
         results_dcf[scale] = res_act
+        llrs[scale] = llrs_scale
 
-    return results_min_dcf, results_dcf
+    return results_min_dcf, results_dcf, llrs
 
 
-def svm(D, L):
-    """
-    # Dataset random filtering (1/6)
-    np.random.seed(0)
-    idx = np.random.permutation(D.shape[1])[0:D.shape[1] // 6]
-    D = D[:, idx]
-    L = L[idx]
-    """
+def svm_task(D, L):
 
     (DTR, LTR), (DVAL, LVAL) = split_db_2to1(D, L)
     print(f"SVM dataset: {DTR.shape}, {DVAL.shape}")
@@ -178,6 +175,7 @@ def svm(D, L):
     c_values = np.logspace(-5, 0, 11)
     k_values = [1, 1, 0, 1]
     scale_values_rbf = np.exp(np.array(range(-4, 0)))
+    ker_type = ["linear", "linear (preprocessing)", "polynomial", "rbf"]
     svm = SupportVectorMachine()
     evaluator = Evaluator("SVM")
 
@@ -207,36 +205,52 @@ def svm(D, L):
     print("SVM: linear kernel")
     # Linear SVM, no preprocessing
     svm.setParams(K=k_values[0])
-    eval_results[0]["min_dcf"], eval_results[0]["dcf"] = linear_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator,
-                                                                    c_values)
+    eval_results[0]["min_dcf"], eval_results[0]["dcf"], eval_results[0]["llr"] = linear_svm(DTR, LTR, DVAL, LVAL,
+                                                                                            app_prior, svm, evaluator,
+                                                                                            c_values)
 
     print("SVM: linear kernel with preprocessing")
     # Linear SVM, data centering
     DTR_mean = vcol(np.sum(DTR, axis=1)) / DTR.shape[1]
     DTR_preprocess, DVAL_preprocess = DTR - DTR_mean, DVAL - DTR_mean
     svm.setParams(K=k_values[1])
-    eval_results[1]["min_dcf"], eval_results[1]["dcf"] = linear_svm(DTR_preprocess, LTR, DVAL_preprocess, LVAL,
-                                                                    app_prior, svm,
-                                                                    evaluator, c_values)
+    eval_results[1]["min_dcf"], eval_results[1]["dcf"], eval_results[1]["llr"] = linear_svm(DTR_preprocess, LTR,
+                                                                                            DVAL_preprocess, LVAL,
+                                                                                            app_prior, svm,
+                                                                                            evaluator, c_values)
 
     print("SVM: polynomial kernel")
     # Polynomial SVM (degree=2, offset=1)
     svm.setParams(K=k_values[2])
-    eval_results[2]["min_dcf"], eval_results[2]["dcf"] = poly_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator,
-                                                                  c_values)
+    eval_results[2]["min_dcf"], eval_results[2]["dcf"], eval_results[2]["llr"] = poly_svm(DTR, LTR, DVAL, LVAL,
+                                                                                          app_prior, svm, evaluator,
+                                                                                          c_values)
 
     print("SVM: RBF kernel")
     # RBF SVM (bias = 1), scale = [e-4, e-3, e-2, e-1]
     svm.setParams(K=k_values[3], ker_type="rbf")
-    eval_results[3]["min_dcf"], eval_results[3]["dcf"] = rbf_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator,
-                                                                 c_values, scale_values_rbf)
+    eval_results[3]["min_dcf"], eval_results[3]["dcf"], eval_results[3]["llr"] = rbf_svm(DTR, LTR, DVAL, LVAL,
+                                                                                         app_prior, svm, evaluator,
+                                                                                         c_values, scale_values_rbf)
 
     for i in range(len(best_results[:-1])):
         eval_result = eval_results[i]
-        best_results[i] = (c_values[np.argmin(eval_result["min_dcf"])], np.min(eval_result["dcf"]), k_values[i])
+        best_conf = np.argmin(eval_result["min_dcf"])
+        best_results[i] = (c_values[best_conf],
+                           np.min(eval_result["min_dcf"]),
+                           k_values[i],
+                           eval_result["llr"][best_conf],
+                           eval_result["dcf"][best_conf],
+                           ker_type[i])
 
+    best_conf = lambda s: np.argmin(eval_results[-1]["min_dcf"][s])
     best_results[-1] = {
-        scale: (c_values[np.argmin(eval_results[-1]["min_dcf"][scale])], np.min(eval_results[-1]["min_dcf"][scale]), k_values[-1])
+        scale: (c_values[best_conf(scale)],
+                np.min(eval_results[-1]["min_dcf"][scale]),
+                k_values[-1],
+                eval_results[-1]["llr"][scale][best_conf(scale)],
+                eval_results[-1]["dcf"][scale][best_conf(scale)],
+                ker_type[-1])
         for scale in eval_results[-1]["min_dcf"]}
 
     for (eval_result, title, name) in zip(eval_results[:-1], titles[:-1], names[:-1]):

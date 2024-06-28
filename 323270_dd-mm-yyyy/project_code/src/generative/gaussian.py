@@ -175,8 +175,17 @@ def gaussian_classification(D, L):
     best_configurations = Evaluator.best_configuration(eval_results, GAUSSIAN, eff_prior_conf)
 
     # Compute bayes errors
-    bayes_errors = {model_name: (config["pca"], Evaluator.bayes_error(config["llr"], config["LTE"]))
-                    for (model_name, config) in best_configurations.items()}
+    effective_prior_log_odds = np.linspace(-4, 4, 33)
+    bayes_errors = {
+        model_name: (
+            config["pca"],
+            (
+                effective_prior_log_odds,
+                Evaluator.bayes_error(config["llr"], config["LTE"], effective_prior_log_odds)
+            )
+        )
+        for (model_name, config) in best_configurations.items()
+    }
 
     # Save application prior log-odd considered in bayes error plot
     best_prior_log_odd = np.log(eff_prior_conf / (1 - eff_prior_conf))

@@ -104,10 +104,10 @@ def logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, varia
                                           eff_prior=app_prior, preprocess=preprocess, reg_coeff=reg_coeff)
 
         preprocess = eval_result["params"]["preprocess"]
-        eval_result["results"]["reg_coeff"] = eval_result["params"]["reg_coeff"]
         eval_results.append((eval_result["results"]["dcf"],
                              eval_result["results"]["min_dcf"],
-                             eval_result["results"]["reg_coeff"]))
+                             reg_coeff,
+                             llr))
 
     return {
         "preprocess": preprocess,
@@ -115,7 +115,7 @@ def logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, varia
     }
 
 
-def LR_classification(D, L):
+def LR_task(D, L):
     (DTR, LTR), (DVAL, LVAL) = split_db_2to1(D, L)
 
     app_prior = 0.1
@@ -165,18 +165,24 @@ def LR_classification(D, L):
 
     eval_results_best = []
     for (result, title, file_name) in zip(results, titles, file_names):
-        [dcf, min_dcf, reg_coeff] = result["results"]
-        eval_results_best.append([np.min(min_dcf), reg_coeff[np.argmin(min_dcf)], title.replace(" DCFs", "")])
+        [dcf, min_dcf, reg_coeff, llr] = result["results"]
+        best_conf = np.argmin(min_dcf)
+        eval_results_best.append([np.min(min_dcf),
+                                  reg_coeff[best_conf],
+                                  llr[best_conf],
+                                  title.replace(" DCFs", ""),
+                                  dcf[best_conf],
+                                  PRIOR_WEIGHTED_LR if best_conf in [2, 4] else LR_STANDARD])
         plot_log_double_line(reg_coefficients, dcf, min_dcf,
-                                title,
-                                "Regularization coefficient",
-                                "DCF value",
-                                "DCF",
-                                "Min. DCF",
-                                PLOT_PATH_LOGISTIC_REGRESSION,
-                                file_name,
-                                "pdf",
-                                result["preprocess"] if result["preprocess"] is not None else "")
-    eval_results_best[-1][2] += " (data centering)"
+                             title,
+                             "Regularization coefficient",
+                             "DCF value",
+                             "DCF",
+                             "Min. DCF",
+                             PLOT_PATH_LOGISTIC_REGRESSION,
+                             file_name,
+                             "pdf",
+                             result["preprocess"] if result["preprocess"] is not None else "")
+    eval_results_best[-1][3] += " (data centering)"
 
     return eval_results_best

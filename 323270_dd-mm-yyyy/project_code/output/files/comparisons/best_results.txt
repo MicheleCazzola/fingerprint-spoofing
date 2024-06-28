@@ -1,0 +1,5 @@
+-- Comparisons among models --
+Type  Minimum DCF Actual DCF           Parameters          
+ LR      0.245       0.402   type: PWLR, λ: 0.010
+ SVM     0.206       0.490   type: polynomial, C: 0.316, K: 0
+ GMM     0.209       0.325   type: diag, components: 4
