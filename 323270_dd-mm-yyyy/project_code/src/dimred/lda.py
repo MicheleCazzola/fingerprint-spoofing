@@ -1,5 +1,7 @@
 import numpy as np
 from numpy.linalg import linalg
+
+from pca import PCA
 from . import pca_old
 from src.utilities.utilities import vcol, split_db_2to1, project
 
@@ -152,10 +154,9 @@ def classify(D, L, m=None, PCA_enabled=False):
     (DTR, LTR), (DVAL, LVAL) = split_db_2to1(D, L)
 
     if PCA_enabled:
-        P = pca.reduce(DTR, m)
-
-        DTR = project(DTR, P)
-        DVAL = project(DVAL, P)
+        pca = PCA(n_components=m)
+        DTR = pca.fit_transform(DTR)
+        DVAL = pca.transform(DVAL)
 
     W = estimate(DTR, LTR)
     DTR_lda = project(DTR, W)
