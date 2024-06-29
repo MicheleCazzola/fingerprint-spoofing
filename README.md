@@ -250,7 +250,7 @@ Choose the final model that will be used as “delivered” system, i.e. the fin
 application data. Justify your choice.
 ### Evaluation
 We now evaluate the final delivered system, and perform further analysis to understand whether our
-design choices were indeed good for our application. The file Project/evalData.txt contains an
+design choices were indeed good for our application. The file `Project/evalData.txt` contains an
 evaluation dataset (with the same format as the training dataset). Evaluate your chosen model on this
 dataset (note: the evaluation dataset must not be used to estimate anything, we are evaluating the
 models that we already trained).

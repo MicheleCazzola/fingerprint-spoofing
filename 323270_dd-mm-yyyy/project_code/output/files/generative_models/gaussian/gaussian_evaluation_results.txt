@@ -15,7 +15,7 @@ PCA dimensions     MVG      Tied MVG   Naive Bayes MVG
        5          0.304      0.405          0.393      
   Not applied     0.305      0.406          0.302      
 
-Relative calibration loss (%)
+Relative calibration_fusion loss (%)
 PCA dimensions     MVG      Tied MVG   Naive Bayes MVG 
        2          10.00       9.09          8.63       
        3           8.86      10.89          8.36       
@@ -40,7 +40,7 @@ PCA dimensions     MVG      Tied MVG   Naive Bayes MVG
        5          0.142      0.186          0.175      
   Not applied     0.140      0.186          0.144      
 
-Relative calibration loss (%)
+Relative calibration_fusion loss (%)
 PCA dimensions     MVG      Tied MVG   Naive Bayes MVG 
        2           1.68       3.45          3.48       
        3           1.42       1.08          3.04       
@@ -65,7 +65,7 @@ PCA dimensions     MVG      Tied MVG   Naive Bayes MVG
        5          0.398      0.463          0.466      
   Not applied     0.400      0.463          0.389      
 
-Relative calibration loss (%)
+Relative calibration_fusion loss (%)
 PCA dimensions     MVG      Tied MVG   Naive Bayes MVG 
        2           1.15       9.96          2.33       
        3           6.56       5.14          5.70       

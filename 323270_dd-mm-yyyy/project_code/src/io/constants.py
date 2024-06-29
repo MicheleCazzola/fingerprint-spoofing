@@ -20,6 +20,7 @@ PLOT_PATH_LOGISTIC_REGRESSION = "output/plots/discriminative_models/logistic_reg
 PLOT_PATH_SVM = "output/plots/discriminative_models/svm/"
 PLOT_PATH_GMM = "output/plots/generative_models/gmm/"
 PLOT_PATH_CMP = "output/plots/comparisons/"
+PLOT_PATH_CAL_FUS = "output/plots/calibration_fusion/"
 
 FILE_PATH = "output/files/original_features/"
 FILE_PATH_LDA = "output/files/LDA/"
@@ -35,6 +36,7 @@ FEATURES_STATISTICS = "feature_statistics"
 LDA_ERROR_RATES = "LDA_error_rates"
 GAUSSIAN_ERROR_RATES = "gaussian_error_rates.txt"
 GMM_EVALUATION = "gmm_evaluation.txt"
+BEST_RESULTS_CAL = "best_results_cal.txt"
 
 # NUMERIC
 APPLICATIONS = [

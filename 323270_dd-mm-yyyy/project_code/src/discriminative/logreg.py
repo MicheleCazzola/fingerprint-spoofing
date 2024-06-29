@@ -8,25 +8,29 @@ from src.io.constants import LR_STANDARD, PRIOR_WEIGHTED_LR, PLOT_PATH_LOGISTIC_
 
 
 class LogisticRegression:
-    def __init__(self, variant=LR_STANDARD):
+    def __init__(self, variant=LR_STANDARD, training_prior=None, app_prior=None):
         self.variant = variant
         self.w = None
         self.b = None
         self.j_min = None
         self.opt_info = None
-        self.target_prior = None
+        self.training_prior = training_prior
+        self.app_prior = app_prior
 
     def setParams(self, **kwargs):
         self.variant = kwargs.get("variant", self.variant)
+        self.training_prior = kwargs.get("training_prior", self.training_prior)
+        self.app_prior = kwargs.get("app_prior", self.app_prior)
 
-    def fit(self, DTR, LTR, reg_coeff, app_prior=None):
+    def fit(self, DTR, LTR, reg_coeff=0, training_prior=None, app_prior=None):
         D = DTR.shape[0]
         n = DTR.shape[1]
 
         if self.variant == PRIOR_WEIGHTED_LR and app_prior is None:
             raise ValueError("Application prior must be defined if variant is prior-weighted")
 
-        self.target_prior = app_prior if app_prior is not None else np.sum(LTR == 1) / n
+        self.app_prior = app_prior if app_prior is not None else np.sum(LTR == 1) / n
+        self.training_prior = training_prior if training_prior is not None else self.app_prior
 
         def logreg_obj_lr(v):
             w, b = v[0:-1], v[-1]
@@ -44,7 +48,7 @@ class LogisticRegression:
             S = (vcol(w).T @ DTR + b).ravel()
             ZTR = 2 * LTR - 1
             mask_t, mask_f = ZTR == 1, ZTR == -1
-            psi = (app_prior / np.sum(mask_t)) * mask_t + ((1 - app_prior) / np.sum(mask_f)) * mask_f
+            psi = (self.training_prior / np.sum(mask_t)) * mask_t + ((1 - self.training_prior) / np.sum(mask_f)) * mask_f
             J_min = reg_coeff * alg.norm(w, 2) ** 2 / 2 + np.sum(psi * np.logaddexp(0, -ZTR * S))
 
             G = -ZTR / (1 + np.exp(ZTR * S))
@@ -63,15 +67,15 @@ class LogisticRegression:
         self.opt_info = d
 
     def scores(self, features):
-        return vrow(self.w) @ features + self.b - np.log(self.target_prior / (1 - self.target_prior))
+        return vrow(self.w) @ features + self.b - np.log(self.training_prior / (1 - self.training_prior))
 
     def predict(self, features, app_prior=None):
 
-        if self.w is None or self.b is None or self.target_prior is None:
+        if self.w is None or self.b is None or self.app_prior is None:
             raise ValueError("No model defined")
 
         S = self.scores(features)
-        target_prior = app_prior if app_prior is not None else self.target_prior
+        target_prior = app_prior if app_prior is not None else self.app_prior
         threshold = -np.log(target_prior / (1 - target_prior))
 
         LPR = np.zeros((1, features.shape[1]), dtype=np.int32)
@@ -100,7 +104,7 @@ def logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, varia
 
         llr = lr.scores(DVAL)
         LPR = lr.predict(DVAL, app_prior)
-        eval_result = evaluator.evaluate2(llr, LPR, LVAL,
+        eval_result = Evaluator.evaluate2(llr, LPR, LVAL,
                                           eff_prior=app_prior, preprocess=preprocess, reg_coeff=reg_coeff)
 
         preprocess = eval_result["params"]["preprocess"]
@@ -115,10 +119,8 @@ def logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, varia
     }
 
 
-def LR_task(D, L):
-    (DTR, LTR), (DVAL, LVAL) = split_db_2to1(D, L)
+def LR_task(DTR, LTR, DVAL, LVAL, app_prior):
 
-    app_prior = 0.1
     reg_coefficients = np.logspace(-4, 2, 13)
 
     titles = [
@@ -136,6 +138,8 @@ def LR_task(D, L):
         "Prior_weighted_LR_expanded_feature_space",
         "Prior_weighted_LR_data_centering"
     ]
+
+    LR_types = ["Standard LR", "Standard LR (reduced dataset)", "Prior-weighted LR", "Quadratic LR"]
 
     results = [{}] * 5
 
@@ -164,7 +168,7 @@ def LR_task(D, L):
                                      PRIOR_WEIGHTED_LR, PRIOR_WEIGHTED_LR, "Data centering")
 
     eval_results_best = []
-    for (result, title, file_name) in zip(results, titles, file_names):
+    for (result, title, file_name, LR_type) in zip(results, titles, file_names, LR_types):
         [dcf, min_dcf, reg_coeff, llr] = result["results"]
         best_conf = np.argmin(min_dcf)
         eval_results_best.append([np.min(min_dcf),
@@ -172,7 +176,7 @@ def LR_task(D, L):
                                   llr[best_conf],
                                   title.replace(" DCFs", ""),
                                   dcf[best_conf],
-                                  PRIOR_WEIGHTED_LR if best_conf in [2, 4] else LR_STANDARD])
+                                  LR_type])
         plot_log_double_line(reg_coefficients, dcf, min_dcf,
                              title,
                              "Regularization coefficient",

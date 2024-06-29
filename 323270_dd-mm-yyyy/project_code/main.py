@@ -2,11 +2,13 @@ from sys import argv
 
 import numpy as np
 
+from calibration import calibration_task
 from constants import (APPLICATIONS, FILE_PATH_GENERATIVE_GAUSSIAN, PLOT_PATH_GENERATIVE_GAUSSIAN, PLOT_PATH_CMP,
                        FILE_PATH_LOGISTIC_REGRESSION, FILE_PATH_SVM, FILE_PATH_GMM, GMM_EVALUATION, LR, SVM, GMM,
-                       FILE_PATH_CMP)
+                       FILE_PATH_CMP, PLOT_PATH_CAL_FUS)
 from fio import save_application_priors, save_gaussian_evaluation_results, save_LR_evaluation_results, \
     save_SVM_evaluation_results, save_GMM_results, save_best_results
+from fusion import fusion_task
 from plot import plot_bayes_errors
 from gaussian import gaussian_classification
 from gmm import gmm_task
@@ -29,6 +31,7 @@ if __name__ == "__main__":
     except FileNotFoundError:
         exit(f"File {argv[1]} not found")
 
+    app_prior = 0.1
     (features_tr, labels_tr), (features_val, labels_val) = utilities.split_db_2to1(features, labels)
 
     pca = PCA()
@@ -131,32 +134,31 @@ if __name__ == "__main__":
          for (model_name, model_best_info) in bayes_errors.items()]
 
     # np.random.seed(0)
-    # idx = np.random.permutation(features.shape[1])[0:features.shape[1] // 10]
-    # reduced_features, reduced_labels = features[:, idx], labels[idx]
-    # _, (red_feat_val, red_lab_val) = utilities.split_db_2to1(reduced_features, reduced_labels)
+    # idx = np.random.permutation(features.shape[1])[0:features.shape[1] // 20]
+    # features, labels = features[:, idx], labels[idx]
+    # (features_tr, labels_tr), (features_val, labels_val) = utilities.split_db_2to1(features, labels)
 
-    lr_results = LR_task(features, labels)
+    lr_results = LR_task(features_tr, labels_tr, features_val, labels_val, app_prior)
     best_LR = Evaluator.best_configuration(lr_results, LR)
     save_LR_evaluation_results(lr_results, FILE_PATH_LOGISTIC_REGRESSION, "LR_evaluation_results.txt")
 
-    svm_results = svm_task(features, labels)
+    svm_results = svm_task(features_tr, labels_tr, features_val, labels_val, app_prior)
     best_svm = Evaluator.best_configuration(svm_results["results"], SVM)
     save_SVM_evaluation_results(svm_results, FILE_PATH_SVM, "SVM_evaluation_results.txt")
 
-    gmm_results = gmm_task(features, labels)
+    gmm_results = gmm_task(features_tr, labels_tr, features_val, labels_val, app_prior)
     best_gmm = Evaluator.best_configuration(gmm_results, GMM)
     save_GMM_results(gmm_results, FILE_PATH_GMM, GMM_EVALUATION)
 
-    app_prior = 0.1
     model_results = {
         LR: best_LR,
         SVM: best_svm,
         GMM: best_gmm
     }
-    save_best_results(model_results, FILE_PATH_CMP, "best_results.txt")
+    save_best_results(model_results, FILE_PATH_CMP, "best_results_raw.txt")
     best_model = Evaluator.best_model(model_results, "min_dcf")
 
-    eff_prior_log_odds = np.linspace(-4, 4, 33)
+    eff_prior_log_odds = np.linspace(-4, 4, 101)
     bayes_errors = list(map(Evaluator.bayes_error,
                             [result["llr"] for result in model_results.values()],
                             [labels_val for i in range(len(model_results))],
@@ -167,10 +169,53 @@ if __name__ == "__main__":
     log_odd_application = np.log(app_prior / (1 - app_prior))
     plot_bayes_errors(eff_prior_log_odds, min_dcfs, dcfs, log_odd_application,
                       "Bayes error plots comparison",
-                      "",
+                      "Raw scores",
                       "Prior log-odds",
                       "DCF value",
                       PLOT_PATH_CMP,
-                      "bayes_error_comparison",
+                      "bayes_error_comparison_raw",
                       "pdf",
                       model_results.keys())
+
+    bayes_errors_raw = dict(zip(model_results.keys(), zip(min_dcfs, dcfs)))
+
+    calibration_result, labels_val_unfolded = calibration_task(model_results, labels_val, app_prior, bayes_errors_raw,
+                                                               eff_prior_log_odds, log_odd_application)
+
+    bayes_errors = list(map(Evaluator.bayes_error,
+                            [result["llr"] for result in calibration_result.values()],
+                            [label_val for label_val in labels_val_unfolded.values()],
+                            [eff_prior_log_odds for i in range(len(calibration_result))]))
+
+    min_dcfs = [error["min_dcf"] for error in bayes_errors]
+    dcfs = [error["dcf"] for error in bayes_errors]
+    plot_bayes_errors(eff_prior_log_odds, min_dcfs, dcfs, log_odd_application,
+                      "Bayes error plots comparison",
+                      "Calibrated scores",
+                      "Prior log-odds",
+                      "DCF value",
+                      PLOT_PATH_CMP,
+                      "bayes_error_comparison_calibrated",
+                      "pdf",
+                      calibration_result.keys())
+
+    scores = [model["llr"] for model in model_results.values()]
+    fusion_result, labels_val_unfolded = fusion_task(scores, labels_val, app_prior)
+
+    eff_prior_log_odds = np.linspace(-4, 2, 101)
+    min_dcf_fus, act_dcf_fus = map(
+        Evaluator.bayes_error(
+            fusion_result["llr"],
+            labels_val_unfolded,
+            eff_prior_log_odds).get,
+        ["min_dcf", "dcf"]
+    )
+
+    plot_bayes_errors(eff_prior_log_odds, [min_dcf_fus], [act_dcf_fus], log_odd_application,
+                      "Bayes error plots",
+                      "Fused scores",
+                      "Prior log-odds",
+                      "DCF value",
+                      PLOT_PATH_CAL_FUS,
+                      "bayes_error_fusion",
+                      "pdf")

@@ -12,7 +12,7 @@ def optimal_bayes(svm, evaluator, DVAL, LVAL, app_prior):
     llr = svm.score(DVAL)
     LPR = svm.predict(DVAL, app_prior)
 
-    min_dcf, dcf = map(evaluator.evaluate2(llr, LPR, LVAL, eff_prior=app_prior).get("results").get,
+    min_dcf, dcf = map(Evaluator.evaluate2(llr, LPR, LVAL, eff_prior=app_prior).get("results").get,
                        ["min_dcf", "dcf"])
     return min_dcf, dcf, llr
 
@@ -166,13 +166,11 @@ def rbf_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, evaluator, c_values, scale_val
     return results_min_dcf, results_dcf, llrs
 
 
-def svm_task(D, L):
-
-    (DTR, LTR), (DVAL, LVAL) = split_db_2to1(D, L)
+def svm_task(DTR, LTR, DVAL, LVAL, app_prior):
     print(f"SVM dataset: {DTR.shape}, {DVAL.shape}")
 
-    app_prior = 0.1
     c_values = np.logspace(-5, 0, 11)
+    c_values_rbf = np.logspace(-3, 2, 11)
     k_values = [1, 1, 0, 1]
     scale_values_rbf = np.exp(np.array(range(-4, 0)))
     ker_type = ["linear", "linear (preprocessing)", "polynomial", "rbf"]
@@ -231,7 +229,7 @@ def svm_task(D, L):
     svm.setParams(K=k_values[3], ker_type="rbf")
     eval_results[3]["min_dcf"], eval_results[3]["dcf"], eval_results[3]["llr"] = rbf_svm(DTR, LTR, DVAL, LVAL,
                                                                                          app_prior, svm, evaluator,
-                                                                                         c_values, scale_values_rbf)
+                                                                                         c_values_rbf, scale_values_rbf)
 
     for i in range(len(best_results[:-1])):
         eval_result = eval_results[i]
@@ -245,7 +243,7 @@ def svm_task(D, L):
 
     best_conf = lambda s: np.argmin(eval_results[-1]["min_dcf"][s])
     best_results[-1] = {
-        scale: (c_values[best_conf(scale)],
+        scale: (c_values_rbf[best_conf(scale)],
                 np.min(eval_results[-1]["min_dcf"][scale]),
                 k_values[-1],
                 eval_results[-1]["llr"][scale][best_conf(scale)],
@@ -258,7 +256,7 @@ def svm_task(D, L):
                              title, "Regularization values", "DCF values", "Min. DCF", "DCF",
                              PLOT_PATH_SVM, name, "pdf")
 
-    plot_log_N_double_lines(c_values, eval_results[-1]["min_dcf"], eval_results[-1]["dcf"],
+    plot_log_N_double_lines(c_values_rbf, eval_results[-1]["min_dcf"], eval_results[-1]["dcf"],
                             titles[-1], "Regularization values", "DCF values",
                             ["Min. DCF (g=e-4)", "Min. DCF (g=e-3)", "Min. DCF (g=e-2)", "Min. DCF (g=e-1)"],
                             ["DCF (g=e-4)", "DCF (g=e-3)", "DCF (g=e-2)", "DCF (g=e-1)"],

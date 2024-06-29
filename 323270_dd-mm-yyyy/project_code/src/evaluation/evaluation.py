@@ -14,11 +14,11 @@ class Evaluator:
         self.results = []
         self.data_models = []
 
-    def evaluate(self, llr, LPR, LTE, eff_prior, pca_dim, cache=True):
-        M = self.compute_confusion_matrix(LPR, LTE, 2)
+    def evaluate(self, llr, LPR, LVAL, eff_prior, pca_dim, cache=True):
+        M = self.compute_confusion_matrix(LPR, LVAL, 2)
         dummy_risk = Evaluator.dummy_risk(eff_prior, 1, 1)
         dcf = Evaluator.normalized_DCF(M, eff_prior, dummy_risk)
-        min_dcf = Evaluator.minimum_DCF(llr, LTE, eff_prior, dummy_risk)
+        min_dcf = Evaluator.minimum_DCF(llr, LVAL, eff_prior, dummy_risk)
 
         self.results.append({
             eff_prior: {
@@ -33,21 +33,22 @@ class Evaluator:
                 eff_prior: {
                     "pca": pca_dim,
                     "llr": llr,
-                    "LTE": LTE
+                    "LVAL": LVAL
                 }
             })
 
-    def evaluate2(self, llr, LPR, LTE, eff_prior, **model_params):
-        M = self.compute_confusion_matrix(LPR, LTE, 2)
+    @staticmethod
+    def evaluate2(llr, LPR, LVAL, eff_prior, **model_params):
+        M = Evaluator.compute_confusion_matrix(LPR, LVAL, 2)
         dummy_risk = Evaluator.dummy_risk(eff_prior, 1, 1)
         dcf = Evaluator.normalized_DCF(M, eff_prior, dummy_risk)
-        min_dcf = Evaluator.minimum_DCF(llr, LTE, eff_prior, dummy_risk)
+        min_dcf = Evaluator.minimum_DCF(llr, LVAL, eff_prior, dummy_risk)
 
         model_results = {
             "dcf": dcf,
             "min_dcf": min_dcf,
             "llr": llr,
-            "LTE": LTE
+            "LVAL": LVAL
         }
 
         model_params["eff_prior"] = eff_prior
@@ -131,12 +132,12 @@ class Evaluator:
         best_conf = np.argmin(min_dcfs)
 
         return {
-            "min_dcf" : all_results[best_conf][2],
+            "min_dcf": all_results[best_conf][2],
             "act_dcf": all_results[best_conf][3],
             "llr": all_results[best_conf][4],
             "params": {
                 "type": all_results[best_conf][0],
-                "components": all_results[best_conf][1]
+                "components": f"(False: {all_results[best_conf][1][0]}, True: {all_results[best_conf][1][1]})"
             }
         }
 
@@ -159,11 +160,11 @@ class Evaluator:
         return dict([list(model_results.items())[best_model]])
 
     @staticmethod
-    def compute_confusion_matrix(LPR, LTE, n_classes):
+    def compute_confusion_matrix(LPR, LVAL, n_classes):
         M = np.zeros((n_classes, n_classes), dtype=np.int32)
 
-        # print(LPR.shape, LTE.shape)
-        for (p, c) in zip(LPR.ravel(), LTE.ravel()):
+        # print(LPR.shape, LVAL.shape)
+        for (p, c) in zip(LPR.ravel(), LVAL.ravel()):
             M[p, c] += 1
 
         return M
@@ -181,17 +182,17 @@ class Evaluator:
         return Evaluator.unnormalized_DCF(M, eff_prior) / dummy_risk
 
     @staticmethod
-    def minimum_DCF(llr, LTE, eff_prior, dummy_risk):
+    def minimum_DCF(llr, LVAL, eff_prior, dummy_risk):
         min_DCF = np.inf
 
         # Initially, confusion matrix has only false and true positives
         # Since threshold value is below min(llr)
-        M = np.array([[0, 0], [np.sum(LTE == 0), np.sum(LTE == 1)]])
+        M = np.array([[0, 0], [np.sum(LVAL == 0), np.sum(LVAL == 1)]])
         for threshold in sorted(np.unique(llr)):
             # From false positive to true negative
-            below_threshold = np.sum((llr == threshold) & (LTE == 0))
+            below_threshold = np.sum((llr == threshold) & (LVAL == 0))
             # From true positive to false negative
-            above_threshold = np.sum((llr == threshold) & (LTE == 1))
+            above_threshold = np.sum((llr == threshold) & (LVAL == 1))
 
             # Update matrix
             M[0, 0] += below_threshold
@@ -204,15 +205,15 @@ class Evaluator:
         return min_DCF
 
     @staticmethod
-    def bayes_error(llr, LTE, effective_prior_log_odds):
+    def bayes_error(llr, LVAL, effective_prior_log_odds):
 
         dcf, min_dcf = [], []
         for threshold in -effective_prior_log_odds:
             LPR = np.array(llr > threshold, dtype=np.int32)
-            M = Evaluator.compute_confusion_matrix(LPR, LTE, 2)
+            M = Evaluator.compute_confusion_matrix(LPR, LVAL, 2)
             effetctive_prior = 1 / (1 + np.exp(threshold))
             dummy_risk = Evaluator.dummy_risk(effetctive_prior)
             dcf.append(Evaluator.normalized_DCF(M, effetctive_prior, dummy_risk))
-            min_dcf.append(Evaluator.minimum_DCF(llr, LTE, effetctive_prior, dummy_risk))
+            min_dcf.append(Evaluator.minimum_DCF(llr, LVAL, effetctive_prior, dummy_risk))
 
         return {"min_dcf": min_dcf, "dcf": dcf}

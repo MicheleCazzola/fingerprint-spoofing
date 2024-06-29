@@ -165,7 +165,7 @@ def write_tables(results):
         print_string += print_DCFs(result, "dcf", m)
     print_string += "\n"
 
-    print_string += "Relative calibration loss (%)\n"
+    print_string += "Relative calibration_fusion loss (%)\n"
     print_string += f"{'PCA dimensions':<16s}{'MVG':^10s}{'Tied MVG':^12s}{'Naive Bayes MVG':^17s}\n"
     for (m, result) in sorted(results.items(), key=lambda x: x[0] if x[0] != "Not applied" else np.inf):
         print_string += print_mis_calibrations(result, m)
@@ -232,10 +232,11 @@ def write_GMM_results(results):
     print_string = ""
     for (variant, results) in results.items():
         print_string += f"--{'Full covariance' if variant == 'full' else 'Diagonal covariance'} matrices--\n"
-        print_string += f"{'GMM components':<15s}{'Minimum DCF':^13s}{'Actual DCF':^12s}\n"
+        print_string += f"{'Components(False)':<18s}{'Components(True)':^19s}{'Minimum DCF':^13s}{'Actual DCF':^12s}\n"
         for (num_components, result) in results.items():
             min_dcf, dcf = map(result.get, ["min_dcf", "dcf"])
-            print_string += f"{num_components:^15d}{min_dcf:^13.3f}{dcf:^12.3f}\n"
+            nc_false, nc_true = num_components
+            print_string += f"{nc_false:^18d}{nc_true:^19d}{min_dcf:^13.3f}{dcf:^12.3f}\n"
         print_string += "\n"
 
     return print_string
@@ -251,15 +252,16 @@ def save_GMM_results(results, path_root, file_name):
 def write_best_results(results):
     print_string = "-- Comparisons among models --\n"
 
-    print_string += f"{'Type':<5s}{'Minimum DCF':^13s}{'Actual DCF':^11s}{'Parameters':^30s}\n"
+    print_string += f"{'Type':<5s}{'Minimum DCF':^13s}{'Actual DCF':^11s}{'Parameters':^44s}\n"
     for (model_type, result) in results.items():
         print_string += f"{model_type:^5s}{result['min_dcf']:^13.3f}{result['act_dcf']:^11.3f}"
-        print_string += ", ".join(
+        params = ", ".join(
             [
                 f"{par_name}: {par_value:.3f}" if type(par_value) in [float, np.float64] else f"{par_name}: {par_value}"
                 for (par_name, par_value) in result["params"].items()
             ]
         )
+        print_string += f"{params:^44s}"
         print_string += "\n"
 
     return print_string

@@ -1,12 +1,13 @@
 import numpy as np
 import scipy.special as scspec
 
-from utilities.utilities import vcol, vrow, split_db_2to1
-from fitting.fitting import logpdf_GAU_ND
 from evaluation.evaluation import Evaluator
+from fitting.fitting import logpdf_GAU_ND
+from utilities.utilities import vcol, vrow
+
 
 class GMM:
-    def __init__(self, variant="full", alpha=0.1, delta=1e-6, num_components=1, psi=0.01):
+    def __init__(self, variant="full", alpha=0.1, delta=1e-6, num_components=(1, 1), psi=0.01):
         self.variant = variant
         self.alpha = alpha
         self.delta = delta
@@ -109,7 +110,7 @@ class GMM:
 
         return new_gmm
 
-    def _EM_LBG(self, XTR):
+    def _EM_LBG(self, XTR, label):
         mu = vcol(np.sum(XTR, axis=1)) / XTR.shape[1]
         cov = (XTR - mu) @ (XTR - mu).T / XTR.shape[1]
         cov = self._cov_transform([1.0], [cov])
@@ -117,12 +118,12 @@ class GMM:
         gmm = [(1.0, mu, cov)]
 
         # 1-GMM no LBG
-        if self.num_components == 1:
+        if self.num_components[label] == 1:
             return gmm, None
-            #return self._EM(XTR, gmm)
+            # return self._EM(XTR, gmm)
 
         avg_ll = None
-        while len(gmm) < self.num_components:
+        while len(gmm) < self.num_components[label]:
             starting_gmm = self._LBG(gmm)
             gmm, avg_ll = self._EM(XTR, starting_gmm)
 
@@ -137,7 +138,7 @@ class GMM:
 
     def llr(self, DVAL, LVAL):
         S = self._scores(DVAL, LVAL)
-        return S[1, :] - S[0, :]
+        return vrow(S[1, :] - S[0, :])
 
     def fit(self, DTR, LTR, **kwargs):
         self.set_params(**kwargs)
@@ -145,7 +146,7 @@ class GMM:
 
         gmm_list = []
         for label in sorted(np.unique(LTR)):
-            gmm, ll = self._EM_LBG(DTR[:, LTR == label])
+            gmm, ll = self._EM_LBG(DTR[:, LTR == label], label)
             gmm_list.append(gmm)
         self.gmm = gmm_list
 
@@ -154,21 +155,44 @@ class GMM:
 
         if len(np.unique(LVAL)) == 2:
             threshold = -np.log(app_prior / (1 - app_prior))
-            LPR = np.zeros(LVAL.shape[0], dtype=np.int32)
-            llr = S[1, :] - S[0, :]
+            LPR = np.zeros((1, LVAL.shape[0]), dtype=np.int32)
+            llr = vrow(S[1, :] - S[0, :])
             LPR[llr >= threshold] = 1
             LPR[llr < threshold] = 0
         else:
-            S += vcol(np.log(np.ones(3)/3))
+            S += vcol(np.log(np.ones(3) / 3))
             LPR = np.argmax(S, axis=0)
 
         return LPR
 
 
-def gmm_task(D, L):
-    (DTR, LTR), (DVAL, LVAL) = split_db_2to1(D, L)
+def gmm_variant(DTR, LTR, DVAL, LVAL, app_prior, variant, components, gmm):
+    result = {}
 
-    app_prior = 0.1
+    str_variant = "Full" if variant == "full" else "Diagonal"
+    print(f"--{str_variant} covariance matrices--")
+
+    gmm.set_params(variant=variant)
+    for nc_false in components:
+        for nc_true in components:
+            gmm.set_params(num_components=(nc_false, nc_true))
+            gmm.fit(DTR, LTR)
+            llr = gmm.llr(DVAL, LVAL)
+            LPR = gmm.predict(DVAL, LVAL, app_prior)
+
+            min_dcf, dcf, llr = map(Evaluator.evaluate2(llr, LPR, LVAL, app_prior).get("results").get,
+                                    ["min_dcf", "dcf", "llr"])
+
+            result[(nc_false, nc_true)] = {
+                "min_dcf": min_dcf,
+                "dcf": dcf,
+                "llr": llr
+            }
+
+    return result
+
+
+def gmm_task(DTR, LTR, DVAL, LVAL, app_prior):
     steps = 6
     gmm_components = [2 ** i for i in range(steps)]
     gmm_results = {
@@ -177,45 +201,8 @@ def gmm_task(D, L):
     }
 
     gmm = GMM()
-    evaluator = Evaluator("GMM")
 
-    print("--Full covariance matrices--")
-    print(f"{'GMM components':<15s}{'Minimum DCF':^13s}{'Actual DCF':^12s}")
-
-    for num_components in gmm_components:
-        gmm.set_params(num_components=num_components)
-        gmm.fit(DTR, LTR)
-        llr = gmm.llr(DVAL, LVAL)
-        LPR = gmm.predict(DVAL, LVAL)
-
-        min_dcf, dcf, llr = map(evaluator.evaluate2(llr, LPR, LVAL, app_prior).get("results").get, ["min_dcf", "dcf", "llr"])
-
-        gmm_results["full"][num_components] = {
-            "min_dcf": min_dcf,
-            "dcf": dcf,
-            "llr": llr
-        }
-
-        print(f"{num_components:^15d}{min_dcf:^13.4f}{dcf:^12.4f}")
-
-    print("--Diagonal covariance matrices--")
-    print(f"{'GMM components':<15s}{'Minimum DCF':^13s}{'Actual DCF':^12s}")
-
-    gmm.set_params(variant="diag")
-    for num_components in gmm_components:
-        gmm.set_params(num_components=num_components)
-        gmm.fit(DTR, LTR)
-        llr = gmm.llr(DVAL, LVAL)
-        LPR = gmm.predict(DVAL, LVAL)
-
-        min_dcf, dcf, llr = map(evaluator.evaluate2(llr, LPR, LVAL, app_prior).get("results").get, ["min_dcf", "dcf", "llr"])
-
-        gmm_results["diag"][num_components] = {
-            "min_dcf": min_dcf,
-            "dcf": dcf,
-            "llr": llr
-        }
-
-        print(f"{num_components:^15d}{min_dcf:^13.4f}{dcf:^12.4f}")
+    for variant in gmm_results:
+        gmm_results[variant] = gmm_variant(DTR, LTR, DVAL, LVAL, app_prior, variant, gmm_components, gmm)
 
     return gmm_results
