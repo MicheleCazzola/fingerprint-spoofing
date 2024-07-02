@@ -1,3 +1,4 @@
+from pprint import pprint
 from sys import argv
 
 import numpy as np
@@ -5,7 +6,7 @@ import numpy as np
 from calibration import calibration_task
 from constants import (APPLICATIONS, FILE_PATH_GENERATIVE_GAUSSIAN, PLOT_PATH_GENERATIVE_GAUSSIAN, PLOT_PATH_CMP,
                        FILE_PATH_LOGISTIC_REGRESSION, FILE_PATH_SVM, FILE_PATH_GMM, GMM_EVALUATION, LR, SVM, GMM,
-                       FILE_PATH_CMP, PLOT_PATH_CAL_FUS)
+                       FILE_PATH_CMP, PLOT_PATH_CAL_FUS, BEST_RESULTS_CAL, FUSION)
 from fio import save_application_priors, save_gaussian_evaluation_results, save_LR_evaluation_results, \
     save_SVM_evaluation_results, save_GMM_results, save_best_results
 from fusion import fusion_task
@@ -155,6 +156,19 @@ if __name__ == "__main__":
         SVM: best_svm,
         GMM: best_gmm
     }
+
+    print("Model classification results (no calibration)")
+    for (method, result) in model_results.items():
+        print(f"Method: {method}")
+        print(f"Minimum DCF: {result['min_dcf']:.5f}")
+        print(f"Actual DCF: {result['act_dcf']:.5f}")
+        print(f"LLR: shape = {result['llr'].shape} mean = {result['llr'].mean():.5f}, max = {result['llr'].max():.5f}, min = {result['llr'].min():.5f}, devstd = {result['llr'].std():.5f}")
+        pprint(result['llr'])
+        print(f"Method parameters:")
+        pprint(result['params'])
+        print()
+    print()
+
     save_best_results(model_results, FILE_PATH_CMP, "best_results_raw.txt")
     best_model = Evaluator.best_model(model_results, "min_dcf")
 
@@ -201,6 +215,21 @@ if __name__ == "__main__":
 
     scores = [model["llr"] for model in model_results.values()]
     fusion_result, labels_val_unfolded = fusion_task(scores, labels_val, app_prior)
+
+    cal_fus_result = calibration_result | {FUSION: fusion_result}
+
+    print("Results after calibration / fusion: ")
+    for (method, result) in cal_fus_result.items():
+        print(f"Method: {method}")
+        print(f"Minimum DCF: {result['min_dcf']:.5f}")
+        print(f"Actual DCF: {result['act_dcf']:.5f}")
+        print(f"LLR: shape = {result['llr'].shape} mean = {result['llr'].mean():.5f}, max = {result['llr'].max():.5f}, min = {result['llr'].min():.5f}, devstd = {result['llr'].std():.5f}")
+        pprint(result['llr'])
+        print(f"Method parameters:")
+        pprint(result['params'])
+        print()
+
+    save_best_results(cal_fus_result, FILE_PATH_CMP, BEST_RESULTS_CAL)
 
     eff_prior_log_odds = np.linspace(-4, 2, 101)
     min_dcf_fus, act_dcf_fus = map(

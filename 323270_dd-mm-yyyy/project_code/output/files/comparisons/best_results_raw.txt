@@ -1,5 +1,5 @@
 -- Comparisons among models --
-Type  Minimum DCF Actual DCF                  Parameters                 
- LR      0.244       0.497           type: Quadratic LR, λ: 0.032        
- SVM     0.175       0.422     type: rbf, scale: 0.135, C: 31.623, K: 1  
- GMM     0.131       0.152   type: diag, components: (False: 8, True: 32)
+  Type   Minimum DCF Actual DCF                  Parameters                 
+   LR       0.244       0.497           type: Quadratic LR, λ: 0.032        
+  SVM       0.175       0.422     type: rbf, scale: 0.135, C: 31.623, K: 1  
+  GMM       0.131       0.152   type: diag, components: (False: 8, True: 32)

@@ -14,9 +14,9 @@ class Fusion:
         self.scores = np.vstack([self.scores, score.ravel()])
 
     @staticmethod
-    def fuse(scores_folds, labels_folds, tr_prior, app_prior, kf):
-        cal_scores, LPR = Calibrator.calibrate(scores_folds, labels_folds, tr_prior, app_prior, kf)
-        return cal_scores, LPR
+    def fuse(S, L, tr_prior, app_prior, kf):
+        cal_scores, LVAL_kf, LPR = Calibrator.calibrate(tr_prior, app_prior, kf)
+        return cal_scores, LVAL_kf, LPR
 
     def get_scores(self):
         return self.scores
@@ -27,7 +27,7 @@ class Fusion:
 
 def fusion_task(scores, LVAL, app_prior):
     K = 5
-    num_tr_priors = 101
+    num_tr_priors = 99
     emp_training_priors = np.linspace(0.01, 0.99, num_tr_priors)
 
     fus = Fusion(LVAL, scores)
@@ -36,16 +36,17 @@ def fusion_task(scores, LVAL, app_prior):
     print("Fusing...")
 
     kf = KFold(S, LVAL, K)
-    # SHUFFLE HERE !!!
-    scores_folds, labels_folds = kf.create_folds()
-    LVAL_unfolded = kf.get_real_labels()
+    LVAL_unfolded = None
 
     best_act_dcf, best_min_dcf, best_tr_prior, best_fused_scores = np.inf, np.inf, emp_training_priors[0], None
     for emp_training_prior in emp_training_priors:
-        scores_fused, LPR = Fusion.fuse(scores_folds, labels_folds, emp_training_prior, app_prior, kf)
+        scores_fused, LVAL_kf, LPR = Fusion.fuse(S, LVAL, emp_training_prior, app_prior, kf)
+
+        if LVAL_unfolded is None:
+            LVAL_unfolded = LVAL_kf
 
         min_dcf, act_dcf, _ = map(
-            Evaluator.evaluate2(scores_fused, LPR, LVAL_unfolded, eff_prior=app_prior).get("results").get,
+            Evaluator.evaluate2(scores_fused, LPR, LVAL_kf, eff_prior=app_prior).get("results").get,
             ["min_dcf", "dcf", "llr"])
 
         if act_dcf < best_act_dcf:

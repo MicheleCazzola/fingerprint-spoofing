@@ -15,36 +15,47 @@ class Calibrator:
         self.calibrated = None
 
     @staticmethod
-    def calibrate(scores_folds, labels_folds, training_prior, app_prior, kf):
+    def calibrate(training_prior, app_prior, kf):
         lr = LogisticRegression(variant=PRIOR_WEIGHTED_LR)
-        K = len(scores_folds)
-        for i in range(0, K):
-            (SCAL, LCAL), (SVAL, LVAL) = kf.split(scores_folds, labels_folds, i)
-            lr.fit(SCAL, LCAL, training_prior=training_prior, app_prior=app_prior)
-            cal_scores = lr.scores(SVAL)
-            LPR = lr.predict(SVAL, app_prior)
-            kf.pool(cal_scores, LPR)
-        scores_cal, LPR = kf.get_results()
 
-        return scores_cal, LPR
+        cal_scores = []
+        act_labels = []
+        pred_labels = []
+
+        for i in range(0, kf.K):
+            (SCAL, LCAL), (SVAL, LVAL) = kf.split(i)
+            lr.fit(SCAL, LCAL, training_prior=training_prior, app_prior=app_prior)
+            cal_score = lr.scores(SVAL)
+            LPR = lr.predict(SVAL, app_prior)
+
+            cal_scores.append(cal_score)
+            act_labels.append(LVAL)
+            pred_labels.append(LPR)
+
+        cal_scores = np.hstack(cal_scores)
+        act_labels = np.hstack(act_labels)
+        pred_labels = np.hstack(pred_labels)
+
+        return cal_scores, act_labels, pred_labels
 
 
 def model_calibration(S, LVAL, app_prior, act_dcf_raw, min_dcf_raw):
     K = 5
-    num_tr_priors = 101
+    num_tr_priors = 99
     emp_training_priors = np.linspace(0.01, 0.99, num_tr_priors)
 
     kf = KFold(S, LVAL, K)
-    # SHUFFLE HERE !!!
-    scores_folds, labels_folds = kf.create_folds()
-    LVAL_unfolded = kf.get_real_labels()
-
+    LVAL_unfolded = None
     best_act_dcf, best_min_dcf, best_tr_prior, best_cal_scores = act_dcf_raw, min_dcf_raw, emp_training_priors[0], None
     for emp_training_prior in emp_training_priors:
-        scores_cal, LPR = Calibrator.calibrate(scores_folds, labels_folds, emp_training_prior, app_prior, kf)
+        scores_cal, LVAL_kf, LPR = Calibrator.calibrate(emp_training_prior, app_prior, kf)
+
+        # Same shuffle, so LVAL used in KFold is the same across iterations
+        if LVAL_unfolded is None:
+            LVAL_unfolded = LVAL_kf
 
         min_dcf, act_dcf, _ = map(
-            Evaluator.evaluate2(scores_cal, LPR, LVAL_unfolded, eff_prior=app_prior).get("results").get,
+            Evaluator.evaluate2(scores_cal, LPR, LVAL_kf, eff_prior=app_prior).get("results").get,
             ["min_dcf", "dcf", "llr"])
 
         if act_dcf < best_act_dcf:
@@ -113,7 +124,5 @@ def calibration_task(model_results, LVAL, app_prior, bayes_errors_raw, effective
         )
 
         print()
-
-    save_best_results(calibrated_results, FILE_PATH_CMP, BEST_RESULTS_CAL)
 
     return calibrated_results, LVAL_unfolded_models

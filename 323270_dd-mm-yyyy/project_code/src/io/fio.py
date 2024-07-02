@@ -252,9 +252,9 @@ def save_GMM_results(results, path_root, file_name):
 def write_best_results(results):
     print_string = "-- Comparisons among models --\n"
 
-    print_string += f"{'Type':<5s}{'Minimum DCF':^13s}{'Actual DCF':^11s}{'Parameters':^44s}\n"
+    print_string += f"{'Type':^8s}{'Minimum DCF':^13s}{'Actual DCF':^11s}{'Parameters':^44s}\n"
     for (model_type, result) in results.items():
-        print_string += f"{model_type:^5s}{result['min_dcf']:^13.3f}{result['act_dcf']:^11.3f}"
+        print_string += f"{model_type:^8s}{result['min_dcf']:^13.3f}{result['act_dcf']:^11.3f}"
         params = ", ".join(
             [
                 f"{par_name}: {par_value:.3f}" if type(par_value) in [float, np.float64] else f"{par_name}: {par_value}"

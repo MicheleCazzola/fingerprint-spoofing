@@ -9,6 +9,7 @@ LR_STANDARD = "LR_STD"
 PRIOR_WEIGHTED_LR = "PWLR"
 SVM = "SVM"
 GMM = "GMM"
+FUSION = "Fusion"
 
 # PATHS
 PLOT_PATH_ESTIMATIONS = "output/plots/feature_estimation/"
