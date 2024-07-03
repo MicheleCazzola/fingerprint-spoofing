@@ -30,5 +30,7 @@ class KFold:
         return d_val, l_val
 
     def split(self, index):
-        return (self._training_folds(index),
-                self._validation_fold(index))
+        return (
+            self._training_folds(index),
+            self._validation_fold(index)
+        )

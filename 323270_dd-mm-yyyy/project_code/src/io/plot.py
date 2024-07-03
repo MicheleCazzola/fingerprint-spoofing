@@ -1,9 +1,18 @@
 import matplotlib.pyplot as plt
-from src.io.constants import LABEL_NAMES, PLOT_PATH_ESTIMATIONS
+from src.io.constants import LABEL_NAMES, PLOT_PATH_ESTIMATIONS, PLOT_SUBPATH_HISTOGRAM_FEATURES, \
+    PLOT_SUBPATH_SCATTERPLOTS_FEATURES, ESTIMATED_FEATURE
 
 
-def plot_feature_distributions(features, labels, path_root, title_prefix, axes_prefix, name_prefix_hist,
-                               name_prefix_scatter, extension):
+def plot_feature_distributions(
+    features,
+    labels,
+    path_root,
+    title_prefix,
+    axes_prefix,
+    name_prefix_hist,
+    name_prefix_scatter,
+    extension
+):
     """
     Plots features selected into histograms and scatter plots
 
@@ -23,7 +32,7 @@ def plot_feature_distributions(features, labels, path_root, title_prefix, axes_p
     # Histogram plot
     for c in range(features.shape[0]):
         plot_hist(features0, features1, c,
-                  f"{path_root}histograms/",
+                  f"{path_root}{PLOT_SUBPATH_HISTOGRAM_FEATURES}",
                   f"{title_prefix} {c + 1}",
                   f"{axes_prefix} {c + 1}",
                   f"{name_prefix_hist}_{c + 1}",
@@ -33,7 +42,7 @@ def plot_feature_distributions(features, labels, path_root, title_prefix, axes_p
     for i in range(features.shape[0]):
         for j in range(i + 1, features.shape[0]):
             plot_scatter(features0, features1, i, j,
-                         f"{path_root}scatterplots/",
+                         f"{path_root}{PLOT_SUBPATH_SCATTERPLOTS_FEATURES}",
                          f"{title_prefix}s {i + 1}, {j + 1}",
                          f"{axes_prefix} {i + 1}",
                          f"{axes_prefix} {j + 1}",
@@ -120,8 +129,7 @@ def plot_line(x, y, path, title, x_label, y_label, name, extension, cross_center
     plt.close(name)
 
 
-def plot_line_hist(x, y_false, y_true, features_false, features_true,
-                   path, title, axis_label, name, extension):
+def plot_line_hist(x, y_false, y_true, features_false, features_true, path, title, axis_label, name, extension):
     """
     Plots a line chart over a histogram
 
@@ -164,13 +172,26 @@ def plot_estimated_features(x, y, features):
                        PLOT_PATH_ESTIMATIONS,
                        f"Feature {i + 1} estimate",
                        f"Estimated feature {i + 1}",
-                       f"estimated_feature_{i + 1}",
+                       f"{ESTIMATED_FEATURE}_{i + 1}",
                        "pdf")
         i += 1
 
 
-def plot_bayes_errors(eff_prior_log_odds, min_dcf, actual_dcf, eff_prior_log_odd, title, subtitle, x_label, y_label,
-                      path, name, extension, models=None):
+def plot_bayes_errors(
+    eff_prior_log_odds,
+    min_dcf,
+    actual_dcf,
+    eff_prior_log_odd,
+    title,
+    subtitle,
+    x_label,
+    y_label,
+    path,
+    name,
+    extension,
+    models=None
+):
+
     if models is None:
         models = [None] * len(min_dcf)
 

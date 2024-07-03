@@ -2,8 +2,7 @@ import numpy as np
 from numpy.linalg import linalg
 
 from pca import PCA
-from . import pca_old
-from src.utilities.utilities import vcol, split_db_2to1, project
+from src.utilities.utilities import vcol, project
 
 
 def covariances(D, L):
@@ -135,23 +134,23 @@ def apply(D, L):
     :return: projected dataset
     """
     W = estimate(D, L)
-    #W = -estimate(D, L)
     DP = project(D, W)
 
     return DP
 
 
-def classify(D, L, m=None, PCA_enabled=False):
+def classify(DTR, LTR, DVAL, LVAL, m=None, PCA_enabled=False):
     """
     Performs LDA classification, given dataset and labels
 
-    :param D: dataset
-    :param L: labels
+    :param DTR: training dataset
+    :param LTR: training labels
+    :param DVAL: validation dataset
+    :param LVAL: validation labels
     :param m: PCA dimensions (default None): must be valid if PCA_enabled is True
     :param PCA_enabled: PCA used flag (default False): uses PCA before LDA if True
     :return: predicted labels, error rate, threshold used
     """
-    (DTR, LTR), (DVAL, LVAL) = split_db_2to1(D, L)
 
     if PCA_enabled:
         pca = PCA(n_components=m)
@@ -170,15 +169,16 @@ def classify(D, L, m=None, PCA_enabled=False):
     return PVAL, err_rate, threshold
 
 
-def classify_best_threshold(D, L):
+def classify_best_threshold(DTR, LTR, DVAL, LVAL):
     """
     Performs LDA classification without PCA, tracking error rate for each threshold value used
 
-    :param D: dataset
-    :param L: labels
+    :param DTR: training dataset
+    :param LTR: training labels
+    :param DVAL: validation dataset
+    :param LVAL: validation labels
     :return: error rate trend, computed both on all dataset domain and on reduced one
     """
-    (DTR, LTR), (DVAL, LVAL) = split_db_2to1(D, L)
 
     W = estimate(DTR, LTR)
     DTR_lda = project(DTR, W)
@@ -192,19 +192,21 @@ def classify_best_threshold(D, L):
     return err_rate_trend, err_rate_trend_reduced
 
 
-def classify_PCA_preprocess(D, L):
+def classify_PCA_preprocess(DTR, LTR, DVAL, LVAL):
     """
     Compute the LDA classification with PCA preprocessing, using different dimensions
 
-    :param D: dataset
-    :param L: labels
+    :param DTR: training dataset
+    :param LTR: training labels
+    :param DVAL: validation dataset
+    :param LVAL: validation labels
     :return: error rates, depending on the dimensionality of the PCA
     """
 
     dimensions = list(range(5, 1, -1))
     error_rates = []
     for m in dimensions:
-        _, error_rate, _ = classify(D, L, m, True)
+        _, error_rate, _ = classify(DTR, LTR, DVAL, LVAL, m, True)
         error_rates.append(error_rate)
 
     return dimensions, error_rates

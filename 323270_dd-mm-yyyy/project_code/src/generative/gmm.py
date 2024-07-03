@@ -180,8 +180,10 @@ def gmm_variant(DTR, LTR, DVAL, LVAL, app_prior, variant, components, gmm):
             llr = gmm.llr(DVAL, LVAL)
             LPR = gmm.predict(DVAL, LVAL, app_prior)
 
-            min_dcf, dcf, llr = map(Evaluator.evaluate2(llr, LPR, LVAL, app_prior).get("results").get,
-                                    ["min_dcf", "dcf", "llr"])
+            min_dcf, dcf, llr = map(
+                Evaluator.evaluate(llr, LPR, LVAL, app_prior).get("results").get,
+                ["min_dcf", "dcf", "llr"]
+            )
 
             result[(nc_false, nc_true)] = {
                 "min_dcf": min_dcf,

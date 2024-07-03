@@ -1,12 +1,11 @@
 import numpy as np
 
-from constants import FILE_PATH_GENERATIVE_GAUSSIAN, GAUSSIAN_ERROR_RATES, GAUSSIAN_MODELS, APPLICATIONS, GAUSSIAN
+from constants import FILE_PATH_GENERATIVE_GAUSSIAN, GAUSSIAN_ERROR_RATES, GAUSSIAN_MODELS, APPLICATIONS, GAUSSIAN, SAVE
 from evaluation.evaluation import Evaluator
 from fitting.fitting import logpdf_GAU_ND, compute_estimators
 from pca import PCA
-from pca_old import reduce
 from src.io.fio import save_gaussian_classification_results
-from utilities.utilities import vcol, split_db_2to1, vrow, project, effective_prior
+from utilities.utilities import vcol, vrow, effective_prior
 
 
 def estimate(D, L):
@@ -67,9 +66,8 @@ def classify(DVAL, LVAL, mu_c, cov_c, eff_priors, m_pca, evaluate, eval_results,
     thresholds = [set_threshold(1 - eff_prior, eff_prior) for eff_prior in eff_priors]
     llr, LPRs = compute_predictions(DVAL, LVAL, mu_c, cov_c, thresholds)
     if evaluate:
-        evaluator = Evaluator("Gaussian")
         for (eff_prior, LPR) in zip(eff_priors, LPRs):
-            result = Evaluator.evaluate2(llr, LPR, LVAL, eff_prior=eff_prior, pca=m_pca)
+            result = Evaluator.evaluate(llr, LPR, LVAL, eff_prior=eff_prior, pca=m_pca)
             params, results = result['params'], result['results']
             pca = params["pca"] if params['pca'] is not None else "Not applied"
             entry = eval_results[eff_prior].get(pca, {})
@@ -83,17 +81,45 @@ def classify(DVAL, LVAL, mu_c, cov_c, eff_priors, m_pca, evaluate, eval_results,
 
 
 def MVG(DVAL, LVAL, mu_c, cov_c, eff_priors, m_pca, evaluate, eval_results):
-    return classify(DVAL, LVAL, mu_c, cov_c, eff_priors, m_pca, evaluate, eval_results, "MVG")
+    return classify(
+        DVAL,
+        LVAL, mu_c,
+        cov_c,
+        eff_priors,
+        m_pca,
+        evaluate,
+        eval_results,
+        "MVG"
+    )
 
 
 def TiedMVG(DVAL, LVAL, mu_c, cov_c, DTR, LTR, eff_priors, m_pca, evaluate, eval_results):
     cov = within_class_covariance(cov_c, DTR, LTR)
-    return classify(DVAL, LVAL, mu_c, np.array([cov] * 2), eff_priors, m_pca, evaluate, eval_results, "Tied MVG")
+    return classify(
+        DVAL,
+        LVAL,
+        mu_c,
+        np.array([cov] * 2),
+        eff_priors,
+        m_pca,
+        evaluate,
+        eval_results,
+        "Tied MVG"
+    )
 
 
 def Naive_BayesMVG(DVAL, LVAL, mu_c, cov_c, eff_priors, m_pca, evaluate, eval_results):
-    return classify(DVAL, LVAL, mu_c, compute_cov_naive_approx(cov_c), eff_priors, m_pca, evaluate, eval_results,
-                    "Naive Bayes MVG")
+    return classify(
+        DVAL,
+        LVAL,
+        mu_c,
+        compute_cov_naive_approx(cov_c),
+        eff_priors,
+        m_pca,
+        evaluate,
+        eval_results,
+        "Naive Bayes MVG"
+    )
 
 
 def compute_correlations(DTR, LTR):
@@ -121,15 +147,21 @@ def classification_PCA_preprocessing(DTR, LTR, DVAL, LVAL, eff_priors, eval_resu
     for m in range(2, DTR.shape[0]):
         DTR_pca = pca.fit_transform(DTR, n_components=m)
         DVAL_pca = pca.transform(DVAL)
-        # P = reduce(DTR, m)
-        # DTR_pca, DVAL_pca = project(DTR, P), project(DVAL, P)
-        error_rates_pca[m] = classification_analysis(DTR_pca, LTR, DVAL_pca, LVAL, eff_priors, m, evaluate, eval_results)
+        error_rates_pca[m] = classification_analysis(
+            DTR_pca,
+            LTR,
+            DVAL_pca,
+            LVAL,
+            eff_priors,
+            m,
+            evaluate,
+            eval_results
+        )
 
     return error_rates_pca
 
 
-def gaussian_classification(D, L):
-    (DTR, LTR), (DVAL, LVAL) = split_db_2to1(D, L)
+def MVG_task(DTR, LTR, DVAL, LVAL, app_prior, effective_prior_log_odds):
 
     application_priors = [effective_prior(application) for application in APPLICATIONS]
     system_applications = sorted(set(application_priors))
@@ -139,8 +171,15 @@ def gaussian_classification(D, L):
     # 2: 9.3 % (same as LDA)
     # 3: 7.2 %
     eval_results = {0.1: {}, 0.5: {}, 0.9: {}}
-    error_rates = classification_analysis(DTR, LTR, DVAL, LVAL, system_applications, evaluate=True,
-                                          eval_results=eval_results)
+    error_rates = classification_analysis(
+        DTR,
+        LTR,
+        DVAL,
+        LVAL,
+        system_applications,
+        evaluate=True,
+        eval_results=eval_results
+    )
 
     # 4: low correlation, but not null -> Indeed Naive is good, but little worse than MVG
     corr_matrices = compute_correlations(DTR, LTR)
@@ -151,7 +190,13 @@ def gaussian_classification(D, L):
     # MVG: 7.95 %
     # Tied: 9.50 %
     # Naive: 7.65 %
-    error_rates_1_4 = classification_analysis(DTR[0:4, :], LTR, DVAL[0:4, :], LVAL, system_applications[1:2])
+    error_rates_1_4 = classification_analysis(
+        DTR[0:4, :],
+        LTR,
+        DVAL[0:4, :],
+        LVAL,
+        system_applications[1:2]
+    )
 
     # 7: repeat classification, but only with features (1-2) and then (3-4)
 
@@ -159,27 +204,53 @@ def gaussian_classification(D, L):
     # MVG: 36.50 %
     # Tied: 49.45 %
     # Naive: 36.30 %
-    error_rates_1_2 = classification_analysis(DTR[0:2, :], LTR, DVAL[0:2, :], LVAL, system_applications[1:2])
+    error_rates_1_2 = classification_analysis(
+        DTR[0:2, :],
+        LTR,
+        DVAL[0:2, :],
+        LVAL,
+        system_applications[1:2]
+    )
 
     # Features 3-4
     # 9.45 %
     # 9.40 %
     # 9.45 %
-    error_rates_3_4 = classification_analysis(DTR[2:4, :], LTR, DVAL[2:4, :], LVAL, system_applications[1:2])
+    error_rates_3_4 = classification_analysis(
+        DTR[2:4, :],
+        LTR,
+        DVAL[2:4, :],
+        LVAL,
+        system_applications[1:2]
+    )
 
     # 8: repeat classification, by applying PCA preprocessing
-    error_rates_pca = classification_PCA_preprocessing(DTR, LTR, DVAL, LVAL, system_applications,
-                                                       evaluate=True, eval_results=eval_results)
+    error_rates_pca = classification_PCA_preprocessing(
+        DTR,
+        LTR,
+        DVAL,
+        LVAL,
+        system_applications,
+        evaluate=True,
+        eval_results=eval_results
+    )
 
-    save_gaussian_classification_results(error_rates, corr_matrices, error_rates_1_4, error_rates_1_2, error_rates_3_4,
-                                         error_rates_pca, FILE_PATH_GENERATIVE_GAUSSIAN, GAUSSIAN_ERROR_RATES)
+    if SAVE:
+        save_gaussian_classification_results(
+            error_rates,
+            corr_matrices,
+            error_rates_1_4,
+            error_rates_1_2,
+            error_rates_3_4,
+            error_rates_pca,
+            FILE_PATH_GENERATIVE_GAUSSIAN,
+            GAUSSIAN_ERROR_RATES
+        )
 
     # Get the best configuration for each evaluator
-    eff_prior_conf = 0.1
-    best_configurations = Evaluator.best_configuration(eval_results, GAUSSIAN, eff_prior_conf)
+    best_configurations = Evaluator.best_configuration(eval_results, GAUSSIAN, app_prior)
 
     # Compute bayes errors
-    effective_prior_log_odds = np.linspace(-4, 4, 33)
     bayes_errors = {
         model_name: (
             config["pca"],
@@ -192,6 +263,6 @@ def gaussian_classification(D, L):
     }
 
     # Save application prior log-odd considered in bayes error plot
-    best_prior_log_odd = np.log(eff_prior_conf / (1 - eff_prior_conf))
+    best_prior_log_odd = np.log(app_prior / (1 - app_prior))
 
     return application_priors, eval_results, bayes_errors, best_prior_log_odd

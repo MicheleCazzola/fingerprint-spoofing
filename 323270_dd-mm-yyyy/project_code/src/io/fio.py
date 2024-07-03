@@ -24,6 +24,19 @@ def load_csv(filename):
     return np.hstack(features), np.array(labels, dtype=np.int32)
 
 
+def write_statistics(statistics):
+    print_string = ""
+    for (name, stat) in statistics.items():
+        print_string += "--{name} values--\n"
+        for i in range(len(stat[0])):
+            print_string += (f"Feature {i + 1}:\n"
+                             f"\t{LABEL_NAMES[False]}: {stat[0][i]:.3f}\n"
+                             f"\t{LABEL_NAMES[True]}: {stat[1][i]:.3f}\n")
+        print_string += "\n"
+
+    return print_string
+
+
 def save_statistics(statistics, path_root, file_name):
     """
     Prints some pre-computed statistics about features and labels at the specified path
@@ -33,14 +46,21 @@ def save_statistics(statistics, path_root, file_name):
     :param file_name: file to store the printed statistics
     :return: None
     """
+    print_string = write_statistics(statistics)
     with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
-        for (name, stat) in statistics.items():
-            fout.write(f"--{name} values--\n")
-            for i in range(len(stat[0])):
-                fout.write(f"Feature {i + 1}:\n"
-                           f"\t{LABEL_NAMES[False]}: {stat[0][i]:.3f}\n"
-                           f"\t{LABEL_NAMES[True]}: {stat[1][i]:.3f}\n")
-            fout.write("\n")
+        fout.write(print_string)
+
+
+def write_LDA_errors(base_error_rate, dimensions, error_rates):
+    print_string = ""
+    print_string += ("Classification error rate without PCA preprocessing " +
+                     f"{base_error_rate:.4f} ({100 * base_error_rate:.2f} %)\n\n")
+    print_string += f"--Classification error rates with PCA preprocessing--\n"
+    print_string += f"PCA dimensions\tError rate\tError rate (%)\n"
+    for (dim, err) in zip(dimensions, error_rates):
+        print_string += f"{dim:^14d}\t{err:^10.4f}\t{100 * err:^13.2f}\n"
+
+    return print_string
 
 
 def save_LDA_errors(base_error_rate, dimensions, error_rates, path_root, file_name):
@@ -54,13 +74,9 @@ def save_LDA_errors(base_error_rate, dimensions, error_rates, path_root, file_na
     :param file_name: file to store the printed statistics
     :return: None
     """
+    print_string = write_LDA_errors(base_error_rate, dimensions, error_rates)
     with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
-        fout.write("Classification error rate without PCA preprocessing " +
-                   f"{base_error_rate:.4f} ({100 * base_error_rate:.2f} %)\n\n")
-        fout.write(f"--Classification error rates with PCA preprocessing--\n")
-        fout.write(f"PCA dimensions\tError rate\tError rate (%)\n")
-        for (dim, err) in zip(dimensions, error_rates):
-            fout.write(f"{dim:^14d}\t{err:^10.4f}\t{100 * err:^13.2f}\n")
+        fout.write(print_string)
 
 
 def build_table(errors):
@@ -73,8 +89,15 @@ def build_table(errors):
     return result
 
 
-def save_gaussian_classification_results(error_rates, corr_matrices, error_rates_1_4, error_rates_1_2, error_rates_3_4,
-                                         error_rates_pca, path_root, file_name):
+def write_gaussian_classification_results(
+    error_rates,
+    corr_matrices,
+    error_rates_1_4,
+    error_rates_1_2,
+    error_rates_3_4,
+    error_rates_pca
+):
+
     result = ""
     result += "--All features--\n"
     result += build_table(error_rates)
@@ -116,11 +139,33 @@ def save_gaussian_classification_results(error_rates, corr_matrices, error_rates
                    f"{100 * err['Tied MVG']:^12.2f}"
                    f"{100 * err['Naive Bayes MVG']:^17.2f}\n")
 
+    return result
+
+
+def save_gaussian_classification_results(
+    error_rates,
+    corr_matrices,
+    error_rates_1_4,
+    error_rates_1_2,
+    error_rates_3_4,
+    error_rates_pca,
+    path_root,
+    file_name
+):
+    print_string = write_gaussian_classification_results(
+        error_rates,
+        corr_matrices,
+        error_rates_1_4,
+        error_rates_1_2,
+        error_rates_3_4,
+        error_rates_pca
+    )
+
     with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
-        fout.write(result)
+        fout.write(print_string)
 
 
-def save_application_priors(applications, eff_priors, path_root, file_name):
+def write_application_priors(applications, eff_priors):
     result = ""
     result += "--Applications and associated effective priors--\n"
     result += (f"{'Prior':<6s}"
@@ -134,8 +179,13 @@ def save_application_priors(applications, eff_priors, path_root, file_name):
                    f"{c_fp:^28.1f}"
                    f"{eff_prior:^17.1f}\n")
 
+    return result
+
+
+def save_application_priors(applications, eff_priors, path_root, file_name):
+    print_string = write_application_priors(applications, eff_priors)
     with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
-        fout.write(result)
+        fout.write(print_string)
 
 
 def print_DCFs(result, key, m):
@@ -211,12 +261,13 @@ def write_SVM_results(results):
 
     print_string = "-- Minimum DCFs, Actual DCFs --\n"
     for (task_name, best_result) in zip(task_names[:-1], best_results[:-1]):
-        print_string += f"{task_name}: {best_result[1]:.3f}, {best_result[4]:.3f} (C = {best_result[0]:.3f}, K = {best_result[2]:.1f})\n"
+        print_string += (f"{task_name}: {best_result[1]:.3f}, "
+                         f"{best_result[4]:.3f} (C = {best_result[0]:.3f}, K = {best_result[2]:.1f})\n")
 
     print_string += f"{task_names[-1]}:\n"
-    print_string += f"{'Scale':^7s}{'Minimum DCF':^13s}{'Actual DCF':^12s}{'C':^7s}{'K':^5s}\n"
+    print_string += f"{'Minimum DCF':<12s}{'Actual DCF':^12s}{'γ':^7s}{'C':^7s}{'K':^5s}\n"
     for (rbf, best_rbf) in best_results[-1].items():
-        print_string += f"{rbf:^7.3f}{best_rbf[1]:^13.3f}{best_rbf[4]:^12.3f}{best_rbf[0]:^7.3f}{best_rbf[2]:^5.1f}\n"
+        print_string += f"{best_rbf[1]:^12.3f}{best_rbf[4]:^12.3f}{rbf:^7.3f}{best_rbf[0]:^7.3f}{best_rbf[2]:^5.1f}\n"
 
     return print_string
 
@@ -242,7 +293,7 @@ def write_GMM_results(results):
     return print_string
 
 
-def save_GMM_results(results, path_root, file_name):
+def save_GMM_evaluation_results(results, path_root, file_name):
     print_string = write_GMM_results(results)
 
     with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:

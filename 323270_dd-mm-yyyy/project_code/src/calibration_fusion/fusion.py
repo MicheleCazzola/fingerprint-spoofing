@@ -46,7 +46,7 @@ def fusion_task(scores, LVAL, app_prior):
             LVAL_unfolded = LVAL_kf
 
         min_dcf, act_dcf, _ = map(
-            Evaluator.evaluate2(scores_fused, LPR, LVAL_kf, eff_prior=app_prior).get("results").get,
+            Evaluator.evaluate(scores_fused, LPR, LVAL_kf, eff_prior=app_prior).get("results").get,
             ["min_dcf", "dcf", "llr"])
 
         if act_dcf < best_act_dcf:

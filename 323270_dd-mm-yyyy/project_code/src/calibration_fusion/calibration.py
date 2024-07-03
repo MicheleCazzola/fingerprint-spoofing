@@ -1,10 +1,9 @@
 import numpy as np
 
-from constants import PRIOR_WEIGHTED_LR, LR, SVM, GMM, FILE_PATH_CMP, BEST_RESULTS_CAL, PLOT_PATH_CAL_FUS
+from constants import PRIOR_WEIGHTED_LR, LR, SVM, GMM, PLOT_PATH_CAL_FUS, SAVE, LOG
 from evaluation.evaluation import Evaluator
 from kfold import KFold
-from logreg import LogisticRegression
-from fio import save_best_results
+from logreg import LogReg
 from plot import plot_bayes_errors
 
 
@@ -16,7 +15,7 @@ class Calibrator:
 
     @staticmethod
     def calibrate(training_prior, app_prior, kf):
-        lr = LogisticRegression(variant=PRIOR_WEIGHTED_LR)
+        lr = LogReg(variant=PRIOR_WEIGHTED_LR)
 
         cal_scores = []
         act_labels = []
@@ -55,8 +54,14 @@ def model_calibration(S, LVAL, app_prior, act_dcf_raw, min_dcf_raw):
             LVAL_unfolded = LVAL_kf
 
         min_dcf, act_dcf, _ = map(
-            Evaluator.evaluate2(scores_cal, LPR, LVAL_kf, eff_prior=app_prior).get("results").get,
-            ["min_dcf", "dcf", "llr"])
+            Evaluator.evaluate(
+                scores_cal,
+                LPR,
+                LVAL_kf,
+                eff_prior=app_prior
+            ).get("results").get,
+            ["min_dcf", "dcf", "llr"]
+        )
 
         if act_dcf < best_act_dcf:
             best_act_dcf = act_dcf
@@ -88,7 +93,9 @@ def calibration_task(model_results, LVAL, app_prior, bayes_errors_raw, effective
     }
 
     for model in model_results:
-        print(f"Calibrating {model}")
+
+        if LOG:
+            print(f"Calibrating {model}")
 
         scores = model_results[model]["llr"]
         act_dcf_raw = model_results[model]["act_dcf"]
@@ -108,21 +115,20 @@ def calibration_task(model_results, LVAL, app_prior, bayes_errors_raw, effective
 
         err_min_dcf_raw, err_act_dcf_raw = bayes_errors_raw[model][0], bayes_errors_raw[model][1]
 
-        plot_bayes_errors(
-            effective_prior_log_odds,
-            [err_min_dcf_raw, err_min_dcf_cal],
-            [err_act_dcf_raw, err_act_dcf_cal],
-            log_odd_application,
-            "Comparison between calibrated and uncalibrated model",
-            f"Model: {model}",
-            "Prior log-odds",
-            "DCF value",
-            PLOT_PATH_CAL_FUS,
-            f"bayes_error_calibration_{model}",
-            "pdf",
-            ["Raw", "Cal."]
-        )
-
-        print()
+        if SAVE:
+            plot_bayes_errors(
+                effective_prior_log_odds,
+                [err_min_dcf_raw, err_min_dcf_cal],
+                [err_act_dcf_raw, err_act_dcf_cal],
+                log_odd_application,
+                "Comparison between calibrated and uncalibrated model",
+                f"Model: {model}",
+                "Prior log-odds",
+                "DCF value",
+                PLOT_PATH_CAL_FUS,
+                f"bayes_error_calibration_{model}",
+                "pdf",
+                ["Raw", "Cal."]
+            )
 
     return calibrated_results, LVAL_unfolded_models

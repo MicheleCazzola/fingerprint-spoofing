@@ -3,11 +3,11 @@ from scipy import optimize as opt, linalg as alg
 
 from evaluation.evaluation import Evaluator
 from plot import plot_log_double_line
-from utilities.utilities import vrow, vcol, split_db_2to1
-from src.io.constants import LR_STANDARD, PRIOR_WEIGHTED_LR, PLOT_PATH_LOGISTIC_REGRESSION
+from src.io.constants import LR_STANDARD, PRIOR_WEIGHTED_LR, PLOT_PATH_LOGISTIC_REGRESSION, SAVE, LR_EVALUATION_RESULTS
+from utilities.utilities import vrow, vcol
 
 
-class LogisticRegression:
+class LogReg:
     def __init__(self, variant=LR_STANDARD, training_prior=None, app_prior=None):
         self.variant = variant
         self.w = None
@@ -48,7 +48,8 @@ class LogisticRegression:
             S = (vcol(w).T @ DTR + b).ravel()
             ZTR = 2 * LTR - 1
             mask_t, mask_f = ZTR == 1, ZTR == -1
-            psi = (self.training_prior / np.sum(mask_t)) * mask_t + ((1 - self.training_prior) / np.sum(mask_f)) * mask_f
+            psi = ((self.training_prior / np.sum(mask_t)) * mask_t +
+                   ((1 - self.training_prior) / np.sum(mask_f)) * mask_f)
             J_min = reg_coeff * alg.norm(w, 2) ** 2 / 2 + np.sum(psi * np.logaddexp(0, -ZTR * S))
 
             G = -ZTR / (1 + np.exp(ZTR * S))
@@ -93,10 +94,9 @@ def expand(DTR):
     return np.array(expanded).T
 
 
-def logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, variant, name, preprocess=None):
+def logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, variant, preprocess=None):
     eval_results = []
-    lr = LogisticRegression(variant)
-    evaluator = Evaluator(name)
+    lr = LogReg(variant)
 
     for reg_coeff in reg_coefficients:
         lr_prior = app_prior if variant == PRIOR_WEIGHTED_LR else None
@@ -104,14 +104,22 @@ def logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, varia
 
         llr = lr.scores(DVAL)
         LPR = lr.predict(DVAL, app_prior)
-        eval_result = Evaluator.evaluate2(llr, LPR, LVAL,
-                                          eff_prior=app_prior, preprocess=preprocess, reg_coeff=reg_coeff)
+        eval_result = Evaluator.evaluate(
+            llr,
+            LPR,
+            LVAL,
+            eff_prior=app_prior,
+            preprocess=preprocess,
+            reg_coeff=reg_coeff
+        )
 
         preprocess = eval_result["params"]["preprocess"]
-        eval_results.append((eval_result["results"]["dcf"],
-                             eval_result["results"]["min_dcf"],
-                             reg_coeff,
-                             llr))
+        eval_results.append((
+            eval_result["results"]["dcf"],
+            eval_result["results"]["min_dcf"],
+            reg_coeff,
+            llr
+        ))
 
     return {
         "preprocess": preprocess,
@@ -131,62 +139,104 @@ def LR_task(DTR, LTR, DVAL, LVAL, app_prior):
         "Prior-weighted Logistic Regression DCFs with preprocessing"
     ]
 
-    file_names = [
-        "LR_standard_non_weighted",
-        "LR_standard_non_weighted_filtered_dataset",
-        "Prior_weighted_LR",
-        "Prior_weighted_LR_expanded_feature_space",
-        "Prior_weighted_LR_data_centering"
+    LR_types = [
+        "Standard LR",
+        "Standard LR (reduced dataset)",
+        "Prior-weighted LR",
+        "Quadratic LR"
     ]
-
-    LR_types = ["Standard LR", "Standard LR (reduced dataset)", "Prior-weighted LR", "Quadratic LR"]
 
     results = [{}] * 5
 
     # 1: standard non-weighted LR
-    results[0] = logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients,
-                                     LR_STANDARD, LR_STANDARD)
+    results[0] = logistic_regression(
+        DTR,
+        LTR,
+        DVAL,
+        LVAL,
+        app_prior,
+        reg_coefficients,
+        LR_STANDARD
+    )
 
     # 2: reduced dataset LR
-    results[1] = logistic_regression(DTR[:, ::50], LTR[::50], DVAL, LVAL, app_prior, reg_coefficients,
-                                     LR_STANDARD, LR_STANDARD)
+    results[1] = logistic_regression(
+        DTR[:, ::50],
+        LTR[::50],
+        DVAL,
+        LVAL,
+        app_prior,
+        reg_coefficients,
+        LR_STANDARD
+    )
 
     # 3: prior-weighted LR
-    results[2] = logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients,
-                                     PRIOR_WEIGHTED_LR, PRIOR_WEIGHTED_LR)
+    results[2] = logistic_regression(
+        DTR,
+        LTR,
+        DVAL,
+        LVAL,
+        app_prior,
+        reg_coefficients,
+        PRIOR_WEIGHTED_LR
+    )
 
     # 4: quadratic LR
     DTR_expanded = expand(DTR)
     DVAL_expanded = expand(DVAL)
-    results[3] = logistic_regression(DTR_expanded, LTR, DVAL_expanded, LVAL, app_prior, reg_coefficients,
-                                     LR_STANDARD, LR_STANDARD)
+    results[3] = logistic_regression(
+        DTR_expanded,
+        LTR,
+        DVAL_expanded,
+        LVAL,
+        app_prior,
+        reg_coefficients,
+        LR_STANDARD
+    )
 
     # 5: preprocess data and apply regularized model
     DTR_mean = vcol(np.sum(DTR, axis=1)) / DTR.shape[1]
     DTR_preprocess, DVAL_preprocess = DTR - DTR_mean, DVAL - DTR_mean
-    results[4] = logistic_regression(DTR_preprocess, LTR, DVAL_preprocess, LVAL, app_prior, reg_coefficients,
-                                     PRIOR_WEIGHTED_LR, PRIOR_WEIGHTED_LR, "Data centering")
+    results[4] = logistic_regression(
+        DTR_preprocess,
+        LTR,
+        DVAL_preprocess,
+        LVAL,
+        app_prior,
+        reg_coefficients,
+        PRIOR_WEIGHTED_LR,
+        "Data centering"
+    )
 
     eval_results_best = []
-    for (result, title, file_name, LR_type) in zip(results, titles, file_names, LR_types):
+    for (result, title, file_name, LR_type) in zip(results, titles, LR_EVALUATION_RESULTS, LR_types):
         [dcf, min_dcf, reg_coeff, llr] = result["results"]
         best_conf = np.argmin(min_dcf)
-        eval_results_best.append([np.min(min_dcf),
-                                  reg_coeff[best_conf],
-                                  llr[best_conf],
-                                  title.replace(" DCFs", ""),
-                                  dcf[best_conf],
-                                  LR_type])
-        plot_log_double_line(reg_coefficients, dcf, min_dcf,
-                             title,
-                             "Regularization coefficient",
-                             "DCF value",
-                             "DCF",
-                             "Min. DCF",
-                             PLOT_PATH_LOGISTIC_REGRESSION,
-                             file_name,
-                             "pdf",
-                             result["preprocess"] if result["preprocess"] is not None else "")
+        eval_results_best.append([
+            np.min(min_dcf),
+            reg_coeff[best_conf],
+            llr[best_conf],
+            title.replace(" DCFs", ""),
+            dcf[best_conf],
+            LR_type
+        ])
+
+        if SAVE:
+            plot_log_double_line(
+                reg_coefficients,
+                dcf,
+                min_dcf,
+                title,
+                "Regularization coefficient",
+                "DCF value",
+                "DCF",
+                "Min. DCF",
+                PLOT_PATH_LOGISTIC_REGRESSION,
+                file_name,
+                "pdf",
+                result["preprocess"] if result["preprocess"] is not None else ""
+            )
+
     eval_results_best[-1][3] += " (data centering)"
 
     return eval_results_best

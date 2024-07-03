@@ -1,7 +1,5 @@
-from pprint import pprint
-
 import numpy as np
-from src.io.constants import LR_STANDARD, PRIOR_WEIGHTED_LR, GAUSSIAN, LR, SVM, GMM
+from src.io.constants import GAUSSIAN, LR, SVM, GMM
 
 
 def relative_mis_calibration(dcfs):
@@ -14,31 +12,8 @@ class Evaluator:
         self.results = []
         self.data_models = []
 
-    def evaluate(self, llr, LPR, LVAL, eff_prior, pca_dim, cache=True):
-        M = self.compute_confusion_matrix(LPR, LVAL, 2)
-        dummy_risk = Evaluator.dummy_risk(eff_prior, 1, 1)
-        dcf = Evaluator.normalized_DCF(M, eff_prior, dummy_risk)
-        min_dcf = Evaluator.minimum_DCF(llr, LVAL, eff_prior, dummy_risk)
-
-        self.results.append({
-            eff_prior: {
-                "pca": pca_dim,
-                "dcf": dcf,
-                "min_dcf": min_dcf
-            }
-        })
-
-        if cache:
-            self.data_models.append({
-                eff_prior: {
-                    "pca": pca_dim,
-                    "llr": llr,
-                    "LVAL": LVAL
-                }
-            })
-
     @staticmethod
-    def evaluate2(llr, LPR, LVAL, eff_prior, **model_params):
+    def evaluate(llr, LPR, LVAL, eff_prior, **model_params):
         M = Evaluator.compute_confusion_matrix(LPR, LVAL, 2)
         dummy_risk = Evaluator.dummy_risk(eff_prior, 1, 1)
         dcf = Evaluator.normalized_DCF(M, eff_prior, dummy_risk)
@@ -93,7 +68,8 @@ class Evaluator:
         best_conf_no_rbf = np.argmin(min_dcfs)
         min_dcfs_rbf = [r[1] for (_, r) in eval_results[-1].items()]
         best_conf_rbf = np.argmin(min_dcfs_rbf)
-        best = "RBF" if list(eval_results[-1].values())[best_conf_rbf][1] < eval_results[:-1][best_conf_no_rbf][1] else "NO_RBF"
+        best = "RBF" if list(eval_results[-1].values())[best_conf_rbf][1] < eval_results[:-1][best_conf_no_rbf][
+            1] else "NO_RBF"
 
         if best == "RBF":
             best_conf = list(eval_results[-1].values())[best_conf_rbf]
@@ -102,7 +78,7 @@ class Evaluator:
             llr = best_conf[3]
             params = {
                 "type": best_conf[5],
-                "scale": list(eval_results[-1].keys())[best_conf_rbf],
+                "γ": list(eval_results[-1].keys())[best_conf_rbf],
                 "C": best_conf[0],
                 "K": best_conf[2]
             }
@@ -126,8 +102,8 @@ class Evaluator:
 
     @staticmethod
     def _best_configuration_GMM(eval_results):
-        all_results = [["full", c, v["min_dcf"], v["dcf"], v["llr"]] for (c,v) in eval_results["full"].items()] + \
-                    [["diag", c, v["min_dcf"], v["dcf"], v["llr"]] for (c,v) in eval_results["diag"].items()]
+        all_results = [["full", c, v["min_dcf"], v["dcf"], v["llr"]] for (c, v) in eval_results["full"].items()] + \
+                      [["diag", c, v["min_dcf"], v["dcf"], v["llr"]] for (c, v) in eval_results["diag"].items()]
         min_dcfs = [r[2] for r in all_results]
         best_conf = np.argmin(min_dcfs)
 
@@ -211,9 +187,9 @@ class Evaluator:
         for threshold in -effective_prior_log_odds:
             LPR = np.array(llr > threshold, dtype=np.int32)
             M = Evaluator.compute_confusion_matrix(LPR, LVAL, 2)
-            effetctive_prior = 1 / (1 + np.exp(threshold))
-            dummy_risk = Evaluator.dummy_risk(effetctive_prior)
-            dcf.append(Evaluator.normalized_DCF(M, effetctive_prior, dummy_risk))
-            min_dcf.append(Evaluator.minimum_DCF(llr, LVAL, effetctive_prior, dummy_risk))
+            effective_prior = 1 / (1 + np.exp(threshold))
+            dummy_risk = Evaluator.dummy_risk(effective_prior)
+            dcf.append(Evaluator.normalized_DCF(M, effective_prior, dummy_risk))
+            min_dcf.append(Evaluator.minimum_DCF(llr, LVAL, effective_prior, dummy_risk))
 
         return {"min_dcf": min_dcf, "dcf": dcf}
