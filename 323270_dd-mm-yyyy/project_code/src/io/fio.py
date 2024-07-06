@@ -1,7 +1,7 @@
 import numpy as np
 
 from evaluation.evaluation import relative_mis_calibration
-from src.io.constants import LABEL_NAMES
+from constants import LABEL_NAMES, FUSION
 
 
 def load_csv(filename):
@@ -126,7 +126,7 @@ def write_gaussian_classification_results(
     result += f"{'PCA dimensions':<16s}{'MVG':^10s}{'Tied MVG':^12s}{'Naive Bayes MVG':^17s}\n"
     for (m, err) in error_rates_pca.items():
         result += (f"{m:^16d}"
-                   f"{err['MVG']:^10.4f}"
+                   f"{err['Standard MVG']:^10.4f}"
                    f"{err['Tied MVG']:^12.4f}"
                    f"{err['Naive Bayes MVG']:^17.4f}\n")
     result += "\n"
@@ -135,7 +135,7 @@ def write_gaussian_classification_results(
     result += f"{'PCA dimensions':<16s}{'MVG':^10s}{'Tied MVG':^12s}{'Naive Bayes MVG':^17s}\n"
     for (m, err) in error_rates_pca.items():
         result += (f"{m:^16d}"
-                   f"{100 * err['MVG']:^10.2f}"
+                   f"{100 * err['Standard MVG']:^10.2f}"
                    f"{100 * err['Tied MVG']:^12.2f}"
                    f"{100 * err['Naive Bayes MVG']:^17.2f}\n")
 
@@ -308,7 +308,7 @@ def write_best_results(results):
         print_string += f"{model_type:^8s}{result['min_dcf']:^13.3f}{result['act_dcf']:^11.3f}"
         params = ", ".join(
             [
-                f"{par_name}: {par_value:.3f}" if type(par_value) in [float, np.float64] else f"{par_name}: {par_value}"
+                f"{par_name}: {par_value:.3e}" if type(par_value) in [float, np.float64] else f"{par_name}: {par_value}"
                 for (par_name, par_value) in result["params"].items()
             ]
         )
@@ -320,6 +320,33 @@ def write_best_results(results):
 
 def save_best_results(results, path_root, file_name):
     print_string = write_best_results(results)
+
+    with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
+        fout.write(print_string)
+
+
+def write_app_results(results):
+    print_string = "--Evaluation results on evaluation dataset\n"
+    print_string += "--Calibrated scores--\n"
+
+    print_string += f"{'Type':^8s}{'Minimum DCF':^13s}{'Actual DCF':^11s}\n"
+    for (model_name, result) in results.items():
+        result = result["cal"]
+        print_string += f"{model_name:^8s}{result['min_dcf']:^13.3f}{result['act_dcf']:^11.3f}\n"
+
+    print_string += "\n"
+    print_string += "--Raw scores--\n"
+    print_string += f"{'Type':^8s}{'Minimum DCF':^13s}{'Actual DCF':^11s}\n"
+    for (model_name, result) in results.items():
+        if model_name != FUSION:
+            result = result["raw"]
+            print_string += f"{model_name:^8s}{result['min_dcf']:^13.3f}{result['act_dcf']:^11.3f}\n"
+
+    return print_string
+
+
+def save_application_results(results, path_root, file_name):
+    print_string = write_app_results(results)
 
     with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
         fout.write(print_string)

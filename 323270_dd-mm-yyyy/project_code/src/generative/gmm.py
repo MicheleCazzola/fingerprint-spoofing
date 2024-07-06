@@ -1,17 +1,18 @@
 import numpy as np
 import scipy.special as scspec
 
+from constants import LOG
 from evaluation.evaluation import Evaluator
 from fitting.fitting import logpdf_GAU_ND
 from utilities.utilities import vcol, vrow
 
 
-class GMM:
-    def __init__(self, variant="full", alpha=0.1, delta=1e-6, num_components=(1, 1), psi=0.01):
+class GaussianMixtureModel:
+    def __init__(self, variant="full", alpha=0.1, delta=1e-6, components=(1, 1), psi=0.01):
         self.variant = variant
         self.alpha = alpha
         self.delta = delta
-        self.num_components = num_components
+        self.num_components = components
         self.psi = psi
         self.gmm = None
 
@@ -19,7 +20,7 @@ class GMM:
         self.variant = kwargs.get("variant", self.variant)
         self.alpha = kwargs.get("alpha", self.alpha)
         self.delta = kwargs.get("threshold", self.delta)
-        self.num_components = kwargs.get("num_components", self.num_components)
+        self.num_components = kwargs.get("components", self.num_components)
         self.psi = kwargs.get("psi", self.psi)
 
     @staticmethod
@@ -136,7 +137,7 @@ class GMM:
 
         return S
 
-    def llr(self, DVAL, LVAL):
+    def scores(self, DVAL, LVAL):
         S = self._scores(DVAL, LVAL)
         return vrow(S[1, :] - S[0, :])
 
@@ -169,15 +170,20 @@ class GMM:
 def gmm_variant(DTR, LTR, DVAL, LVAL, app_prior, variant, components, gmm):
     result = {}
 
-    str_variant = "Full" if variant == "full" else "Diagonal"
-    print(f"--{str_variant} covariance matrices--")
+    if LOG:
+        str_variant = "Full" if variant == "full" else "Diagonal"
+        print(f"--{str_variant} covariance matrices--")
 
     gmm.set_params(variant=variant)
     for nc_false in components:
         for nc_true in components:
-            gmm.set_params(num_components=(nc_false, nc_true))
+
+            if LOG:
+                print(f"Components: F = {nc_false}, T = {nc_true}")
+
+            gmm.set_params(components=(nc_false, nc_true))
             gmm.fit(DTR, LTR)
-            llr = gmm.llr(DVAL, LVAL)
+            llr = gmm.scores(DVAL, LVAL)
             LPR = gmm.predict(DVAL, LVAL, app_prior)
 
             min_dcf, dcf, llr = map(
@@ -202,7 +208,7 @@ def gmm_task(DTR, LTR, DVAL, LVAL, app_prior):
         "diag": {}
     }
 
-    gmm = GMM()
+    gmm = GaussianMixtureModel()
 
     for variant in gmm_results:
         gmm_results[variant] = gmm_variant(DTR, LTR, DVAL, LVAL, app_prior, variant, gmm_components, gmm)

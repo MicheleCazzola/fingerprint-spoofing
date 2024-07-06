@@ -1,6 +1,7 @@
 import numpy as np
 
 from calibration import Calibrator
+from constants import LOG
 from evaluation.evaluation import Evaluator
 from kfold import KFold
 
@@ -14,7 +15,7 @@ class Fusion:
         self.scores = np.vstack([self.scores, score.ravel()])
 
     @staticmethod
-    def fuse(S, L, tr_prior, app_prior, kf):
+    def fuse(tr_prior, app_prior, kf):
         cal_scores, LVAL_kf, LPR = Calibrator.calibrate(tr_prior, app_prior, kf)
         return cal_scores, LVAL_kf, LPR
 
@@ -33,14 +34,19 @@ def fusion_task(scores, LVAL, app_prior):
     fus = Fusion(LVAL, scores)
     S = fus.get_scores()
 
-    print("Fusing...")
+    if LOG:
+        print("Score fusion")
 
     kf = KFold(S, LVAL, K)
     LVAL_unfolded = None
 
     best_act_dcf, best_min_dcf, best_tr_prior, best_fused_scores = np.inf, np.inf, emp_training_priors[0], None
     for emp_training_prior in emp_training_priors:
-        scores_fused, LVAL_kf, LPR = Fusion.fuse(S, LVAL, emp_training_prior, app_prior, kf)
+
+        if LOG:
+            print(f"Empirical training prior: {emp_training_prior}")
+
+        scores_fused, LVAL_kf, LPR = Fusion.fuse(emp_training_prior, app_prior, kf)
 
         if LVAL_unfolded is None:
             LVAL_unfolded = LVAL_kf

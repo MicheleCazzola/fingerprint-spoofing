@@ -1,0 +1,775 @@
+Standard non-weighted LR
+Standard non-weighted LR with reduced dataset
+Prior-weighted LR
+Quadratic LR
+Prior-weighted LR with data preprocessing (data centering)
+LR collecting
+SVM: linear kernel
+SVM linear (c = 1e-05)
+SVM linear (c = 3.1622776601683795e-05)
+SVM linear (c = 0.0001)
+SVM linear (c = 0.00031622776601683794)
+SVM linear (c = 0.001)
+SVM linear (c = 0.0031622776601683794)
+SVM linear (c = 0.01)
+SVM linear (c = 0.03162277660168379)
+SVM linear (c = 0.1)
+SVM linear (c = 0.31622776601683794)
+SVM linear (c = 1.0)
+SVM: linear kernel with preprocessing
+SVM linear (c = 1e-05)
+SVM linear (c = 3.1622776601683795e-05)
+SVM linear (c = 0.0001)
+SVM linear (c = 0.00031622776601683794)
+SVM linear (c = 0.001)
+SVM linear (c = 0.0031622776601683794)
+SVM linear (c = 0.01)
+SVM linear (c = 0.03162277660168379)
+SVM linear (c = 0.1)
+SVM linear (c = 0.31622776601683794)
+SVM linear (c = 1.0)
+SVM: polynomial kernel
+SVM polynomial (c = 1e-05)
+SVM polynomial (c = 3.1622776601683795e-05)
+SVM polynomial (c = 0.0001)
+SVM polynomial (c = 0.00031622776601683794)
+SVM polynomial (c = 0.001)
+SVM polynomial (c = 0.0031622776601683794)
+SVM polynomial (c = 0.01)
+SVM polynomial (c = 0.03162277660168379)
+SVM polynomial (c = 0.1)
+SVM polynomial (c = 0.31622776601683794)
+SVM polynomial (c = 1.0)
+SVM: RBF kernel
+SVM RBF (scale = 0.01831563888873418, c = 0.001), alpha = [0.001 0.001 0.001 ... 0.001 0.001 0.001]
+SVM RBF (scale = 0.01831563888873418, c = 0.0031622776601683794), alpha = [0.00316228 0.00316228 0.00316228 ... 0.00316228 0.00316228 0.00316228]
+SVM RBF (scale = 0.01831563888873418, c = 0.01), alpha = [0.01 0.01 0.01 ... 0.01 0.01 0.01]
+SVM RBF (scale = 0.01831563888873418, c = 0.03162277660168379), alpha = [0.03162278 0.03162278 0.03162278 ... 0.03162278 0.03162278 0.03162278]
+SVM RBF (scale = 0.01831563888873418, c = 0.1), alpha = [0.  0.1 0.1 ... 0.1 0.  0.1]
+SVM RBF (scale = 0.01831563888873418, c = 0.31622776601683794), alpha = [0.         0.31622777 0.31622777 ... 0.31622777 0.         0.31622777]
+SVM RBF (scale = 0.01831563888873418, c = 1.0), alpha = [0. 1. 1. ... 0. 0. 0.]
+SVM RBF (scale = 0.01831563888873418, c = 3.1622776601683795), alpha = [0.         3.16227766 3.16227766 ... 0.         0.         0.        ]
+SVM RBF (scale = 0.01831563888873418, c = 10.0), alpha = [ 0.  0. 10. ...  0.  0.  0.]
+SVM RBF (scale = 0.01831563888873418, c = 31.622776601683793), alpha = [ 0.         0.        31.6227766 ...  0.         0.         0.       ]
+SVM RBF (scale = 0.01831563888873418, c = 100.0), alpha = [ 0.          0.         87.48019752 ...  0.          0.
+  0.        ]
+SVM RBF (scale = 0.049787068367863944, c = 0.001), alpha = [0.001 0.001 0.001 ... 0.001 0.001 0.001]
+SVM RBF (scale = 0.049787068367863944, c = 0.0031622776601683794), alpha = [0.00316228 0.00316228 0.00316228 ... 0.00316228 0.00316228 0.00316228]
+SVM RBF (scale = 0.049787068367863944, c = 0.01), alpha = [0.01 0.01 0.01 ... 0.01 0.01 0.01]
+SVM RBF (scale = 0.049787068367863944, c = 0.03162277660168379), alpha = [0.         0.03162278 0.03162278 ... 0.03162278 0.03162278 0.03162278]
+SVM RBF (scale = 0.049787068367863944, c = 0.1), alpha = [0.  0.1 0.1 ... 0.1 0.  0.1]
+SVM RBF (scale = 0.049787068367863944, c = 0.31622776601683794), alpha = [0.         0.31622777 0.31622777 ... 0.         0.         0.        ]
+SVM RBF (scale = 0.049787068367863944, c = 1.0), alpha = [0. 0. 1. ... 0. 0. 0.]
+SVM RBF (scale = 0.049787068367863944, c = 3.1622776601683795), alpha = [0.         0.         3.16227766 ... 0.         0.         0.        ]
+SVM RBF (scale = 0.049787068367863944, c = 10.0), alpha = [ 0.  0. 10. ...  0.  0.  0.]
+SVM RBF (scale = 0.049787068367863944, c = 31.622776601683793), alpha = [0.         0.         8.41530702 ... 0.         0.         0.        ]
+SVM RBF (scale = 0.049787068367863944, c = 100.0), alpha = [0. 0. 0. ... 0. 0. 0.]
+SVM RBF (scale = 0.1353352832366127, c = 0.001), alpha = [0.001 0.001 0.001 ... 0.001 0.001 0.001]
+SVM RBF (scale = 0.1353352832366127, c = 0.0031622776601683794), alpha = [0.00316228 0.00316228 0.00316228 ... 0.00316228 0.00316228 0.00316228]
+SVM RBF (scale = 0.1353352832366127, c = 0.01), alpha = [0.01 0.01 0.01 ... 0.01 0.01 0.01]
+SVM RBF (scale = 0.1353352832366127, c = 0.03162277660168379), alpha = [0.         0.03162278 0.03162278 ... 0.03162278 0.03162278 0.03162278]
+SVM RBF (scale = 0.1353352832366127, c = 0.1), alpha = [0.  0.1 0.1 ... 0.  0.1 0. ]
+SVM RBF (scale = 0.1353352832366127, c = 0.31622776601683794), alpha = [0.         0.         0.31622777 ... 0.         0.         0.        ]
+SVM RBF (scale = 0.1353352832366127, c = 1.0), alpha = [0. 0. 1. ... 0. 0. 0.]
+SVM RBF (scale = 0.1353352832366127, c = 3.1622776601683795), alpha = [0.         0.         3.16227766 ... 0.         0.         0.        ]
+SVM RBF (scale = 0.1353352832366127, c = 10.0), alpha = [0.         0.         8.14701629 ... 0.         0.         0.        ]
+SVM RBF (scale = 0.1353352832366127, c = 31.622776601683793), alpha = [ 0.          0.         17.06574335 ...  0.          0.
+  0.        ]
+SVM RBF (scale = 0.1353352832366127, c = 100.0), alpha = [0. 0. 0. ... 0. 0. 0.]
+SVM RBF (scale = 0.36787944117144233, c = 0.001), alpha = [0.001 0.001 0.001 ... 0.001 0.001 0.001]
+SVM RBF (scale = 0.36787944117144233, c = 0.0031622776601683794), alpha = [0.00316228 0.00316228 0.00316228 ... 0.00316228 0.00316228 0.00316228]
+SVM RBF (scale = 0.36787944117144233, c = 0.01), alpha = [0.01 0.01 0.01 ... 0.01 0.01 0.01]
+SVM RBF (scale = 0.36787944117144233, c = 0.03162277660168379), alpha = [0.         0.03162278 0.03162278 ... 0.03162278 0.03162278 0.        ]
+SVM RBF (scale = 0.36787944117144233, c = 0.1), alpha = [0.  0.  0.1 ... 0.  0.1 0. ]
+SVM RBF (scale = 0.36787944117144233, c = 0.31622776601683794), alpha = [0.         0.         0.31622777 ... 0.         0.         0.        ]
+SVM RBF (scale = 0.36787944117144233, c = 1.0), alpha = [0. 0. 1. ... 0. 0. 0.]
+SVM RBF (scale = 0.36787944117144233, c = 3.1622776601683795), alpha = [0.         0.         1.18512897 ... 0.         0.         0.        ]
+SVM RBF (scale = 0.36787944117144233, c = 10.0), alpha = [0. 0. 0. ... 0. 0. 0.]
+SVM RBF (scale = 0.36787944117144233, c = 31.622776601683793), alpha = [0. 0. 0. ... 0. 0. 0.]
+SVM RBF (scale = 0.36787944117144233, c = 100.0), alpha = [ 0.         13.21921271  0.         ...  0.          0.
+  0.        ]
+SVM collecting
+--Full covariance matrices--
+Components: F = 1, T = 1
+Components: F = 1, T = 2
+Components: F = 1, T = 4
+Components: F = 1, T = 8
+Components: F = 1, T = 16
+Components: F = 1, T = 32
+Components: F = 2, T = 1
+Components: F = 2, T = 2
+Components: F = 2, T = 4
+Components: F = 2, T = 8
+Components: F = 2, T = 16
+Components: F = 2, T = 32
+Components: F = 4, T = 1
+Components: F = 4, T = 2
+Components: F = 4, T = 4
+Components: F = 4, T = 8
+Components: F = 4, T = 16
+Components: F = 4, T = 32
+Components: F = 8, T = 1
+Components: F = 8, T = 2
+Components: F = 8, T = 4
+Components: F = 8, T = 8
+Components: F = 8, T = 16
+Components: F = 8, T = 32
+Components: F = 16, T = 1
+Components: F = 16, T = 2
+Components: F = 16, T = 4
+Components: F = 16, T = 8
+Components: F = 16, T = 16
+Components: F = 16, T = 32
+Components: F = 32, T = 1
+Components: F = 32, T = 2
+Components: F = 32, T = 4
+Components: F = 32, T = 8
+Components: F = 32, T = 16
+Components: F = 32, T = 32
+--Diagonal covariance matrices--
+Components: F = 1, T = 1
+Components: F = 1, T = 2
+Components: F = 1, T = 4
+Components: F = 1, T = 8
+Components: F = 1, T = 16
+Components: F = 1, T = 32
+Components: F = 2, T = 1
+Components: F = 2, T = 2
+Components: F = 2, T = 4
+Components: F = 2, T = 8
+Components: F = 2, T = 16
+Components: F = 2, T = 32
+Components: F = 4, T = 1
+Components: F = 4, T = 2
+Components: F = 4, T = 4
+Components: F = 4, T = 8
+Components: F = 4, T = 16
+Components: F = 4, T = 32
+Components: F = 8, T = 1
+Components: F = 8, T = 2
+Components: F = 8, T = 4
+Components: F = 8, T = 8
+Components: F = 8, T = 16
+Components: F = 8, T = 32
+Components: F = 16, T = 1
+Components: F = 16, T = 2
+Components: F = 16, T = 4
+Components: F = 16, T = 8
+Components: F = 16, T = 16
+Components: F = 16, T = 32
+Components: F = 32, T = 1
+Components: F = 32, T = 2
+Components: F = 32, T = 4
+Components: F = 32, T = 8
+Components: F = 32, T = 16
+Components: F = 32, T = 32
+Model classification results (no calibration)
+Method: LR
+Minimum DCF: 0.24363
+Actual DCF: 0.49717
+LLR: shape = (1, 2000) mean = -0.01204, max = 7.24280, min = -9.48360, devstd = 2.78231
+[2.61624501]
+[[-1.14357804 -2.23387712 -3.74566451 -2.28959037 -2.59606957]]
+Method parameters:
+{'variant': 'Quadratic LR', 'λ': 0.03162277660168379}
+
+Method: SVM
+Minimum DCF: 0.17547
+Actual DCF: 0.42163
+LLR: shape = (1, 2000) mean = 0.17777, max = 7.00166, min = -5.42436, devstd = 2.69045
+[1.54521724]
+[[-1.14417287 -3.04307376 -3.51435194 -2.8430026  -2.75391073]]
+Method parameters:
+{'kernel': 'RBF', 'scale': 0.1353352832366127, 'C': 31.622776601683793, 'K': 1}
+
+Method: GMM
+Minimum DCF: 0.13124
+Actual DCF: 0.15166
+LLR: shape = (1, 2000) mean = 0.27733, max = 18.51552, min = -21.54598, devstd = 7.71402
+[5.32712446]
+[[-3.58715767 -5.38372245 -6.63927654 -6.38332028 -7.87646282]]
+Method parameters:
+{'variant': 'diag', 'components': (8, 32)}
+
+
+Score calibration
+Calibration of LR
+Empirical training prior: 0.01
+Empirical training prior: 0.02
+Empirical training prior: 0.03
+Empirical training prior: 0.04
+Empirical training prior: 0.05
+Empirical training prior: 0.060000000000000005
+Empirical training prior: 0.06999999999999999
+Empirical training prior: 0.08
+Empirical training prior: 0.09
+Empirical training prior: 0.09999999999999999
+Empirical training prior: 0.11
+Empirical training prior: 0.12
+Empirical training prior: 0.13
+Empirical training prior: 0.14
+Empirical training prior: 0.15000000000000002
+Empirical training prior: 0.16
+Empirical training prior: 0.17
+Empirical training prior: 0.18000000000000002
+Empirical training prior: 0.19
+Empirical training prior: 0.2
+Empirical training prior: 0.21000000000000002
+Empirical training prior: 0.22
+Empirical training prior: 0.23
+Empirical training prior: 0.24000000000000002
+Empirical training prior: 0.25
+Empirical training prior: 0.26
+Empirical training prior: 0.27
+Empirical training prior: 0.28
+Empirical training prior: 0.29000000000000004
+Empirical training prior: 0.3
+Empirical training prior: 0.31
+Empirical training prior: 0.32
+Empirical training prior: 0.33
+Empirical training prior: 0.34
+Empirical training prior: 0.35000000000000003
+Empirical training prior: 0.36000000000000004
+Empirical training prior: 0.37
+Empirical training prior: 0.38
+Empirical training prior: 0.39
+Empirical training prior: 0.4
+Empirical training prior: 0.41000000000000003
+Empirical training prior: 0.42000000000000004
+Empirical training prior: 0.43
+Empirical training prior: 0.44
+Empirical training prior: 0.45
+Empirical training prior: 0.46
+Empirical training prior: 0.47000000000000003
+Empirical training prior: 0.48000000000000004
+Empirical training prior: 0.49
+Empirical training prior: 0.5
+Empirical training prior: 0.51
+Empirical training prior: 0.52
+Empirical training prior: 0.53
+Empirical training prior: 0.54
+Empirical training prior: 0.55
+Empirical training prior: 0.56
+Empirical training prior: 0.5700000000000001
+Empirical training prior: 0.5800000000000001
+Empirical training prior: 0.59
+Empirical training prior: 0.6
+Empirical training prior: 0.61
+Empirical training prior: 0.62
+Empirical training prior: 0.63
+Empirical training prior: 0.64
+Empirical training prior: 0.65
+Empirical training prior: 0.66
+Empirical training prior: 0.67
+Empirical training prior: 0.68
+Empirical training prior: 0.6900000000000001
+Empirical training prior: 0.7000000000000001
+Empirical training prior: 0.7100000000000001
+Empirical training prior: 0.72
+Empirical training prior: 0.73
+Empirical training prior: 0.74
+Empirical training prior: 0.75
+Empirical training prior: 0.76
+Empirical training prior: 0.77
+Empirical training prior: 0.78
+Empirical training prior: 0.79
+Empirical training prior: 0.8
+Empirical training prior: 0.81
+Empirical training prior: 0.8200000000000001
+Empirical training prior: 0.8300000000000001
+Empirical training prior: 0.8400000000000001
+Empirical training prior: 0.85
+Empirical training prior: 0.86
+Empirical training prior: 0.87
+Empirical training prior: 0.88
+Empirical training prior: 0.89
+Empirical training prior: 0.9
+Empirical training prior: 0.91
+Empirical training prior: 0.92
+Empirical training prior: 0.93
+Empirical training prior: 0.9400000000000001
+Empirical training prior: 0.9500000000000001
+Empirical training prior: 0.9600000000000001
+Empirical training prior: 0.97
+Empirical training prior: 0.98
+Empirical training prior: 0.99
+Calibration of SVM
+Empirical training prior: 0.01
+Empirical training prior: 0.02
+Empirical training prior: 0.03
+Empirical training prior: 0.04
+Empirical training prior: 0.05
+Empirical training prior: 0.060000000000000005
+Empirical training prior: 0.06999999999999999
+Empirical training prior: 0.08
+Empirical training prior: 0.09
+Empirical training prior: 0.09999999999999999
+Empirical training prior: 0.11
+Empirical training prior: 0.12
+Empirical training prior: 0.13
+Empirical training prior: 0.14
+Empirical training prior: 0.15000000000000002
+Empirical training prior: 0.16
+Empirical training prior: 0.17
+Empirical training prior: 0.18000000000000002
+Empirical training prior: 0.19
+Empirical training prior: 0.2
+Empirical training prior: 0.21000000000000002
+Empirical training prior: 0.22
+Empirical training prior: 0.23
+Empirical training prior: 0.24000000000000002
+Empirical training prior: 0.25
+Empirical training prior: 0.26
+Empirical training prior: 0.27
+Empirical training prior: 0.28
+Empirical training prior: 0.29000000000000004
+Empirical training prior: 0.3
+Empirical training prior: 0.31
+Empirical training prior: 0.32
+Empirical training prior: 0.33
+Empirical training prior: 0.34
+Empirical training prior: 0.35000000000000003
+Empirical training prior: 0.36000000000000004
+Empirical training prior: 0.37
+Empirical training prior: 0.38
+Empirical training prior: 0.39
+Empirical training prior: 0.4
+Empirical training prior: 0.41000000000000003
+Empirical training prior: 0.42000000000000004
+Empirical training prior: 0.43
+Empirical training prior: 0.44
+Empirical training prior: 0.45
+Empirical training prior: 0.46
+Empirical training prior: 0.47000000000000003
+Empirical training prior: 0.48000000000000004
+Empirical training prior: 0.49
+Empirical training prior: 0.5
+Empirical training prior: 0.51
+Empirical training prior: 0.52
+Empirical training prior: 0.53
+Empirical training prior: 0.54
+Empirical training prior: 0.55
+Empirical training prior: 0.56
+Empirical training prior: 0.5700000000000001
+Empirical training prior: 0.5800000000000001
+Empirical training prior: 0.59
+Empirical training prior: 0.6
+Empirical training prior: 0.61
+Empirical training prior: 0.62
+Empirical training prior: 0.63
+Empirical training prior: 0.64
+Empirical training prior: 0.65
+Empirical training prior: 0.66
+Empirical training prior: 0.67
+Empirical training prior: 0.68
+Empirical training prior: 0.6900000000000001
+Empirical training prior: 0.7000000000000001
+Empirical training prior: 0.7100000000000001
+Empirical training prior: 0.72
+Empirical training prior: 0.73
+Empirical training prior: 0.74
+Empirical training prior: 0.75
+Empirical training prior: 0.76
+Empirical training prior: 0.77
+Empirical training prior: 0.78
+Empirical training prior: 0.79
+Empirical training prior: 0.8
+Empirical training prior: 0.81
+Empirical training prior: 0.8200000000000001
+Empirical training prior: 0.8300000000000001
+Empirical training prior: 0.8400000000000001
+Empirical training prior: 0.85
+Empirical training prior: 0.86
+Empirical training prior: 0.87
+Empirical training prior: 0.88
+Empirical training prior: 0.89
+Empirical training prior: 0.9
+Empirical training prior: 0.91
+Empirical training prior: 0.92
+Empirical training prior: 0.93
+Empirical training prior: 0.9400000000000001
+Empirical training prior: 0.9500000000000001
+Empirical training prior: 0.9600000000000001
+Empirical training prior: 0.97
+Empirical training prior: 0.98
+Empirical training prior: 0.99
+Calibration of GMM
+Empirical training prior: 0.01
+Empirical training prior: 0.02
+Empirical training prior: 0.03
+Empirical training prior: 0.04
+Empirical training prior: 0.05
+Empirical training prior: 0.060000000000000005
+Empirical training prior: 0.06999999999999999
+Empirical training prior: 0.08
+Empirical training prior: 0.09
+Empirical training prior: 0.09999999999999999
+Empirical training prior: 0.11
+Empirical training prior: 0.12
+Empirical training prior: 0.13
+Empirical training prior: 0.14
+Empirical training prior: 0.15000000000000002
+Empirical training prior: 0.16
+Empirical training prior: 0.17
+Empirical training prior: 0.18000000000000002
+Empirical training prior: 0.19
+Empirical training prior: 0.2
+Empirical training prior: 0.21000000000000002
+Empirical training prior: 0.22
+Empirical training prior: 0.23
+Empirical training prior: 0.24000000000000002
+Empirical training prior: 0.25
+Empirical training prior: 0.26
+Empirical training prior: 0.27
+Empirical training prior: 0.28
+Empirical training prior: 0.29000000000000004
+Empirical training prior: 0.3
+Empirical training prior: 0.31
+Empirical training prior: 0.32
+Empirical training prior: 0.33
+Empirical training prior: 0.34
+Empirical training prior: 0.35000000000000003
+Empirical training prior: 0.36000000000000004
+Empirical training prior: 0.37
+Empirical training prior: 0.38
+Empirical training prior: 0.39
+Empirical training prior: 0.4
+Empirical training prior: 0.41000000000000003
+Empirical training prior: 0.42000000000000004
+Empirical training prior: 0.43
+Empirical training prior: 0.44
+Empirical training prior: 0.45
+Empirical training prior: 0.46
+Empirical training prior: 0.47000000000000003
+Empirical training prior: 0.48000000000000004
+Empirical training prior: 0.49
+Empirical training prior: 0.5
+Empirical training prior: 0.51
+Empirical training prior: 0.52
+Empirical training prior: 0.53
+Empirical training prior: 0.54
+Empirical training prior: 0.55
+Empirical training prior: 0.56
+Empirical training prior: 0.5700000000000001
+Empirical training prior: 0.5800000000000001
+Empirical training prior: 0.59
+Empirical training prior: 0.6
+Empirical training prior: 0.61
+Empirical training prior: 0.62
+Empirical training prior: 0.63
+Empirical training prior: 0.64
+Empirical training prior: 0.65
+Empirical training prior: 0.66
+Empirical training prior: 0.67
+Empirical training prior: 0.68
+Empirical training prior: 0.6900000000000001
+Empirical training prior: 0.7000000000000001
+Empirical training prior: 0.7100000000000001
+Empirical training prior: 0.72
+Empirical training prior: 0.73
+Empirical training prior: 0.74
+Empirical training prior: 0.75
+Empirical training prior: 0.76
+Empirical training prior: 0.77
+Empirical training prior: 0.78
+Empirical training prior: 0.79
+Empirical training prior: 0.8
+Empirical training prior: 0.81
+Empirical training prior: 0.8200000000000001
+Empirical training prior: 0.8300000000000001
+Empirical training prior: 0.8400000000000001
+Empirical training prior: 0.85
+Empirical training prior: 0.86
+Empirical training prior: 0.87
+Empirical training prior: 0.88
+Empirical training prior: 0.89
+Empirical training prior: 0.9
+Empirical training prior: 0.91
+Empirical training prior: 0.92
+Empirical training prior: 0.93
+Empirical training prior: 0.9400000000000001
+Empirical training prior: 0.9500000000000001
+Empirical training prior: 0.9600000000000001
+Empirical training prior: 0.97
+Empirical training prior: 0.98
+Empirical training prior: 0.99
+Score fusion
+Empirical training prior: 0.01
+Empirical training prior: 0.02
+Empirical training prior: 0.03
+Empirical training prior: 0.04
+Empirical training prior: 0.05
+Empirical training prior: 0.060000000000000005
+Empirical training prior: 0.06999999999999999
+Empirical training prior: 0.08
+Empirical training prior: 0.09
+Empirical training prior: 0.09999999999999999
+Empirical training prior: 0.11
+Empirical training prior: 0.12
+Empirical training prior: 0.13
+Empirical training prior: 0.14
+Empirical training prior: 0.15000000000000002
+Empirical training prior: 0.16
+Empirical training prior: 0.17
+Empirical training prior: 0.18000000000000002
+Empirical training prior: 0.19
+Empirical training prior: 0.2
+Empirical training prior: 0.21000000000000002
+Empirical training prior: 0.22
+Empirical training prior: 0.23
+Empirical training prior: 0.24000000000000002
+Empirical training prior: 0.25
+Empirical training prior: 0.26
+Empirical training prior: 0.27
+Empirical training prior: 0.28
+Empirical training prior: 0.29000000000000004
+Empirical training prior: 0.3
+Empirical training prior: 0.31
+Empirical training prior: 0.32
+Empirical training prior: 0.33
+Empirical training prior: 0.34
+Empirical training prior: 0.35000000000000003
+Empirical training prior: 0.36000000000000004
+Empirical training prior: 0.37
+Empirical training prior: 0.38
+Empirical training prior: 0.39
+Empirical training prior: 0.4
+Empirical training prior: 0.41000000000000003
+Empirical training prior: 0.42000000000000004
+Empirical training prior: 0.43
+Empirical training prior: 0.44
+Empirical training prior: 0.45
+Empirical training prior: 0.46
+Empirical training prior: 0.47000000000000003
+Empirical training prior: 0.48000000000000004
+Empirical training prior: 0.49
+Empirical training prior: 0.5
+Empirical training prior: 0.51
+Empirical training prior: 0.52
+Empirical training prior: 0.53
+Empirical training prior: 0.54
+Empirical training prior: 0.55
+Empirical training prior: 0.56
+Empirical training prior: 0.5700000000000001
+Empirical training prior: 0.5800000000000001
+Empirical training prior: 0.59
+Empirical training prior: 0.6
+Empirical training prior: 0.61
+Empirical training prior: 0.62
+Empirical training prior: 0.63
+Empirical training prior: 0.64
+Empirical training prior: 0.65
+Empirical training prior: 0.66
+Empirical training prior: 0.67
+Empirical training prior: 0.68
+Empirical training prior: 0.6900000000000001
+Empirical training prior: 0.7000000000000001
+Empirical training prior: 0.7100000000000001
+Empirical training prior: 0.72
+Empirical training prior: 0.73
+Empirical training prior: 0.74
+Empirical training prior: 0.75
+Empirical training prior: 0.76
+Empirical training prior: 0.77
+Empirical training prior: 0.78
+Empirical training prior: 0.79
+Empirical training prior: 0.8
+Empirical training prior: 0.81
+Empirical training prior: 0.8200000000000001
+Empirical training prior: 0.8300000000000001
+Empirical training prior: 0.8400000000000001
+Empirical training prior: 0.85
+Empirical training prior: 0.86
+Empirical training prior: 0.87
+Empirical training prior: 0.88
+Empirical training prior: 0.89
+Empirical training prior: 0.9
+Empirical training prior: 0.91
+Empirical training prior: 0.92
+Empirical training prior: 0.93
+Empirical training prior: 0.9400000000000001
+Empirical training prior: 0.9500000000000001
+Empirical training prior: 0.9600000000000001
+Empirical training prior: 0.97
+Empirical training prior: 0.98
+Empirical training prior: 0.99
+Results after calibration / fusion:
+Method: LR
+Minimum DCF: 0.24293
+Actual DCF: 0.24562
+LLR: shape = (1, 2000) mean = 0.08307, max = 14.77615, min = -19.58324, devstd = 5.79628
+[0.07713266]
+[[ 0.46210475 -6.32217963 -5.00239116 -5.73833985 -8.7403332 ]]
+Method parameters:
+{'training_prior': 0.89}
+
+Method: SVM
+Minimum DCF: 0.17929
+Actual DCF: 0.17929
+LLR: shape = (1, 2000) mean = 0.49708, max = 17.06284, min = -12.32493, devstd = 6.24674
+[0.26403778]
+[[ 4.38864943 -5.22692212 -7.42735371 -6.67527733 -7.31865976]]
+Method parameters:
+{'training_prior': 0.21000000000000002}
+
+Method: GMM
+Minimum DCF: 0.14599
+Actual DCF: 0.14699
+LLR: shape = (1, 2000) mean = 0.43265, max = 25.83691, min = -24.05731, devstd = 9.13690
+[2.54242201]
+[[  7.68722406 -12.19857378  -9.44969757  -6.66407456 -14.04988108]]
+Method parameters:
+{'training_prior': 0.99}
+
+Method: Fusion
+Minimum DCF: 0.11948
+Actual DCF: 0.11962
+LLR: shape = (1, 2000) mean = 0.19888, max = 22.23829, min = -25.21316, devstd = 8.80273
+[2.22000481]
+[[  5.51228313  -9.9654011   -8.086228    -6.12458254 -11.67255213]]
+Method parameters:
+{'training_prior': 0.15000000000000002}
+
+
+Evaluation on application dataset: LR
+Training data/labels: (6, 4000), (4000,)
+Validation score/labels: (1, 2000), (2000,)
+Evaluation data/labels: (6, 6000) (6000,)
+LR Quadratic LR, reg_coeff: 0.03162277660168379, pi_tr = None, pi_app = 0.1
+Score calibration: LR, pi_tr = 0.89, pi_app = 0.1
+Score type: Validation
+LLR: shape = (1, 2000) mean = -0.01204, max = 7.24280, min = -9.48360, devstd = 2.78231
+[[-2.69140177 -2.56232629  5.01051459 -2.27944105 -2.44288975]]
+[[-1.14357804 -2.23387712 -3.74566451 -2.28959037 -2.59606957]]
+
+Score type: Evaluation - Raw
+LLR: shape = (1, 6000) mean = 0.01407, max = 8.90025, min = -9.87251, devstd = 2.83028
+[[-3.24046432 -4.05943865  3.15358708 -7.21302367 -2.72376242]]
+[[-3.56801967 -0.80569667  0.14536932 -3.04693371  0.73690951]]
+
+Score type: Evaluation - Cal.
+LLR: shape = (1, 6000) mean = 0.13543, max = 18.62101, min = -20.43123, devstd = 5.88772
+[[ -6.6348434   -8.33852356   6.66645093 -14.89880279  -5.55996869]]
+[[-7.31624394 -1.56989175  0.40857352 -6.23224925  1.63913138]]
+
+
+Evaluation on application dataset: SVM
+Training data/labels: (6, 4000), (4000,)
+Validation score/labels: (1, 2000), (2000,)
+Evaluation data/labels: (6, 6000) (6000,)
+SVM RBF (rbf), K = 1, C = 31.622776601683793, gamma = 0.1353352832366127, pi_app = 0.1
+Doing SVM RBF with scale 0.1353352832366127
+Model params (alpha): [    0.         12103.31899294     0.         ...     0.
+     0.             0.        ]
+Other params: C = 31.622776601683793, K = 1
+Kernel type: rbf
+Kernel args: {'scale': 0.1353352832366127}
+Score type: ztr
+LLR: shape = (4000, 1) mean = 0.00100, max = 1.00000, min = -1.00000, devstd = 1.00000
+[[ 1]
+ [-1]
+ [-1]
+ ...
+ [ 1]
+ [-1]
+ [-1]]
+[[ 1]
+ [-1]
+ [-1]
+ ...
+ [ 1]
+ [-1]
+ [-1]]
+
+Score calibration: SVM, pi_tr = 0.21000000000000002, pi_app = 0.1
+Score type: Validation
+LLR: shape = (1, 2000) mean = 0.17777, max = 7.00166, min = -5.42436, devstd = 2.69045
+[[-2.90619222 -3.11213563  2.43048623 -3.19523352 -2.53380834]]
+[[-1.14417287 -3.04307376 -3.51435194 -2.8430026  -2.75391073]]
+
+Score type: Evaluation - Raw
+LLR: shape = (1, 6000) mean = 1.50811, max = 106.71302, min = -97.75158, devstd = 21.27893
+[[-32.4308598  -29.71315915  29.67978038 -97.75157882 -23.82675197]]
+[[-37.16580461  -3.01728373   1.86614628 -11.41295786  10.0180009 ]]
+
+Score type: Evaluation - Cal.
+LLR: shape = (1, 6000) mean = 3.58278, max = 247.18796, min = -226.25605, devstd = 49.27201
+[[ -75.00393824  -68.71101962   68.81514043 -226.25605222  -55.08086456]]
+[[-85.96784714  -6.89590717   4.41182371 -26.33634629  23.28769132]]
+
+
+Evaluation on application dataset: GMM
+Training data/labels: (6, 4000), (4000,)
+Validation score/labels: (1, 2000), (2000,)
+Evaluation data/labels: (6, 6000) (6000,)
+GMM diag, components = (8, 32), pi_app = 0.1
+Score calibration: GMM, pi_tr = 0.99, pi_app = 0.1
+Score type: Validation
+LLR: shape = (1, 2000) mean = 0.27733, max = 18.51552, min = -21.54598, devstd = 7.71402
+[[-3.68136936 -8.12444903 12.7258423  -6.33492802 -9.15786159]]
+[[-3.58715767 -5.38372245 -6.63927654 -6.38332028 -7.87646282]]
+
+Score type: Evaluation - Raw
+LLR: shape = (1, 6000) mean = 0.31108, max = 21.20970, min = -24.89061, devstd = 7.77860
+[[ -8.36171413 -10.43278232  10.0692637  -17.44797223  -9.30821352]]
+[[-9.31255119 -5.19782269  3.60638285 -9.34125759  3.8445342 ]]
+
+Score type: Evaluation - Cal.
+LLR: shape = (1, 6000) mean = 0.44406, max = 24.84092, min = -28.97616, devstd = 9.08067
+[[ -9.68048155 -12.09822771  11.83567431 -20.2876966  -10.78541633]]
+[[-10.79048009  -5.98698346   4.290966   -10.82399167   4.56898172]]
+
+
+Evaluation on application dataset: Fusion (best)
+Training data/labels: (6, 4000), (4000,)
+Validation score/labels: (3, 2000), (2000,)
+Evaluation data/labels: (6, 6000) (6000,)
+LR Quadratic LR, reg_coeff: 0.03162277660168379, pi_tr = None, pi_app = 0.1
+SVM RBF (rbf), K = 1, C = 31.622776601683793, gamma = 0.1353352832366127, pi_app = 0.1
+Doing SVM RBF with scale 0.1353352832366127
+Model params (alpha): [    0.         12103.31899294     0.         ...     0.
+     0.             0.        ]
+Other params: C = 31.622776601683793, K = 1
+Kernel type: rbf
+Kernel args: {'scale': 0.1353352832366127}
+Score type: ztr
+LLR: shape = (4000, 1) mean = 0.00100, max = 1.00000, min = -1.00000, devstd = 1.00000
+[[ 1]
+ [-1]
+ [-1]
+ ...
+ [ 1]
+ [-1]
+ [-1]]
+[[ 1]
+ [-1]
+ [-1]
+ ...
+ [ 1]
+ [-1]
+ [-1]]
+
+GMM diag, components = (8, 32), pi_app = 0.1
+Score calibration: Fusion, pi_tr = 0.15000000000000002, pi_app = 0.1
+Score type: Validation
+LLR: shape = (3, 2000) mean = 0.14769, max = 18.51552, min = -21.54598, devstd = 4.98428
+[[-2.69140177 -2.56232629  5.01051459 -2.27944105 -2.44288975]
+ [-2.90619222 -3.11213563  2.43048623 -3.19523352 -2.53380834]
+ [-3.68136936 -8.12444903 12.7258423  -6.33492802 -9.15786159]]
+[[-1.14357804 -2.23387712 -3.74566451 -2.28959037 -2.59606957]
+ [-1.14417287 -3.04307376 -3.51435194 -2.8430026  -2.75391073]
+ [-3.58715767 -5.38372245 -6.63927654 -6.38332028 -7.87646282]]
+
+Score type: Evaluation - Raw
+LLR: shape = (3, 6000) mean = 0.61109, max = 106.71302, min = -97.75158, devstd = 13.19799
+[[ -3.24046432  -4.05943865   3.15358708  -7.21302367  -2.72376242]
+ [-32.4308598  -29.71315915  29.67978038 -97.75157882 -23.82675197]
+ [ -8.36171413 -10.43278232  10.0692637  -17.44797223  -9.30821352]]
+[[ -3.56801967  -0.80569667   0.14536932  -3.04693371   0.73690951]
+ [-37.16580461  -3.01728373   1.86614628 -11.41295786  10.0180009 ]
+ [ -9.31255119  -5.19782269   3.60638285  -9.34125759   3.8445342 ]]
+
+Score type: Evaluation - Cal.
+LLR: shape = (1, 6000) mean = 0.22924, max = 23.21152, min = -28.13038, devstd = 8.67967
+[[ -9.37561691 -11.79797101  10.97268852 -19.30494373 -10.27104345]]
+[[-10.4083348   -5.64694107   3.6523822  -10.54217612   4.00273747]]

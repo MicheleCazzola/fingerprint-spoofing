@@ -2,14 +2,16 @@ import numpy as np
 import scipy.linalg as alg
 import scipy.optimize as scopt
 
-from constants import PLOT_PATH_SVM, SAVE, LOG, SVM_EVALUATION_RESULTS
+from cio import print_scores_stats
+from constants import PLOT_PATH_SVM, SAVE, LOG, SVM_EVALUATION_RESULTS, SVM_LINEAR, SVM_RBF, SVM_LINEAR_PREPROCESS, \
+    SVM_POLYNOMIAL
 from evaluation.evaluation import Evaluator
 from plot import plot_log_double_line, plot_log_N_double_lines
 from utilities.utilities import vcol, vrow
 
 
 def optimal_bayes(svm, DVAL, LVAL, app_prior):
-    llr = svm.score(DVAL)
+    llr = svm.scores(DVAL)
     LPR = svm.predict(DVAL, app_prior)
 
     min_dcf, dcf = map(Evaluator.evaluate(llr, LPR, LVAL, eff_prior=app_prior).get("results").get,
@@ -17,17 +19,18 @@ def optimal_bayes(svm, DVAL, LVAL, app_prior):
     return min_dcf, dcf, llr
 
 
-class SVM:
-    def __init__(self, K=None, C=None, ker="poly"):
+class SupportVectorMachine:
+    def __init__(self, K=None, C=None, kernel="poly"):
         self.w = None
         self.alpha = None
         self.K = K
         self.C = C
-        self.kernel_type = ker
+        self.kernel_type = kernel
         self.kernel_args = None
         self.dual_loss = None
         self.primal_loss = None
         self.duality_gap = None
+        self.opt_info = None
         self.DTR = None
         self.ZTR = None
 
@@ -41,7 +44,7 @@ class SVM:
     def setParams(self, **kwargs):
         self.K = kwargs.get("K", self.K)
         self.C = kwargs.get("C", self.C)
-        self.kernel_type = kwargs.get("ker_type", self.kernel_type)
+        self.kernel_type = kwargs.get("kernel", self.kernel_type)
 
     @staticmethod
     def _kernel_poly(D1, D2, degree, offset):
@@ -55,22 +58,23 @@ class SVM:
         exponent = -scale * norm
         return np.exp(exponent)
 
-    def _kernel_fun(self, D1, D2, kernel_args):
+    def _kernel_fun(self, D1, D2):
         reg_bias = self.K ** 2
         if self.kernel_type == "poly":
-            return SVM._kernel_poly(D1, D2, kernel_args["degree"], kernel_args["offset"]) + reg_bias
+            return SupportVectorMachine._kernel_poly(D1, D2, self.kernel_args["degree"], self.kernel_args["offset"]) + reg_bias
         elif self.kernel_type == "rbf":
-            return SVM._kernel_rbf(D1, D2, kernel_args["scale"]) + reg_bias
+            return SupportVectorMachine._kernel_rbf(D1, D2, self.kernel_args["scale"]) + reg_bias
         else:
             # Should not arrive here
             raise ValueError(f"Unknown kernel type {self.kernel_type}")
 
-    def fit(self, DTR, LTR, C, primal=False, **kernel_args):
-        self.setParams(C=C)
+    def fit(self, DTR, LTR, C=None, primal=False, **kernel_args):
+        if C is not None:
+            self.setParams(C=C)
         n = DTR.shape[1]
 
         self.kernel_args = kernel_args
-        G = self._kernel_fun(DTR, DTR, kernel_args)
+        G = self._kernel_fun(DTR, DTR)
         ZTR = vcol(2 * LTR - 1)
         H = (ZTR @ ZTR.T) * G
 
@@ -87,33 +91,38 @@ class SVM:
 
         x, f, d = scopt.fmin_l_bfgs_b(func=opt,
                                       x0=np.zeros(n),
-                                      bounds=[(0, C)] * n,
+                                      bounds=[(0, self.C) for _ in range(n)],
                                       factr=1.0)
 
         self.alpha = x
         self.DTR = DTR
         self.ZTR = ZTR
         self.dual_loss = -f
+        self.opt_info = d
 
         if primal:
             self.w = vcol(np.sum(vrow(vcol(x) * ZTR) * self.expand(self.DTR, self.K), axis=1))
             self.primal_loss = primal_fun()
             self.duality_gap = self.primal_loss - self.dual_loss
 
-    def score(self, DVAL):
-        k = self._kernel_fun(self.DTR, DVAL, self.kernel_args)
+    def scores(self, DVAL):
+        k = self._kernel_fun(self.DTR, DVAL)
         g = vcol(vcol(self.alpha) * self.ZTR)
         return vrow(np.sum(g * k, axis=0))
 
-    def predict(self, DVAL, eff_prior):
-        s = self.score(DVAL)
-        threshold = -np.log(eff_prior / (1 - eff_prior))
+    def predict(self, DVAL, app_prior=0.5):
+        s = self.scores(DVAL)
+        threshold = -np.log(app_prior / (1 - app_prior))
 
         LPR = np.zeros((1, DVAL.shape[1]), dtype=np.int32)
         LPR[s >= threshold] = 1
         LPR[s < threshold] = 0
 
         return LPR
+
+    def __str__(self):
+        return (f"alpha: {self.alpha}, K: {self.K}, C: {self.C}, ker: {self.kernel_type},"
+                f"ker_args: {self.kernel_args}, opt_info: {self.opt_info}")
 
 
 def linear_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, c_values):
@@ -161,11 +170,13 @@ def rbf_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, c_values, scale_values):
         res_min, res_act, llrs_scale = [], [], []
         for c in c_values:
 
-            if LOG:
-                print(f"SVM RBF (scale = {scale}, c = {c})")
-
-            svm.setParams(ker_type='rbf')
+            svm.setParams(kernel='rbf')
             svm.fit(DTR, LTR, c, primal=False, scale=scale)
+
+            if LOG:
+                print(f"SVM RBF (scale = {scale}, c = {c}), alpha = {svm.alpha} ({svm.alpha.shape})")
+                print_scores_stats([vrow(svm.alpha)], ["alpha"])
+                print(svm)
 
             min_dcf, dcf, llr = optimal_bayes(svm, DVAL, LVAL, app_prior)
 
@@ -186,16 +197,21 @@ def svm_task(DTR, LTR, DVAL, LVAL, app_prior):
     c_values_rbf = np.logspace(-3, 2, 11)
     k_values = [1, 1, 0, 1]
     scale_values_rbf = np.exp(np.array(range(-4, 0)))
-    ker_type = ["linear", "linear (preprocessing)", "polynomial", "rbf"]
-    svm = SVM()
+    ker_type = [
+        SVM_LINEAR,
+        SVM_LINEAR_PREPROCESS,
+        SVM_POLYNOMIAL,
+        SVM_RBF
+    ]
+    svm = SupportVectorMachine()
 
     eval_results = [{"min_dcf": [], "dcf": []} for _ in range(0, 4)]
     best_results = [()] * 3 + [{}]
     task_names = [
-        "SVM with linear kernel",
-        "SVM with linear kernel and data centering",
-        "SVM with polynomial kernel",
-        "SVM with RBF kernel"
+        "Linear kernel",
+        "Linear kernel - Data centering",
+        "Polynomial kernel",
+        "RBF kernel"
     ]
 
     titles = [
@@ -254,6 +270,7 @@ def svm_task(DTR, LTR, DVAL, LVAL, app_prior):
 
     if LOG:
         print("SVM: RBF kernel")
+
     # RBF SVM (bias = 1), scale = [e-4, e-3, e-2, e-1]
     svm.setParams(K=k_values[3], ker_type="rbf")
     eval_results[3]["min_dcf"], eval_results[3]["dcf"], eval_results[3]["llr"] = rbf_svm(
@@ -266,6 +283,9 @@ def svm_task(DTR, LTR, DVAL, LVAL, app_prior):
         c_values_rbf,
         scale_values_rbf
     )
+
+    if LOG:
+        print("SVM collecting")
 
     for i in range(len(best_results[:-1])):
         eval_result = eval_results[i]

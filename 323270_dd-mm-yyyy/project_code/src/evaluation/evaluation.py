@@ -1,5 +1,6 @@
 import numpy as np
-from src.io.constants import GAUSSIAN, LR, SVM, GMM
+
+from constants import GAUSSIAN, LR, SVM, GMM
 
 
 def relative_mis_calibration(dcfs):
@@ -7,11 +8,6 @@ def relative_mis_calibration(dcfs):
 
 
 class Evaluator:
-    def __init__(self, model_name):
-        self.model_name = model_name
-        self.results = []
-        self.data_models = []
-
     @staticmethod
     def evaluate(llr, LPR, LVAL, eff_prior, **model_params):
         M = Evaluator.compute_confusion_matrix(LPR, LVAL, 2)
@@ -32,9 +28,6 @@ class Evaluator:
             "params": model_params,
             "results": model_results
         }
-
-    def get_results(self):
-        return self.results
 
     @staticmethod
     def _best_configuration_gaussian(eval_results_prior):
@@ -57,7 +50,7 @@ class Evaluator:
             "act_dcf": eval_results[best_conf][4],
             "llr": eval_results[best_conf][2],
             "params": {
-                "type": eval_results[best_conf][5],
+                "variant": eval_results[best_conf][5],
                 "λ": eval_results[best_conf][1]
             }
         }
@@ -68,8 +61,7 @@ class Evaluator:
         best_conf_no_rbf = np.argmin(min_dcfs)
         min_dcfs_rbf = [r[1] for (_, r) in eval_results[-1].items()]
         best_conf_rbf = np.argmin(min_dcfs_rbf)
-        best = "RBF" if list(eval_results[-1].values())[best_conf_rbf][1] < eval_results[:-1][best_conf_no_rbf][
-            1] else "NO_RBF"
+        best = "RBF" if list(eval_results[-1].values())[best_conf_rbf][1] < eval_results[:-1][best_conf_no_rbf][1] else "NO_RBF"
 
         if best == "RBF":
             best_conf = list(eval_results[-1].values())[best_conf_rbf]
@@ -77,8 +69,8 @@ class Evaluator:
             dcf = best_conf[4]
             llr = best_conf[3]
             params = {
-                "type": best_conf[5],
-                "γ": list(eval_results[-1].keys())[best_conf_rbf],
+                "kernel": best_conf[5],
+                "scale": list(eval_results[-1].keys())[best_conf_rbf],
                 "C": best_conf[0],
                 "K": best_conf[2]
             }
@@ -88,7 +80,7 @@ class Evaluator:
             dcf = best_conf[4]
             llr = best_conf[3]
             params = {
-                "type": best_conf[5],
+                "kernel": best_conf[5],
                 "C": best_conf[0],
                 "K": best_conf[2]
             }
@@ -112,8 +104,8 @@ class Evaluator:
             "act_dcf": all_results[best_conf][3],
             "llr": all_results[best_conf][4],
             "params": {
-                "type": all_results[best_conf][0],
-                "components": f"(False: {all_results[best_conf][1][0]}, True: {all_results[best_conf][1][1]})"
+                "variant": all_results[best_conf][0],
+                "components": all_results[best_conf][1]
             }
         }
 
@@ -193,3 +185,5 @@ class Evaluator:
             min_dcf.append(Evaluator.minimum_DCF(llr, LVAL, effective_prior, dummy_risk))
 
         return {"min_dcf": min_dcf, "dcf": dcf}
+
+

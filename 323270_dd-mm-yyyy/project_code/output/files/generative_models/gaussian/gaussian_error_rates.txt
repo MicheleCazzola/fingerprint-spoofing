@@ -1,6 +1,6 @@
 --All features--
      Method       Error rate  Error rate (%)
-      MVG           0.0700         7.00     
+  Standard MVG      0.0700         7.00     
     Tied MVG        0.0930         9.30     
 Naive Bayes MVG     0.0720         7.20     
 
@@ -24,19 +24,19 @@ True class
 --Using subsets of features--
 Features 1-4
      Method       Error rate  Error rate (%)
-      MVG           0.0795         7.95     
+  Standard MVG      0.0795         7.95     
     Tied MVG        0.0950         9.50     
 Naive Bayes MVG     0.0765         7.65     
 
 Features 1-2
      Method       Error rate  Error rate (%)
-      MVG           0.3650        36.50     
+  Standard MVG      0.3650        36.50     
     Tied MVG        0.4945        49.45     
 Naive Bayes MVG     0.3630        36.30     
 
 Features 3-4
      Method       Error rate  Error rate (%)
-      MVG           0.0945         9.45     
+  Standard MVG      0.0945         9.45     
     Tied MVG        0.0940         9.40     
 Naive Bayes MVG     0.0945         9.45     
 

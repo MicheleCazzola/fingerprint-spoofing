@@ -83,3 +83,4 @@ def effective_prior(application):
     :return: effective prior
     """
     return application[0] * application[1] / (application[0] * application[1] + (1 - application[0]) * application[2])
+

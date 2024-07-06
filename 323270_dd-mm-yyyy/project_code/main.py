@@ -1,9 +1,9 @@
-from pprint import pprint
 from sys import argv
 
 import numpy as np
 
 from calibration import calibration_task
+from cio import print_model_result
 from constants import (APPLICATIONS, FILE_PATH_GENERATIVE_GAUSSIAN, PLOT_PATH_GENERATIVE_GAUSSIAN, PLOT_PATH_CMP,
                        FILE_PATH_LOGISTIC_REGRESSION, FILE_PATH_SVM, FILE_PATH_GMM, GMM_EVALUATION_RESULT, LR, SVM, GMM,
                        FILE_PATH_CMP, PLOT_PATH_CAL_FUS, BEST_RESULTS_CAL, FUSION, REDUCED, SAVE, LOG,
@@ -13,9 +13,11 @@ from constants import (APPLICATIONS, FILE_PATH_GENERATIVE_GAUSSIAN, PLOT_PATH_GE
                        LDA_ERROR_RATE_TH, PLOT_PATH_LDA, LDA_ERROR_RATE_TH_COMPACT, FILE_PATH_LDA, LDA_ERROR_RATES,
                        GAUSSIAN_APPLICATION_PRIORS, GAUSSIAN_EVALUATION_RESULTS, GAUSSIAN_BAYES_ERROR,
                        CMP_BAYES_ERROR_RAW, BEST_RESULTS_RAW, SVM_EVALUATION_RESULT, LR_EVALUATION_RESULT,
-                       CMP_BAYES_ERROR_CAL, CMP_BAYES_ERROR_FUSION)
+                       CMP_BAYES_ERROR_CAL, CMP_BAYES_ERROR_FUSION, FILE_PATH_EVAL, APP_EVAL_RESULTS,
+                       EVAL_BAYES_ERR_ALL, EVAL_BAYES_ERR_ALL_ACT_DCF, REDUCE_FACTOR, PLOT_PATH_EVAL_FEATURES)
 from fio import save_application_priors, save_gaussian_evaluation_results, save_LR_evaluation_results, \
-    save_SVM_evaluation_results, save_GMM_evaluation_results, save_best_results, save_statistics, save_LDA_errors
+    save_SVM_evaluation_results, save_GMM_evaluation_results, save_best_results, save_statistics, save_LDA_errors, \
+    save_application_results
 from fusion import fusion_task
 from plot import plot_bayes_errors, plot_estimated_features, plot_feature_distributions, plot_hist, plot_line
 from gaussian import MVG_task
@@ -24,33 +26,39 @@ from discriminative.logreg import LR_task
 from discriminative.svm import svm_task
 from src.dimred import lda
 from src.dimred.pca import PCA
-from src.io import fio, constants, plot
+from src.io import fio, plot
 from src.utilities import utilities
 from src.fitting import fitting
 from evaluation.evaluation import Evaluator
+from evaluation.application import app_evaluation
+
 
 if __name__ == "__main__":
 
     # Load data with exception handling
     try:
         features, labels = fio.load_csv(argv[1])
+        app_features, app_labels = fio.load_csv(argv[2])
     except IndexError:
-        exit("Missing argument: name of training data file")
-    except FileNotFoundError:
-        exit(f"File {argv[1]} not found")
+        exit(f"Missing argument: file name")
+    except FileNotFoundError as fExc:
+        exit(f"File error: '{fExc.filename}' not found")
 
     app_prior = 0.1
     log_odd_application = np.log(app_prior / (1 - app_prior))
     eff_prior_log_odds = np.linspace(-4, 4, 101)
-    (features_tr, labels_tr), (features_val, labels_val) = utilities.split_db_2to1(features, labels)
+    K = 5
 
     if REDUCED:
         np.random.seed(0)
-        idx = np.random.permutation(features.shape[1])[0:features.shape[1] // 20]
+        idx = np.random.permutation(features.shape[1])[0: features.shape[1] // REDUCE_FACTOR]
         features, labels = features[:, idx], labels[idx]
-        (features_tr, labels_tr), (features_val, labels_val) = utilities.split_db_2to1(features, labels)
 
-    pca = PCA()
+        np.random.seed(0)
+        idx_app = np.random.permutation(app_features.shape[1])[0: app_features.shape[1] // REDUCE_FACTOR]
+        app_features, app_labels = app_features[:, idx_app], app_labels[idx_app]
+
+    (features_tr, labels_tr), (features_val, labels_val) = utilities.split_db_2to1(features, labels)
 
     # Compute mean and variance per class for each feature
     statistics = utilities.compute_statistics(
@@ -79,6 +87,17 @@ if __name__ == "__main__":
             "pdf"
         )
 
+        plot_feature_distributions(
+            app_features,
+            app_labels,
+            PLOT_PATH_EVAL_FEATURES,
+            "Feature",
+            "Feature",
+            FEATURE_PREFIX_HISTOGRAM,
+            FEATURE_PREFIX_SCATTERPLOT,
+            "pdf"
+        )
+
         # Print mean and variance per class for each feature
         save_statistics(
             statistics,
@@ -86,6 +105,7 @@ if __name__ == "__main__":
             FEATURE_STATISTICS
         )
 
+    pca = PCA()
     features_projected_PCA = pca.fit_transform(features, n_components=6)
 
     features_projected_LDA = lda.apply(features, labels)
@@ -106,7 +126,7 @@ if __name__ == "__main__":
             features_projected_LDA[:, labels == 0],
             features_projected_LDA[:, labels == 1],
             0,
-            f"{constants.PLOT_PATH_LDA}{PLOT_SUBPATH_HISTOGRAM_LDA}",
+            f"{PLOT_PATH_LDA}{PLOT_SUBPATH_HISTOGRAM_LDA}",
             f"LDA direction",
             f"LDA direction",
             LDA_HISTOGRAM,
@@ -238,20 +258,7 @@ if __name__ == "__main__":
     if LOG:
         print("Model classification results (no calibration)")
         for (method, result) in model_results.items():
-            print(f"Method: {method}")
-            print(f"Minimum DCF: {result['min_dcf']:.5f}")
-            print(f"Actual DCF: {result['act_dcf']:.5f}")
-            print(
-                f"LLR: shape = {result['llr'].shape} "
-                f"mean = {result['llr'].mean():.5f}, "
-                f"max = {result['llr'].max():.5f}, "
-                f"min = {result['llr'].min():.5f}, "
-                f"devstd = {result['llr'].std():.5f}"
-            )
-            pprint(result['llr'])
-            print(f"Method parameters:")
-            pprint(result['params'])
-            print()
+            print_model_result(method, result)
         print()
 
     # best_model = Evaluator.best_model(model_results, "min_dcf")
@@ -318,28 +325,18 @@ if __name__ == "__main__":
             calibration_result.keys()
         )
 
-    scores = [model["llr"] for model in model_results.values()]
-    fusion_result, labels_val_unfolded = fusion_task(scores, labels_val, app_prior)
+    scores = {model_name: model_result["llr"] for (model_name, model_result) in model_results.items()}
+    fusion_result, labels_val_unfolded = fusion_task(list(scores.values()), labels_val, app_prior)
 
     cal_fus_result = calibration_result | {FUSION: fusion_result}
+
+    best_model = min(cal_fus_result, key=lambda k: cal_fus_result[k]["act_dcf"])
 
     if LOG:
         print("Results after calibration / fusion: ")
         for (method, result) in cal_fus_result.items():
-            print(f"Method: {method}")
-            print(f"Minimum DCF: {result['min_dcf']:.5f}")
-            print(f"Actual DCF: {result['act_dcf']:.5f}")
-            print(
-                f"LLR: shape = {result['llr'].shape}, "
-                f"mean = {result['llr'].mean():.5f}, "
-                f"max = {result['llr'].max():.5f}, "
-                f"min = {result['llr'].min():.5f}, "
-                f"devstd = {result['llr'].std():.5f}"
-            )
-            pprint(result['llr'])
-            print(f"Method parameters:")
-            pprint(result['params'])
-            print()
+            print_model_result(method, result)
+        print()
 
     if SAVE:
         save_best_results(cal_fus_result, FILE_PATH_CMP, BEST_RESULTS_CAL)
@@ -364,4 +361,88 @@ if __name__ == "__main__":
             PLOT_PATH_CAL_FUS,
             CMP_BAYES_ERROR_FUSION,
             "pdf"
+        )
+
+    app_result = {
+        model_name: app_evaluation(
+            model_name,
+            model_result["params"],
+            features_tr,
+            labels_tr,
+            model_result["llr"],
+            labels_val,
+            app_features,
+            app_labels,
+            app_prior,
+            cal_fus_result[model_name]["params"]["training_prior"],
+            eff_prior_log_odds,
+            log_odd_application,
+            model_name == best_model
+        ) for (model_name, model_result) in model_results.items()
+    }
+
+    fusion_params = {
+        model_name: model_result["params"]
+        for (model_name, model_result) in model_results.items()
+    }
+
+    fus_result = app_evaluation(
+        FUSION,
+        fusion_params,
+        features_tr,
+        labels_tr,
+        np.vstack([model_result["llr"] for model_result in model_results.values()]),
+        labels_val,
+        app_features,
+        app_labels,
+        app_prior,
+        cal_fus_result[FUSION]["params"]["training_prior"],
+        eff_prior_log_odds,
+        log_odd_application,
+        FUSION == best_model
+    )
+
+    app_result["cal"][FUSION] = fus_result
+
+    app_result_cal = {model_name: app_res["cal"] for (model_name, app_res) in app_result.items()}
+    app_result_raw = {model_name: app_res["raw"] for (model_name, app_res) in app_result.items()}
+
+    app_min_dcfs = [res["min_dcf"] for res in app_result_cal.values()]
+    app_act_dcfs = [res["act_dcf"] for res in app_result_cal.values()]
+    app_bayes_err_min_dcf = [res["bayes_err_min_dcf"] for res in app_result_cal.values()]
+    app_bayes_err_act_dcf = [res["bayes_err_act_dcf"] for res in app_result_cal.values()]
+
+    if SAVE:
+        save_application_results(app_result, FILE_PATH_EVAL, APP_EVAL_RESULTS)
+
+        # ActDCF for each model (and their fusion)
+        plot_bayes_errors(
+            eff_prior_log_odds,
+            None,
+            app_bayes_err_act_dcf,
+            log_odd_application,
+            "Bayes error calibrated models",
+            "Evaluation dataset - Actual DCF",
+            "Prior log-odds",
+            "DCF value",
+            PLOT_PATH_CMP,
+            EVAL_BAYES_ERR_ALL_ACT_DCF,
+            "pdf",
+            app_result_cal.keys()
+        )
+
+        # MinDCF and actDCF of all models (and fusion)
+        plot_bayes_errors(
+            eff_prior_log_odds,
+            app_bayes_err_min_dcf,
+            app_bayes_err_act_dcf,
+            log_odd_application,
+            "Bayes error calibrated models",
+            "Evaluation dataset",
+            "Prior log-odds",
+            "DCF value",
+            PLOT_PATH_CMP,
+            EVAL_BAYES_ERR_ALL,
+            "pdf",
+            app_result_cal.keys()
         )

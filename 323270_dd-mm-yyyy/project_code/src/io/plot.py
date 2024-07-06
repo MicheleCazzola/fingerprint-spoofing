@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from src.io.constants import LABEL_NAMES, PLOT_PATH_ESTIMATIONS, PLOT_SUBPATH_HISTOGRAM_FEATURES, \
+from constants import LABEL_NAMES, PLOT_PATH_ESTIMATIONS, PLOT_SUBPATH_HISTOGRAM_FEATURES, \
     PLOT_SUBPATH_SCATTERPLOTS_FEATURES, ESTIMATED_FEATURE
 
 
@@ -180,7 +180,7 @@ def plot_estimated_features(x, y, features):
 def plot_bayes_errors(
     eff_prior_log_odds,
     min_dcf,
-    actual_dcf,
+    act_dcf,
     eff_prior_log_odd,
     title,
     subtitle,
@@ -192,14 +192,23 @@ def plot_bayes_errors(
     models=None
 ):
 
+    if min_dcf is None:
+        min_dcf = [None] * len(act_dcf)
+
+    if act_dcf is None:
+        act_dcf = [None] * len(min_dcf)
+
     if models is None:
-        models = [None] * len(min_dcf)
+        models = [None] * len(min_dcf if min_dcf is not None else act_dcf)
 
     plt.figure(name)
-    for (min_dcf_val, act_dcf_val, model) in zip(min_dcf, actual_dcf, models):
+    for (min_dcf_val, act_dcf_val, model) in zip(min_dcf, act_dcf, models):
         model_lab = "" if model is None else f" - {model}"
-        plt.plot(eff_prior_log_odds, min_dcf_val, label=f"Minimum DCF{model_lab}")
-        plt.plot(eff_prior_log_odds, act_dcf_val, label=f"Actual DCF{model_lab}")
+        if min_dcf_val is not None:
+            plt.plot(eff_prior_log_odds, min_dcf_val, label=f"Minimum DCF{model_lab}")
+        if act_dcf_val is not None:
+            plt.plot(eff_prior_log_odds, act_dcf_val, label=f"Actual DCF{model_lab}")
+
     plt.vlines(x=eff_prior_log_odd, ymin=plt.axis()[2], label="System application", ymax=plt.axis()[3], color="black",
                linewidth=2, linestyle="dashed")
     plt.grid()

@@ -3,7 +3,8 @@ from scipy import optimize as opt, linalg as alg
 
 from evaluation.evaluation import Evaluator
 from plot import plot_log_double_line
-from src.io.constants import LR_STANDARD, PRIOR_WEIGHTED_LR, PLOT_PATH_LOGISTIC_REGRESSION, SAVE, LR_EVALUATION_RESULTS
+from constants import LR_STANDARD, PRIOR_WEIGHTED_LR, PLOT_PATH_LOGISTIC_REGRESSION, SAVE, LR_EVALUATION_RESULTS, LOG, \
+    LR_RED_DATA, QUADRATIC_LR, PRIOR_WEIGHTED_LR_PREPROCESS
 from utilities.utilities import vrow, vcol
 
 
@@ -140,13 +141,17 @@ def LR_task(DTR, LTR, DVAL, LVAL, app_prior):
     ]
 
     LR_types = [
-        "Standard LR",
-        "Standard LR (reduced dataset)",
-        "Prior-weighted LR",
-        "Quadratic LR"
+        LR_STANDARD,
+        LR_RED_DATA,
+        PRIOR_WEIGHTED_LR,
+        QUADRATIC_LR,
+        PRIOR_WEIGHTED_LR_PREPROCESS
     ]
 
     results = [{}] * 5
+
+    if LOG:
+        print("Standard non-weighted LR")
 
     # 1: standard non-weighted LR
     results[0] = logistic_regression(
@@ -159,6 +164,9 @@ def LR_task(DTR, LTR, DVAL, LVAL, app_prior):
         LR_STANDARD
     )
 
+    if LOG:
+        print("Standard non-weighted LR with reduced dataset")
+
     # 2: reduced dataset LR
     results[1] = logistic_regression(
         DTR[:, ::50],
@@ -170,6 +178,9 @@ def LR_task(DTR, LTR, DVAL, LVAL, app_prior):
         LR_STANDARD
     )
 
+    if LOG:
+        print("Prior-weighted LR")
+
     # 3: prior-weighted LR
     results[2] = logistic_regression(
         DTR,
@@ -180,6 +191,9 @@ def LR_task(DTR, LTR, DVAL, LVAL, app_prior):
         reg_coefficients,
         PRIOR_WEIGHTED_LR
     )
+
+    if LOG:
+        print("Quadratic LR")
 
     # 4: quadratic LR
     DTR_expanded = expand(DTR)
@@ -194,6 +208,9 @@ def LR_task(DTR, LTR, DVAL, LVAL, app_prior):
         LR_STANDARD
     )
 
+    if LOG:
+        print("Prior-weighted LR with data preprocessing (data centering)")
+
     # 5: preprocess data and apply regularized model
     DTR_mean = vcol(np.sum(DTR, axis=1)) / DTR.shape[1]
     DTR_preprocess, DVAL_preprocess = DTR - DTR_mean, DVAL - DTR_mean
@@ -204,9 +221,12 @@ def LR_task(DTR, LTR, DVAL, LVAL, app_prior):
         LVAL,
         app_prior,
         reg_coefficients,
-        PRIOR_WEIGHTED_LR,
+        PRIOR_WEIGHTED_LR_PREPROCESS,
         "Data centering"
     )
+
+    if LOG:
+        print("LR collecting")
 
     eval_results_best = []
     for (result, title, file_name, LR_type) in zip(results, titles, LR_EVALUATION_RESULTS, LR_types):

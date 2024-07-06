@@ -6,14 +6,22 @@ LABEL_NAMES = {
 GAUSSIAN_MODELS = ["Standard MVG", "Tied MVG", "Naive Bayes MVG"]
 GAUSSIAN = "MVG"
 LR = "LR"
-LR_STANDARD = "LR_STD"
+LR_STANDARD = "Standard LR"
+LR_RED_DATA = "Standard LR (reduced dataset)"
 PRIOR_WEIGHTED_LR = "PWLR"
+QUADRATIC_LR = "Quadratic LR"
+PRIOR_WEIGHTED_LR_PREPROCESS = "PWLR - Preprocess"
 SVM = "SVM"
+SVM_LINEAR = "Linear"
+SVM_LINEAR_PREPROCESS = "Linear - Data centering"
+SVM_POLYNOMIAL = "Polynomial"
+SVM_RBF = "RBF"
 GMM = "GMM"
 FUSION = "Fusion"
 
 # Plot paths
 PLOT_PATH_FEATURES = "output/plots/original_features/"
+PLOT_PATH_EVAL_FEATURES = "output/plots/eval_features/"
 PLOT_SUBPATH_HISTOGRAM_FEATURES = "histograms/"
 PLOT_SUBPATH_SCATTERPLOTS_FEATURES = "scatterplots/"
 PLOT_PATH_ESTIMATIONS = "output/plots/feature_estimation/"
@@ -27,6 +35,8 @@ PLOT_PATH_SVM = "output/plots/discriminative_models/svm/"
 PLOT_PATH_GMM = "output/plots/generative_models/gmm/"
 PLOT_PATH_CMP = "output/plots/comparisons/"
 PLOT_PATH_CAL_FUS = "output/plots/calibration_fusion/"
+PLOT_PATH_EVAL_CAL = "output/plots/evaluation/calibrated/"
+PLOT_PATH_EVAL_CMP = "output/plots/evaluation/comparisons/"
 
 # File paths
 FILE_PATH_FEATURES = "output/files/original_features/"
@@ -36,6 +46,7 @@ FILE_PATH_LOGISTIC_REGRESSION = "output/files/discriminative_models/logistic_reg
 FILE_PATH_SVM = "output/files/discriminative_models/svm/"
 FILE_PATH_GMM = "output/files/generative_models/gmm/"
 FILE_PATH_CMP = "output/files/comparisons/"
+FILE_PATH_EVAL = "output/files/evaluation/"
 
 # File names
 FEATURE_STATISTICS = "feature_statistics.txt"
@@ -48,6 +59,7 @@ SVM_EVALUATION_RESULT = "SVM_evaluation_results.txt"
 GMM_EVALUATION_RESULT = "gmm_evaluation_results.txt"
 BEST_RESULTS_RAW = "best_results_raw.txt"
 BEST_RESULTS_CAL = "best_results_cal.txt"
+APP_EVAL_RESULTS = "app_eval_results.txt"
 
 # Plot names
 FEATURE_PREFIX_HISTOGRAM = "histogram"
@@ -72,9 +84,15 @@ SVM_EVALUATION_RESULTS = [
     "quadratic_no_preprocessing",
     "RBF_kernel_bias1"
 ]
-CMP_BAYES_ERROR_RAW =  "bayes_error_comparison_raw"
+CMP_BAYES_ERROR_RAW = "bayes_error_comparison_raw"
 CMP_BAYES_ERROR_CAL = "bayes_error_comparison_calibrated"
 CMP_BAYES_ERROR_FUSION = "bayes_error_fusion"
+EVAL_BAYES_ERR_LR = "bayes_error_LR"
+EVAL_BAYES_ERR_SVM = "bayes_error_SVM"
+EVAL_BAYES_ERR_GMM = "bayes_error_GMM"
+EVAL_BAYES_ERR_FUSION = "bayes_error_fusion"
+EVAL_BAYES_ERR_ALL = "eval_bayes_error_cmp"
+EVAL_BAYES_ERR_ALL_ACT_DCF = "eval_bayes_error_cmp_act_dcf"
 
 # NUMERIC
 APPLICATIONS = [
@@ -89,3 +107,4 @@ APPLICATIONS = [
 SAVE = 1
 LOG = 1
 REDUCED = 0
+REDUCE_FACTOR = 30

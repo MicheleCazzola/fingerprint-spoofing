@@ -1,10 +1,10 @@
 -- Minimum DCFs, Actual DCFs --
-SVM with linear kernel: 0.358, 0.516 (C = 0.100, K = 1.0)
-SVM with linear kernel and data centering: 0.358, 0.516 (C = 0.100, K = 1.0)
-SVM with polynomial kernel: 0.245, 0.467 (C = 0.032, K = 0.0)
-SVM with RBF kernel:
- Scale  Minimum DCF  Actual DCF    C     K  
- 0.018     0.230       0.445    10.000  1.0 
- 0.050     0.239       0.467     3.162  1.0 
- 0.135     0.175       0.422    31.623  1.0 
- 0.368     0.183       0.901     1.000  1.0 
+Linear kernel: 0.358, 0.516 (C = 0.100, K = 1.0)
+Linear kernel - Data centering: 0.358, 0.516 (C = 0.100, K = 1.0)
+Polynomial kernel: 0.245, 0.467 (C = 0.032, K = 0.0)
+RBF kernel:
+Minimum DCF  Actual DCF    γ      C     K  
+   0.230       0.445     0.018 10.000  1.0 
+   0.239       0.467     0.050  3.162  1.0 
+   0.175       0.422     0.135 31.623  1.0 
+   0.183       0.901     0.368  1.000  1.0 
