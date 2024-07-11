@@ -37,6 +37,7 @@ PLOT_PATH_CMP = "output/plots/comparisons/"
 PLOT_PATH_CAL_FUS = "output/plots/calibration_fusion/"
 PLOT_PATH_EVAL_CAL = "output/plots/evaluation/calibrated/"
 PLOT_PATH_EVAL_CMP = "output/plots/evaluation/comparisons/"
+PLOT_PATH_EVAL_LR = "output/plots/evaluation/logistic_regression/"
 
 # File paths
 FILE_PATH_FEATURES = "output/files/original_features/"
@@ -47,6 +48,7 @@ FILE_PATH_SVM = "output/files/discriminative_models/svm/"
 FILE_PATH_GMM = "output/files/generative_models/gmm/"
 FILE_PATH_CMP = "output/files/comparisons/"
 FILE_PATH_EVAL = "output/files/evaluation/"
+
 
 # File names
 FEATURE_STATISTICS = "feature_statistics.txt"
@@ -60,6 +62,7 @@ GMM_EVALUATION_RESULT = "gmm_evaluation_results.txt"
 BEST_RESULTS_RAW = "best_results_raw.txt"
 BEST_RESULTS_CAL = "best_results_cal.txt"
 APP_EVAL_RESULTS = "app_eval_results.txt"
+APP_EVAL_LR_RESULTS = "LR_app_eval_results.txt"
 
 # Plot names
 FEATURE_PREFIX_HISTOGRAM = "histogram"
@@ -68,7 +71,7 @@ PCA_PREFIX_HISTOGRAM = "PCA_histogram"
 PCA_PREFIX_SCATTERPLOT = "PCA_scatter"
 LDA_HISTOGRAM = "LDA_histogram"
 LDA_ERROR_RATE_TH = "error_rate_threshold"
-LDA_ERROR_RATE_TH_COMPACT = "error_rate_thresholds_compact"
+LDA_ERROR_RATE_TH_COMPACT = "error_rate_threshold_compact"
 ESTIMATED_FEATURE = "estimated_feature"
 GAUSSIAN_BAYES_ERROR = "bayes_error"
 LR_EVALUATION_RESULTS = [
@@ -107,4 +110,4 @@ APPLICATIONS = [
 SAVE = 1
 LOG = 1
 REDUCED = 0
-REDUCE_FACTOR = 30
+REDUCE_FACTOR = 100

@@ -15,7 +15,6 @@ def print_model_result(method, result):
         f"min = {result['llr'].min():.5f}, "
         f"devstd = {result['llr'].std():.5f}"
     )
-    print(result["llr"][:, 5], result["llr"][:, -5:], sep="\n")
     print(f"Method parameters:")
     print(result['params'])
     print()
@@ -31,5 +30,3 @@ def print_scores_stats(scores, names):
             f"min = {score.min():.5f}, "
             f"devstd = {score.std():.5f}"
         )
-        print(score[:, :5], score[:, -5:], sep="\n")
-        print()

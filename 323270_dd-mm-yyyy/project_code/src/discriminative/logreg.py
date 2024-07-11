@@ -4,7 +4,7 @@ from scipy import optimize as opt, linalg as alg
 from evaluation.evaluation import Evaluator
 from plot import plot_log_double_line
 from constants import LR_STANDARD, PRIOR_WEIGHTED_LR, PLOT_PATH_LOGISTIC_REGRESSION, SAVE, LR_EVALUATION_RESULTS, LOG, \
-    LR_RED_DATA, QUADRATIC_LR, PRIOR_WEIGHTED_LR_PREPROCESS
+    LR_RED_DATA, QUADRATIC_LR, PRIOR_WEIGHTED_LR_PREPROCESS, PLOT_PATH_EVAL_LR
 from utilities.utilities import vrow, vcol
 
 
@@ -128,7 +128,7 @@ def logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, varia
     }
 
 
-def LR_task(DTR, LTR, DVAL, LVAL, app_prior):
+def LR_task(DTR, LTR, DVAL, LVAL, app_prior, target="validation"):
 
     reg_coefficients = np.logspace(-4, 2, 13)
 
@@ -251,10 +251,10 @@ def LR_task(DTR, LTR, DVAL, LVAL, app_prior):
                 "DCF value",
                 "DCF",
                 "Min. DCF",
-                PLOT_PATH_LOGISTIC_REGRESSION,
+                PLOT_PATH_LOGISTIC_REGRESSION if target == "validation" else PLOT_PATH_EVAL_LR,
                 file_name,
                 "pdf",
-                result["preprocess"] if result["preprocess"] is not None else ""
+                "Evaluation" + (f' - {result["preprocess"]}' if result["preprocess"] is not None else '')
             )
 
     eval_results_best[-1][3] += " (data centering)"

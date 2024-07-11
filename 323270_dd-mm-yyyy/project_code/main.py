@@ -14,7 +14,8 @@ from constants import (APPLICATIONS, FILE_PATH_GENERATIVE_GAUSSIAN, PLOT_PATH_GE
                        GAUSSIAN_APPLICATION_PRIORS, GAUSSIAN_EVALUATION_RESULTS, GAUSSIAN_BAYES_ERROR,
                        CMP_BAYES_ERROR_RAW, BEST_RESULTS_RAW, SVM_EVALUATION_RESULT, LR_EVALUATION_RESULT,
                        CMP_BAYES_ERROR_CAL, CMP_BAYES_ERROR_FUSION, FILE_PATH_EVAL, APP_EVAL_RESULTS,
-                       EVAL_BAYES_ERR_ALL, EVAL_BAYES_ERR_ALL_ACT_DCF, REDUCE_FACTOR, PLOT_PATH_EVAL_FEATURES)
+                       EVAL_BAYES_ERR_ALL, EVAL_BAYES_ERR_ALL_ACT_DCF, REDUCE_FACTOR, PLOT_PATH_EVAL_FEATURES,
+                       APP_EVAL_LR_RESULTS)
 from fio import save_application_priors, save_gaussian_evaluation_results, save_LR_evaluation_results, \
     save_SVM_evaluation_results, save_GMM_evaluation_results, save_best_results, save_statistics, save_LDA_errors, \
     save_application_results
@@ -402,7 +403,7 @@ if __name__ == "__main__":
         FUSION == best_model
     )
 
-    app_result["cal"][FUSION] = fus_result
+    app_result[FUSION] = fus_result
 
     app_result_cal = {model_name: app_res["cal"] for (model_name, app_res) in app_result.items()}
     app_result_raw = {model_name: app_res["raw"] for (model_name, app_res) in app_result.items()}
@@ -446,3 +447,8 @@ if __name__ == "__main__":
             "pdf",
             app_result_cal.keys()
         )
+
+    lr_eval_results = LR_task(features_tr, labels_tr, app_features, app_labels, app_prior, target="evaluation")
+
+    if SAVE:
+        save_LR_evaluation_results(lr_eval_results, FILE_PATH_EVAL, APP_EVAL_LR_RESULTS)

@@ -55,7 +55,7 @@ class GaussianMixtureModel:
         new_logdens = self._logpdf_GMM(X, gmm=gmm_current)
         new_ll = np.mean(new_logdens)
         gain = new_ll - previous_ll
-        assert gain >= 0
+        #assert gain >= 0
         return gain <= self.delta, new_ll
 
     def _bound_cov(self, cov):

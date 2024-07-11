@@ -57,7 +57,6 @@ def app_SVM(DTR, LTR, DEVAL, kernel, K, C, scale, app_prior):
             print(f"Kernel type: {svm.kernel_type}")
             print(f"Kernel args: {svm.kernel_args}")
             print_scores_stats([svm.ZTR, svm.DTR], ["ztr", "dtr"])
-            print(svm)
 
     elif kernel == constants.SVM_POLYNOMIAL:
         svm.fit(DTR, LTR, degree=2, offset=1)
