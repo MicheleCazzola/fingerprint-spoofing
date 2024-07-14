@@ -78,7 +78,7 @@ LR_EVALUATION_RESULTS = [
     "LR_standard_non_weighted",
     "LR_standard_non_weighted_filtered_dataset",
     "Prior_weighted_LR",
-    "Prior_weighted_LR_expanded_feature_space",
+    "LR_expanded_feature_space",
     "Prior_weighted_LR_data_centering"
 ]
 SVM_EVALUATION_RESULTS = [

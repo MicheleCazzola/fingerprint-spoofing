@@ -100,7 +100,7 @@ def logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, varia
     lr = LogReg(variant)
 
     for reg_coeff in reg_coefficients:
-        lr_prior = app_prior if variant == PRIOR_WEIGHTED_LR else None
+        lr_prior = app_prior if variant == PRIOR_WEIGHTED_LR or PRIOR_WEIGHTED_LR_PREPROCESS else None
         lr.fit(DTR, LTR, reg_coeff, app_prior=lr_prior)
 
         llr = lr.scores(DVAL)
@@ -136,7 +136,7 @@ def LR_task(DTR, LTR, DVAL, LVAL, app_prior, target="validation"):
         "Logistic Regression DCFs for standard non-weighted model",
         "Logistic Regression DCFs for filtered non-weighted model",
         "Prior-weighted Logistic Regression DCFs",
-        "Prior-weighted Logistic Regression DCFs with expanded feature space",
+        "Logistic Regression DCFs with expanded feature space",
         "Prior-weighted Logistic Regression DCFs with preprocessing"
     ]
 
