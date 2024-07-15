@@ -1,6 +1,6 @@
 -- Minimum DCFs, Actual DCFs --
-Logistic Regression for standard non-weighted model                   : 0.505, 1.094 (λ = 0.03)
+Logistic Regression for standard non-weighted model                   : 0.505, 0.616 (λ = 0.03)
 Logistic Regression for filtered non-weighted model                   : 0.534, 1.000 (λ = 100.00)
 Prior-weighted Logistic Regression                                    : 0.506, 1.000 (λ = 0.32)
-Logistic Regression with expanded feature space                       : 0.347, 0.746 (λ = 0.01)
+Logistic Regression with expanded feature space                       : 0.347, 0.377 (λ = 0.01)
 Prior-weighted Logistic Regression with preprocessing (data centering): 0.506, 1.000 (λ = 0.32)
