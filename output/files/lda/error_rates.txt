@@ -1,0 +1,8 @@
+Classification error rate without PCA preprocessing 0.0950 (9.50 %)
+
+--Classification error rates with PCA preprocessing--
+PCA dimensions	Error rate	Error rate (%)
+      5       	  0.0955  	    9.55     
+      4       	  0.0965  	    9.65     
+      3       	  0.0985  	    9.85     
+      2       	  0.0955  	    9.55     
