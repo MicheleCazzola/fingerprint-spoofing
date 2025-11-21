@@ -3,7 +3,24 @@ from src.config.config import LOG, PLOT_PATH_SVM, SAVE, SVM_EVALUATION_RESULTS, 
 from src.models.svm import SupportVectorMachine
 from src.tasks.utils import optimal_bayes
 from src.utils.plot import plot_log_N_double_lines, plot_log_double_line
-from src.utils.utils import print_scores_stats, vcol, vrow
+from src.utils.utils import vcol
+
+
+def write_SVM_results(results):
+    task_names = results["tasks"]
+    best_results = results["results"]
+
+    print_string = "-- Minimum DCFs, Actual DCFs --\n"
+    for (task_name, best_result) in zip(task_names[:-1], best_results[:-1]):
+        print_string += (f"{task_name}: {best_result[1]:.3f}, "
+                         f"{best_result[4]:.3f} (C = {best_result[0]:.3f}, K = {best_result[2]:.1f})\n")
+
+    print_string += f"{task_names[-1]}:\n"
+    print_string += f"{'Minimum DCF':<12s}{'Actual DCF':^12s}{'γ':^7s}{'C':^7s}{'K':^5s}\n"
+    for (rbf, best_rbf) in best_results[-1].items():
+        print_string += f"{best_rbf[1]:^12.3f}{best_rbf[4]:^12.3f}{rbf:^7.3f}{best_rbf[0]:^7.3f}{best_rbf[2]:^5.1f}\n"
+
+    return print_string
 
 
 def linear_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, c_values):
@@ -55,9 +72,10 @@ def rbf_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, c_values, scale_values):
             svm.fit(DTR, LTR, c, primal=False, scale=scale)
 
             if LOG:
-                print(f"SVM RBF (scale = {scale}, c = {c}), alpha = {svm.alpha} ({svm.alpha.shape})")
-                print_scores_stats([vrow(svm.alpha)], ["alpha"])
-                print(svm)
+                print(f"SVM RBF (scale = {scale}, c = {c})")
+                #print(f"SVM RBF (scale = {scale}, c = {c}), alpha = {svm.alpha} ({svm.alpha.shape})")
+                #print_scores_stats([vrow(svm.alpha)], ["alpha"])
+                #print(svm)
 
             min_dcf, dcf, llr = optimal_bayes(svm, DVAL, LVAL, app_prior)
 
@@ -72,7 +90,10 @@ def rbf_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, c_values, scale_values):
     return results_min_dcf, results_dcf, llrs
 
 
-def svm_task(DTR, LTR, DVAL, LVAL, app_prior):
+def svm_task(trainset, validset, app_prior):
+    
+    DTR, LTR = trainset.get_data(), trainset.get_labels()
+    DVAL, LVAL = validset.get_data(), validset.get_labels()
 
     c_values = np.logspace(-5, 0, 11)
     c_values_rbf = np.logspace(-3, 2, 11)
@@ -205,7 +226,7 @@ def svm_task(DTR, LTR, DVAL, LVAL, app_prior):
                 "DCF",
                 PLOT_PATH_SVM,
                 name,
-                "pdf"
+                "png"
             )
 
         plot_log_N_double_lines(
@@ -219,7 +240,7 @@ def svm_task(DTR, LTR, DVAL, LVAL, app_prior):
             ["DCF (g=e-4)", "DCF (g=e-3)", "DCF (g=e-2)", "DCF (g=e-1)"],
             PLOT_PATH_SVM,
             SVM_EVALUATION_RESULTS[-1],
-            "pdf"
+            "png"
         )
 
     return {
