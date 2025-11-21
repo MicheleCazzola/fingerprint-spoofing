@@ -18,6 +18,22 @@ class Dataset:
         self.labels: np.ndarray = labels
         self.size: int = self.features.shape[1]
         self.dim: int = self.features.shape[0]
+        
+    def get_data(self) -> np.ndarray:
+        """
+        Returns the feature matrix of the dataset.
+
+        :return: feature matrix
+        """
+        return self.features
+    
+    def get_labels(self) -> np.ndarray:
+        """
+        Returns the label vector of the dataset.
+
+        :return: label vector
+        """
+        return self.labels
     
     def split(self, ratio: float) -> tuple['Dataset', 'Dataset']:
         """
@@ -69,6 +85,6 @@ class Dataset:
         :return: Dataset instance
         """
         df = pd.read_csv(path, header=None).to_numpy()
-        features, labels = df[:, :-1].T, df[:, -1]
+        features, labels = df[:, :-1].T.astype(np.float32), df[:, -1].astype(np.int32)
         
         return Dataset(features, labels)

@@ -1,6 +1,8 @@
+import numpy as np
 from src.dataset.dataset import Dataset
+from src.tasks.mvg import MVG_task
 from src.tasks.stats import stats_task
-from src.config.config import RANDOM_SEED, REDUCE_FACTOR, REDUCED, SAVE, TRAINSET_SIZE, EXECUTE
+from src.config.config import APPLICATION_PRIOR, EFF_PRIOR_LOG_ODDS_PARAMS, RANDOM_SEED, REDUCE_FACTOR, REDUCED, SAVE, TRAINSET_SIZE, EXECUTE
 from src.tasks.dimred import dimred_task
 from src.utils.fitting import gaussian_estimation
 from src.utils.plot import plot_estimated_features
@@ -32,6 +34,20 @@ def main():
 
         if SAVE:
             plot_estimated_features(x_domain, y_estimations, features_per_class)
+    
+    eff_prior_log_odds = np.linspace(*EFF_PRIOR_LOG_ODDS_PARAMS)        
+    
+    if EXECUTE["MVG"]:
+        MVG_task(trainset, validset, APPLICATION_PRIOR, eff_prior_log_odds)
+    
+    if EXECUTE["LR"]:
+        pass  # Placeholder for LR task
+    if EXECUTE["SVM"]:
+        pass  # Placeholder for SVM task
+    if EXECUTE["GMM"]:
+        pass  # Placeholder for GMM task
+    if EXECUTE["comparison"]:
+        pass  # Placeholder for comparison task
     
     print("Goodbye, World!")
     

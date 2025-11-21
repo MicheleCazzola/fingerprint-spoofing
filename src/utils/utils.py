@@ -1,8 +1,7 @@
 import numpy as np
-from sklearn.model_selection import train_test_split
 
 
-def compute_statistics(features, labels, **functions):
+def compute_statistics(features: np.ndarray, labels: np.ndarray, **functions) -> dict:
     """
     Computes some statistics about features and labels and store them in a dictionary
 
@@ -19,7 +18,7 @@ def compute_statistics(features, labels, **functions):
     return r
 
 
-def vcol(array: np.ndarray):
+def vcol(array: np.ndarray) -> np.ndarray:
     """
     Converts a 1D-ndarray into a column 2D-ndarray
 
@@ -29,7 +28,7 @@ def vcol(array: np.ndarray):
     return array.reshape(array.size, 1)
 
 
-def vrow(array: np.ndarray):
+def vrow(array: np.ndarray) -> np.ndarray:
     """
     Converts a 1D-ndarray into a row 2D-ndarray
 
@@ -38,7 +37,7 @@ def vrow(array: np.ndarray):
     """
     return array.reshape(1, array.size)
 
-def project(D: np.ndarray, M: np.ndarray):
+def project(D: np.ndarray, M: np.ndarray) -> np.ndarray:
     """
     Project data over basis spanned by columns of matrix M
 
@@ -48,7 +47,7 @@ def project(D: np.ndarray, M: np.ndarray):
     """
     return M.T @ D
 
-def effective_prior(application):
+def effective_prior(application: tuple) -> float:
     """
     Computes the effective prior of an application
 
@@ -56,6 +55,13 @@ def effective_prior(application):
     :return: effective prior
     """
     return application[0] * application[1] / (application[0] * application[1] + (1 - application[0]) * application[2])
+
+def expand(DTR):
+    expanded = []
+    for i in range(DTR.shape[1]):
+        arr = np.concatenate([(DTR[:, i:i + 1] @ DTR[:, i:i + 1].T).ravel(), DTR[:, i]])
+        expanded.append(arr)
+    return np.array(expanded).T
 
 def save(path_root: str, file_name: str, function, *args):
     """
@@ -71,3 +77,39 @@ def save(path_root: str, file_name: str, function, *args):
     content = function(*args)
     with open(f"{path_root}{file_name}", mode="w", encoding="utf-8") as fout:
         fout.write(content)
+        
+def relative_mis_calibration(dcfs: dict) -> float:
+    """
+    Computes the relative mis-calibration given the DCFs
+    
+    :param dcfs: dictionary containing "dcf" and "min_dcf"
+    :return: relative mis-calibration as a percentage
+    """
+    return 100 * (dcfs["dcf"] - dcfs["min_dcf"]) / dcfs["min_dcf"]
+
+def print_model_result(method, result):
+    print(f"Method: {method}")
+    print(f"Minimum DCF: {result['min_dcf']:.5f}")
+    print(f"Actual DCF: {result['act_dcf']:.5f}")
+    print(
+        f"LLR: shape = {result['llr'].shape} "
+        f"mean = {result['llr'].mean():.5f}, "
+        f"max = {result['llr'].max():.5f}, "
+        f"min = {result['llr'].min():.5f}, "
+        f"devstd = {result['llr'].std():.5f}"
+    )
+    print(f"Method parameters:")
+    print(result['params'])
+    print()
+    
+    
+def print_scores_stats(scores, names):
+    for (score, name) in zip(scores, names):
+        print(f"Score type: {name}")
+        print(
+            f"LLR: shape = {score.shape} "
+            f"mean = {score.mean():.5f}, "
+            f"max = {score.max():.5f}, "
+            f"min = {score.min():.5f}, "
+            f"devstd = {score.std():.5f}"
+        )

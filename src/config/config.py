@@ -29,23 +29,23 @@ PLOT_PATH_PCA = "output/plots/pca_features/"
 PLOT_PATH_LDA = "output/plots/lda/"
 PLOT_SUBPATH_HISTOGRAM_LDA = "histograms/"
 PLOT_SUBPATH_LINES_LDA = "lines/"
-PLOT_PATH_GENERATIVE_GAUSSIAN = "output/plots/generative_models/gaussian/"
-PLOT_PATH_LOGISTIC_REGRESSION = "output/plots/discriminative_models/logistic_regression/"
-PLOT_PATH_SVM = "output/plots/discriminative_models/svm/"
-PLOT_PATH_GMM = "output/plots/generative_models/gmm/"
+PLOT_PATH_MVG = "output/plots/models/mvg/"
+PLOT_PATH_LR = "output/plots/models/logreg/"
+PLOT_PATH_SVM = "output/plots/models/svm/"
+PLOT_PATH_GMM = "output/plots/models/gmm/"
 PLOT_PATH_CMP = "output/plots/comparisons/"
 PLOT_PATH_CAL_FUS = "output/plots/calibration_fusion/"
 PLOT_PATH_EVAL_CAL = "output/plots/evaluation/calibrated/"
 PLOT_PATH_EVAL_CMP = "output/plots/evaluation/comparisons/"
-PLOT_PATH_EVAL_LR = "output/plots/evaluation/logistic_regression/"
+PLOT_PATH_EVAL_LR = "output/plots/evaluation/logreg/"
 
 # File paths
 FILE_PATH_FEATURES = "output/files/original_features/"
 FILE_PATH_LDA = "output/files/LDA/"
-FILE_PATH_GENERATIVE_GAUSSIAN = "output/files/generative_models/gaussian/"
-FILE_PATH_LOGISTIC_REGRESSION = "output/files/discriminative_models/logistic_regression/"
-FILE_PATH_SVM = "output/files/discriminative_models/svm/"
-FILE_PATH_GMM = "output/files/generative_models/gmm/"
+FILE_PATH_MVG = "output/files/models/mvg/"
+FILE_PATH_LR = "output/files/models/logreg/"
+FILE_PATH_SVM = "output/files/models/svm/"
+FILE_PATH_GMM = "output/files/models/gmm/"
 FILE_PATH_CMP = "output/files/comparisons/"
 FILE_PATH_EVAL = "output/files/evaluation/"
 
@@ -107,10 +107,12 @@ APPLICATIONS = [
     (0.5, 1.0, 9.0),
     (0.5, 9.0, 1.0)
 ]
+APPLICATION_PRIOR = 0.1
+EFF_PRIOR_LOG_ODDS_PARAMS = (-4, 4, 101)
 EXECUTE = {
-    "stats": True,
-    "dimred": True,
-    "fitting": True,
+    "stats": False,
+    "dimred": False,
+    "fitting": False,
     "MVG": True,
     "LR": True,
     "SVM": True,
@@ -119,7 +121,7 @@ EXECUTE = {
 }
 
 # EXECUTION MODES
-SAVE = 1
-LOG = 1
-REDUCED = 0
+SAVE = True
+LOG = True
+REDUCED = False
 REDUCE_FACTOR = 100
