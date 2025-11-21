@@ -113,8 +113,8 @@ EXECUTE = {
     "stats": False,
     "dimred": False,
     "fitting": False,
-    "MVG": True,
-    "LR": True,
+    "MVG": False,
+    "LR": False,
     "SVM": True,
     "GMM": True,
     "comparison": True
@@ -124,4 +124,4 @@ EXECUTE = {
 SAVE = True
 LOG = True
 REDUCED = False
-REDUCE_FACTOR = 100
+REDUCE_FACTOR = 0.1

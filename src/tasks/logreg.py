@@ -7,6 +7,13 @@ from src.models.logreg import LogReg
 from src.config.config import LR_STANDARD, PRIOR_WEIGHTED_LR, PLOT_PATH_LR, SAVE, LR_EVALUATION_RESULTS, LOG, \
     LR_RED_DATA, QUADRATIC_LR, PRIOR_WEIGHTED_LR_PREPROCESS, PLOT_PATH_EVAL_LR
     
+def write_LR_results(eval_results):
+    print_string = "-- Minimum DCFs, Actual DCFs --\n"
+    for [min_dcf, reg_coeff, _, task_name, dcf, _] in eval_results:
+        print_string += f"{task_name:<70s}: {min_dcf:.3f}, {dcf:.3f} (λ = {reg_coeff:.4f})\n"
+
+    return print_string
+    
     
 def logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, variant, preprocess=None):
     eval_results = []
@@ -41,7 +48,10 @@ def logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, varia
     }
 
 
-def LR_task(DTR, LTR, DVAL, LVAL, app_prior, target="validation"):
+def LR_task(trainset, validset, app_prior, target="validation"):
+    
+    DTR, LTR = trainset.get_data(), trainset.get_labels()
+    DVAL, LVAL = validset.get_data(), validset.get_labels()
 
     reg_coefficients = np.logspace(-4, 2, 13)
 
@@ -166,7 +176,7 @@ def LR_task(DTR, LTR, DVAL, LVAL, app_prior, target="validation"):
                 "Min. DCF",
                 PLOT_PATH_LR if target == "validation" else PLOT_PATH_EVAL_LR,
                 file_name,
-                "pdf",
+                "png",
                 "Evaluation" + (f' - {result["preprocess"]}' if result["preprocess"] is not None else '')
             )
 

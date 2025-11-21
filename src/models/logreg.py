@@ -3,7 +3,7 @@ from scipy import optimize as opt, linalg as alg
 
 
 from src.config.config import LR_STANDARD, PRIOR_WEIGHTED_LR
-from utils.utils import vrow, vcol
+from src.utils.utils import vrow, vcol
 
 
 class LogReg:
