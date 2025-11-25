@@ -1,15 +1,16 @@
+import os
 import numpy as np
 
 from src.evaluator.evaluator import Evaluator
 from src.utils.plot import plot_log_double_line
-from src.utils.utils import expand, vcol
+from src.utils.utils import delete_all, expand, vcol
 from src.models.logreg import LogReg
-from src.config.config import LR_STANDARD, PRIOR_WEIGHTED_LR, PLOT_PATH_LR, SAVE, LR_EVALUATION_RESULTS, LOG, \
+from src.config.config import LR_STANDARD, MODEL_PATH_LR, PRIOR_WEIGHTED_LR, PLOT_PATH_LR, SAVE, LR_EVALUATION_RESULTS, LOG, \
     LR_RED_DATA, QUADRATIC_LR, PRIOR_WEIGHTED_LR_PREPROCESS, PLOT_PATH_EVAL_LR
     
 def write_LR_results(eval_results):
     print_string = "-- Minimum DCFs, Actual DCFs --\n"
-    for [min_dcf, reg_coeff, _, task_name, dcf, _] in eval_results:
+    for [min_dcf, reg_coeff, _, task_name, dcf, _, _] in eval_results:
         print_string += f"{task_name:<70s}: {min_dcf:.3f}, {dcf:.3f} (λ = {reg_coeff:.4f})\n"
 
     return print_string
@@ -33,13 +34,15 @@ def logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, varia
             preprocess=preprocess,
             reg_coeff=reg_coeff
         )
+        id = lr.save_state_dict(f"{MODEL_PATH_LR}")
 
         preprocess = eval_result["params"]["preprocess"]
         eval_results.append((
             eval_result["results"]["dcf"],
             eval_result["results"]["min_dcf"],
             reg_coeff,
-            llr
+            llr,
+            id
         ))
 
     return {
@@ -153,7 +156,7 @@ def LR_task(trainset, validset, app_prior, target="validation"):
 
     eval_results_best = []
     for (result, title, file_name, LR_type) in zip(results, titles, LR_EVALUATION_RESULTS, LR_types):
-        [dcf, min_dcf, reg_coeff, llr] = result["results"]
+        [dcf, min_dcf, reg_coeff, llr, id] = result["results"]
         best_conf = np.argmin(min_dcf)
         eval_results_best.append([
             np.min(min_dcf),
@@ -161,8 +164,11 @@ def LR_task(trainset, validset, app_prior, target="validation"):
             llr[best_conf],
             title.replace(" DCFs", ""),
             dcf[best_conf],
-            LR_type
+            LR_type,
+            id[best_conf]
         ])
+        
+        delete_all([f"{MODEL_PATH_LR}/logreg_{idx}.pkl" for idx in id if idx != id[best_conf]])
 
         if SAVE:
             plot_log_double_line(

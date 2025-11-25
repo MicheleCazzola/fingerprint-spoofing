@@ -1,7 +1,10 @@
+from datetime import datetime
+import joblib
 import numpy as np
 import scipy.linalg as alg
 import scipy.optimize as scopt
 
+from src.config.config import MODEL_PATH_SVM
 from src.utils.utils import vcol, vrow
 
 class SupportVectorMachine:
@@ -18,6 +21,43 @@ class SupportVectorMachine:
         self.opt_info = None
         self.DTR = None
         self.ZTR = None
+        
+    def load_state_dict(self, filepath):
+        
+        state_dict = joblib.load(filepath)
+        
+        self.w = state_dict.get("w", self.w)
+        self.alpha = state_dict.get("alpha", self.alpha)
+        self.K = state_dict.get("K", self.K)
+        self.C = state_dict.get("C", self.C)
+        self.kernel_type = state_dict.get("kernel_type", self.kernel_type)
+        self.kernel_args = state_dict.get("kernel_args", self.kernel_args)
+        self.dual_loss = state_dict.get("dual_loss", self.dual_loss)
+        self.primal_loss = state_dict.get("primal_loss", self.primal_loss)
+        self.duality_gap = state_dict.get("duality_gap", self.duality_gap)
+        self.opt_info = state_dict.get("opt_info", self.opt_info)
+        self.DTR = state_dict.get("DTR", self.DTR)
+        self.ZTR = state_dict.get("ZTR", self.ZTR)
+        
+    def save_state_dict(self, filepath):
+        d = {
+            "w": self.w,
+            "alpha": self.alpha,
+            "K": self.K,
+            "C": self.C,
+            "kernel_type": self.kernel_type,
+            "kernel_args": self.kernel_args,
+            "dual_loss": self.dual_loss,
+            "primal_loss": self.primal_loss,
+            "duality_gap": self.duality_gap,
+            "opt_info": self.opt_info,
+            "DTR": self.DTR,
+            "ZTR": self.ZTR
+        }
+        
+        id = datetime.now().strftime("%Y%m%d-%H%M%S%f")
+        joblib.dump(d, f"{filepath}/svm_{id}.pkl")
+        return id
 
     def expand(self, D, K=None):
         if K is not None:

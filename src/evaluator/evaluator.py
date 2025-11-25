@@ -48,7 +48,8 @@ class Evaluator:
             "params": {
                 "variant": eval_results[best_conf][5],
                 "λ": eval_results[best_conf][1]
-            }
+            },
+            "id": eval_results[best_conf][6]
         }
 
     @staticmethod
@@ -64,8 +65,9 @@ class Evaluator:
             min_dcf = best_conf[1]
             dcf = best_conf[4]
             llr = best_conf[3]
+            id = best_conf[5]
             params = {
-                "kernel": best_conf[5],
+                "kernel": best_conf[6],
                 "scale": list(eval_results[-1].keys())[best_conf_rbf],
                 "C": best_conf[0],
                 "K": best_conf[2]
@@ -75,8 +77,9 @@ class Evaluator:
             min_dcf = best_conf[1]
             dcf = best_conf[4]
             llr = best_conf[3]
+            id = best_conf[5]
             params = {
-                "kernel": best_conf[5],
+                "kernel": best_conf[6],
                 "C": best_conf[0],
                 "K": best_conf[2]
             }
@@ -85,13 +88,14 @@ class Evaluator:
             "min_dcf": min_dcf,
             "act_dcf": dcf,
             "llr": llr,
+            "id": id,
             "params": params
         }
 
     @staticmethod
     def _best_configuration_GMM(eval_results):
-        all_results = [["full", c, v["min_dcf"], v["dcf"], v["llr"]] for (c, v) in eval_results["full"].items()] + \
-                      [["diag", c, v["min_dcf"], v["dcf"], v["llr"]] for (c, v) in eval_results["diag"].items()]
+        all_results = [["full", c, v["min_dcf"], v["dcf"], v["llr"], v["id"]] for (c, v) in eval_results["full"].items()] + \
+                      [["diag", c, v["min_dcf"], v["dcf"], v["llr"], v["id"]] for (c, v) in eval_results["diag"].items()]
         min_dcfs = [r[2] for r in all_results]
         best_conf = np.argmin(min_dcfs)
 
@@ -99,6 +103,7 @@ class Evaluator:
             "min_dcf": all_results[best_conf][2],
             "act_dcf": all_results[best_conf][3],
             "llr": all_results[best_conf][4],
+            "id": all_results[best_conf][5],
             "params": {
                 "variant": all_results[best_conf][0],
                 "components": all_results[best_conf][1]

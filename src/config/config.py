@@ -49,6 +49,10 @@ FILE_PATH_GMM = "output/files/models/gmm/"
 FILE_PATH_CMP = "output/files/comparisons/"
 FILE_PATH_EVAL = "output/files/evaluation/"
 
+# Model path
+MODEL_PATH_SVM = "models/svm"
+MODEL_PATH_LR = "models/logreg"
+MODEL_PATH_GMM = "models/gmm"
 
 # File names
 FEATURE_STATISTICS = "feature_statistics.txt"
@@ -115,13 +119,13 @@ EXECUTE = {
     "fitting": False,
     "MVG": False,
     "LR": False,
-    "SVM": True,
+    "SVM": False,
     "GMM": True,
-    "comparison": True
+    "comparison": False
 }
 
 # EXECUTION MODES
 SAVE = True
 LOG = True
-REDUCED = False
-REDUCE_FACTOR = 0.1
+REDUCED = True
+REDUCE_FACTOR = 0.05

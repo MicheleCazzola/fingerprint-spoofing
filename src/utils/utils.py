@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 
@@ -86,6 +87,18 @@ def relative_mis_calibration(dcfs: dict) -> float:
     :return: relative mis-calibration as a percentage
     """
     return 100 * (dcfs["dcf"] - dcfs["min_dcf"]) / dcfs["min_dcf"]
+
+def delete_all(filepaths: list):
+    """
+    Deletes all files in the provided list of file paths.
+    
+    :param filepaths: list of file paths to delete"""
+    
+    for filepath in filepaths:
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        else:
+            print(f"Warning: file {filepath} does not exist.")
 
 def print_model_result(method, result):
     print(f"Method: {method}")

@@ -1,10 +1,11 @@
 import numpy as np
 from src.dataset.dataset import Dataset
 from src.evaluator.evaluator import Evaluator
+from src.tasks.gmm import gmm_task, write_GMM_results
 from src.tasks.logreg import LR_task, write_LR_results
 from src.tasks.mvg import MVG_task
 from src.tasks.stats import stats_task
-from src.config.config import APPLICATION_PRIOR, EFF_PRIOR_LOG_ODDS_PARAMS, FILE_PATH_LR, FILE_PATH_SVM, LR, LR_EVALUATION_RESULT, RANDOM_SEED, REDUCE_FACTOR, REDUCED, SAVE, SVM, SVM_EVALUATION_RESULT, SVM_EVALUATION_RESULTS, TRAINSET_SIZE, EXECUTE
+from src.config.config import APPLICATION_PRIOR, EFF_PRIOR_LOG_ODDS_PARAMS, FILE_PATH_GMM, FILE_PATH_LR, FILE_PATH_SVM, GMM, GMM_EVALUATION_RESULT, LR, LR_EVALUATION_RESULT, RANDOM_SEED, REDUCE_FACTOR, REDUCED, SAVE, SVM, SVM_EVALUATION_RESULT, SVM_EVALUATION_RESULTS, TRAINSET_SIZE, EXECUTE
 from src.tasks.dimred import dimred_task
 from src.tasks.svm import svm_task, write_SVM_results
 from src.utils.fitting import gaussian_estimation
@@ -62,7 +63,13 @@ def main():
             save(FILE_PATH_SVM, SVM_EVALUATION_RESULT, write_SVM_results, svm_results)
         
     if EXECUTE["GMM"]:
-        pass  # Placeholder for GMM task
+        gmm_results = gmm_task(trainset, validset, APPLICATION_PRIOR)
+        best_gmm = Evaluator.best_configuration(gmm_results, GMM)
+        model_results[GMM] = best_gmm
+        
+        if SAVE:
+            save(FILE_PATH_GMM, GMM_EVALUATION_RESULT, write_GMM_results, gmm_results)
+            
     if EXECUTE["comparison"]:
         pass  # Placeholder for comparison task
     

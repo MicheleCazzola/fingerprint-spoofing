@@ -1,9 +1,9 @@
 import numpy as np
-from src.config.config import LOG, PLOT_PATH_SVM, SAVE, SVM_EVALUATION_RESULTS, SVM_LINEAR, SVM_LINEAR_PREPROCESS, SVM_POLYNOMIAL, SVM_RBF
+from src.config.config import LOG, MODEL_PATH_SVM, PLOT_PATH_SVM, SAVE, SVM_EVALUATION_RESULTS, SVM_LINEAR, SVM_LINEAR_PREPROCESS, SVM_POLYNOMIAL, SVM_RBF
 from src.models.svm import SupportVectorMachine
 from src.tasks.utils import optimal_bayes
 from src.utils.plot import plot_log_N_double_lines, plot_log_double_line
-from src.utils.utils import vcol
+from src.utils.utils import delete_all, vcol
 
 
 def write_SVM_results(results):
@@ -23,53 +23,58 @@ def write_SVM_results(results):
     return print_string
 
 
-def linear_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, c_values):
+def linear_svm(DTR, LTR, DVAL, LVAL, app_prior, svm: SupportVectorMachine, c_values):
 
-    results_min_dcf, results_dcf, llrs = [], [], []
+    results_min_dcf, results_dcf, llrs, ids = [], [], [], []
     for c in c_values:
 
         if LOG:
             print(f"SVM linear (c = {c})")
 
         svm.fit(DTR, LTR, c, primal=True, degree=1, offset=0)
+        id = svm.save_state_dict(f"{MODEL_PATH_SVM}")
 
         min_dcf, dcf, llr = optimal_bayes(svm, DVAL, LVAL, app_prior)
 
         results_min_dcf.append(min_dcf)
         results_dcf.append(dcf)
         llrs.append(llr)
+        ids.append(id)
 
-    return results_min_dcf, results_dcf, llrs
+    return results_min_dcf, results_dcf, llrs, ids
 
 
 def poly_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, c_values):
 
-    results_min_dcf, results_dcf, llrs = [], [], []
+    results_min_dcf, results_dcf, llrs, ids = [], [], [], []
     for c in c_values:
 
         if LOG:
             print(f"SVM polynomial (c = {c})")
 
         svm.fit(DTR, LTR, c, primal=False, degree=2, offset=1)
+        id = svm.save_state_dict(f"{MODEL_PATH_SVM}")
 
         min_dcf, dcf, llr = optimal_bayes(svm, DVAL, LVAL, app_prior)
 
         results_min_dcf.append(min_dcf)
         results_dcf.append(dcf)
         llrs.append(llr)
+        ids.append(id)
 
-    return results_min_dcf, results_dcf, llrs
+    return results_min_dcf, results_dcf, llrs, ids
 
 
 def rbf_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, c_values, scale_values):
 
-    results_min_dcf, results_dcf, llrs = {}, {}, {}
+    results_min_dcf, results_dcf, llrs, ids = {}, {}, {}, {}
     for scale in scale_values:
-        res_min, res_act, llrs_scale = [], [], []
+        res_min, res_act, llrs_scale, ids_scale = [], [], [], []
         for c in c_values:
 
             svm.setParams(kernel='rbf')
             svm.fit(DTR, LTR, c, primal=False, scale=scale)
+            id = svm.save_state_dict(f"{MODEL_PATH_SVM}")
 
             if LOG:
                 print(f"SVM RBF (scale = {scale}, c = {c})")
@@ -82,12 +87,14 @@ def rbf_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, c_values, scale_values):
             res_min.append(min_dcf)
             res_act.append(dcf)
             llrs_scale.append(llr)
+            ids_scale.append(id)
 
         results_min_dcf[scale] = res_min
         results_dcf[scale] = res_act
         llrs[scale] = llrs_scale
-
-    return results_min_dcf, results_dcf, llrs
+        ids[scale] = ids_scale
+        
+    return results_min_dcf, results_dcf, llrs, ids
 
 
 def svm_task(trainset, validset, app_prior):
@@ -128,7 +135,7 @@ def svm_task(trainset, validset, app_prior):
 
     # Linear SVM, no preprocessing
     svm.setParams(K=k_values[0])
-    eval_results[0]["min_dcf"], eval_results[0]["dcf"], eval_results[0]["llr"] = linear_svm(
+    eval_results[0]["min_dcf"], eval_results[0]["dcf"], eval_results[0]["llr"], eval_results[0]["id"] = linear_svm(
         DTR,
         LTR,
         DVAL,
@@ -145,7 +152,7 @@ def svm_task(trainset, validset, app_prior):
     DTR_mean = vcol(np.sum(DTR, axis=1)) / DTR.shape[1]
     DTR_preprocess, DVAL_preprocess = DTR - DTR_mean, DVAL - DTR_mean
     svm.setParams(K=k_values[1])
-    eval_results[1]["min_dcf"], eval_results[1]["dcf"], eval_results[1]["llr"] = linear_svm(
+    eval_results[1]["min_dcf"], eval_results[1]["dcf"], eval_results[1]["llr"], eval_results[1]["id"] = linear_svm(
         DTR_preprocess,
         LTR,
         DVAL_preprocess,
@@ -160,7 +167,7 @@ def svm_task(trainset, validset, app_prior):
 
     # Polynomial SVM (degree=2, offset=1)
     svm.setParams(K=k_values[2])
-    eval_results[2]["min_dcf"], eval_results[2]["dcf"], eval_results[2]["llr"] = poly_svm(
+    eval_results[2]["min_dcf"], eval_results[2]["dcf"], eval_results[2]["llr"], eval_results[2]["id"] = poly_svm(
         DTR,
         LTR,
         DVAL,
@@ -175,7 +182,7 @@ def svm_task(trainset, validset, app_prior):
 
     # RBF SVM (bias = 1), scale = [e-4, e-3, e-2, e-1]
     svm.setParams(K=k_values[3], ker_type="rbf")
-    eval_results[3]["min_dcf"], eval_results[3]["dcf"], eval_results[3]["llr"] = rbf_svm(
+    eval_results[3]["min_dcf"], eval_results[3]["dcf"], eval_results[3]["llr"], eval_results[3]["id"] = rbf_svm(
         DTR,
         LTR,
         DVAL,
@@ -198,8 +205,11 @@ def svm_task(trainset, validset, app_prior):
             k_values[i],
             eval_result["llr"][best_conf],
             eval_result["dcf"][best_conf],
+            eval_result["id"][best_conf],
             ker_type[i]
         )
+        
+        delete_all([f"{MODEL_PATH_SVM}/svm_{idx}.pkl" for idx in eval_result["id"] if idx != eval_result["id"][best_conf]])
 
     best_conf = lambda s: np.argmin(eval_results[-1]["min_dcf"][s])
     best_results[-1] = {
@@ -209,9 +219,16 @@ def svm_task(trainset, validset, app_prior):
             k_values[-1],
             eval_results[-1]["llr"][scale][best_conf(scale)],
             eval_results[-1]["dcf"][scale][best_conf(scale)],
+            eval_results[-1]["id"][scale][best_conf(scale)],
             ker_type[-1]
         ) for scale in eval_results[-1]["min_dcf"]
     }
+    
+    delete_all([
+        f"{MODEL_PATH_SVM}/svm_{idx}.pkl"
+        for scale in eval_results[-1]["id"]
+        for idx in eval_results[-1]["id"][scale] if idx != eval_results[-1]["id"][scale][best_conf(scale)]
+    ])
 
     if SAVE:
         for (eval_result, title, name) in zip(eval_results[:-1], titles[:-1], SVM_EVALUATION_RESULTS[:-1]):

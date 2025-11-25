@@ -1,3 +1,5 @@
+from datetime import datetime
+import joblib
 import numpy as np
 from scipy import optimize as opt, linalg as alg
 
@@ -15,6 +17,32 @@ class LogReg:
         self.opt_info = None
         self.training_prior = training_prior
         self.app_prior = app_prior
+        
+    def load_state_dict(self, filepath):
+        state_dict = joblib.load(filepath)
+        
+        self.variant = state_dict.get("variant", self.variant)
+        self.w = state_dict.get("w", self.w)
+        self.b = state_dict.get("b", self.b)
+        self.j_min = state_dict.get("j_min", self.j_min)
+        self.opt_info = state_dict.get("opt_info", self.opt_info)
+        self.training_prior = state_dict.get("training_prior", self.training_prior)
+        self.app_prior = state_dict.get("app_prior", self.app_prior)
+        
+    def save_state_dict(self, filepath):
+        d = {
+            "variant": self.variant,
+            "w": self.w,
+            "b": self.b,
+            "j_min": self.j_min,
+            "opt_info": self.opt_info,
+            "training_prior": self.training_prior,
+            "app_prior": self.app_prior
+        }
+        
+        id = datetime.now().strftime("%Y%m%d-%H%M%S%f")
+        joblib.dump(d, f"{filepath}/logreg_{id}.pkl")
+        return id
 
     def setParams(self, **kwargs):
         self.variant = kwargs.get("variant", self.variant)

@@ -1,8 +1,10 @@
+from datetime import datetime
+import joblib
 import numpy as np
 import scipy.special as scspec
 
 from src.utils.fitting import logpdf_GAU_ND
-from utils.utils import vcol, vrow
+from src.utils.utils import vcol, vrow
 
 
 class GaussianMixtureModel:
@@ -13,6 +15,30 @@ class GaussianMixtureModel:
         self.num_components = components
         self.psi = psi
         self.gmm = None
+        
+    def load_state_dict(self, filepath):
+        state_dict = joblib.load(filepath)
+        
+        self.variant = state_dict.get("variant", self.variant)
+        self.alpha = state_dict.get("alpha", self.alpha)
+        self.delta = state_dict.get("delta", self.delta)
+        self.num_components = state_dict.get("num_components", self.num_components)
+        self.psi = state_dict.get("psi", self.psi)
+        self.gmm = state_dict.get("gmm", self.gmm)
+    
+    def save_state_dict(self, filepath):
+        d = {
+            "variant": self.variant,
+            "alpha": self.alpha,
+            "delta": self.delta,
+            "num_components": self.num_components,
+            "psi": self.psi,
+            "gmm": self.gmm
+        }
+        
+        id = datetime.now().strftime("%Y%m%d-%H%M%S%f")
+        joblib.dump(d, f"{filepath}/gmm_{id}.pkl")
+        return id
 
     def set_params(self, **kwargs):
         self.variant = kwargs.get("variant", self.variant)
