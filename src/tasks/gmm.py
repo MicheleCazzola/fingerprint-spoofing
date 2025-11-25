@@ -1,7 +1,9 @@
+import os
 from src.config.config import LOG, MODEL_PATH_GMM
 from src.dataset.dataset import Dataset
 from src.evaluator.evaluator import Evaluator
 from src.models.gmm import GaussianMixtureModel
+from src.utils.utils import delete_all
 
 def write_GMM_results(results):
     print_string = ""
@@ -63,6 +65,9 @@ def gmm_task(trainset, validset, app_prior):
         "full": {},
         "diag": {}
     }
+    
+    # Clean previous models
+    delete_all([os.path.join(MODEL_PATH_GMM, f) for f in os.listdir(MODEL_PATH_GMM)])
 
     gmm = GaussianMixtureModel()
 

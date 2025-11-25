@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 import joblib
 import numpy as np
 import scipy.special as scspec
@@ -16,7 +17,14 @@ class GaussianMixtureModel:
         self.psi = psi
         self.gmm = None
         
-    def load_state_dict(self, filepath):
+    def load_state_dict(self, path, id):
+        
+        filepath = f"{path}/gmm_{id}.pkl"
+        
+        if not os.path.exists(filepath):
+            print(f"Warning: GMM model file ('{filepath}') not found.")
+            return False
+        
         state_dict = joblib.load(filepath)
         
         self.variant = state_dict.get("variant", self.variant)
@@ -25,6 +33,8 @@ class GaussianMixtureModel:
         self.num_components = state_dict.get("num_components", self.num_components)
         self.psi = state_dict.get("psi", self.psi)
         self.gmm = state_dict.get("gmm", self.gmm)
+        
+        return True
     
     def save_state_dict(self, filepath):
         d = {
