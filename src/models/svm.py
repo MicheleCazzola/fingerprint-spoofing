@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 import joblib
 import numpy as np
 import scipy.linalg as alg
@@ -22,7 +23,13 @@ class SupportVectorMachine:
         self.DTR = None
         self.ZTR = None
         
-    def load_state_dict(self, filepath):
+    def load_state_dict(self, path, id):
+        
+        filepath = f"{path}/svm_{id}.pkl"
+        
+        if not os.path.exists(filepath):
+            print(f"Warning: SVM model file ('{filepath}') not found.")
+            return False
         
         state_dict = joblib.load(filepath)
         
@@ -38,6 +45,8 @@ class SupportVectorMachine:
         self.opt_info = state_dict.get("opt_info", self.opt_info)
         self.DTR = state_dict.get("DTR", self.DTR)
         self.ZTR = state_dict.get("ZTR", self.ZTR)
+        
+        return True
         
     def save_state_dict(self, filepath):
         d = {

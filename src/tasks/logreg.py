@@ -75,48 +75,27 @@ def LR_task(trainset, validset, app_prior, target="validation"):
     ]
 
     results = [{}] * 5
+    
+    # Clean previous models
+    delete_all([os.path.join(MODEL_PATH_LR, f) for f in os.listdir(MODEL_PATH_LR)])
 
     if LOG:
         print("Standard non-weighted LR")
 
     # 1: standard non-weighted LR
-    results[0] = logistic_regression(
-        DTR,
-        LTR,
-        DVAL,
-        LVAL,
-        app_prior,
-        reg_coefficients,
-        LR_STANDARD
-    )
+    results[0] = logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, LR_STANDARD)
 
     if LOG:
         print("Standard non-weighted LR with reduced dataset")
 
     # 2: reduced dataset LR
-    results[1] = logistic_regression(
-        DTR[:, ::50],
-        LTR[::50],
-        DVAL,
-        LVAL,
-        app_prior,
-        reg_coefficients,
-        LR_STANDARD
-    )
+    results[1] = logistic_regression(DTR[:, ::50], LTR[::50], DVAL, LVAL, app_prior, reg_coefficients, LR_STANDARD)
 
     if LOG:
         print("Prior-weighted LR")
 
     # 3: prior-weighted LR
-    results[2] = logistic_regression(
-        DTR,
-        LTR,
-        DVAL,
-        LVAL,
-        app_prior,
-        reg_coefficients,
-        PRIOR_WEIGHTED_LR
-    )
+    results[2] = logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, PRIOR_WEIGHTED_LR)
 
     if LOG:
         print("Quadratic LR")
@@ -124,15 +103,7 @@ def LR_task(trainset, validset, app_prior, target="validation"):
     # 4: quadratic LR
     DTR_expanded = expand(DTR)
     DVAL_expanded = expand(DVAL)
-    results[3] = logistic_regression(
-        DTR_expanded,
-        LTR,
-        DVAL_expanded,
-        LVAL,
-        app_prior,
-        reg_coefficients,
-        LR_STANDARD
-    )
+    results[3] = logistic_regression(DTR_expanded, LTR, DVAL_expanded, LVAL, app_prior, reg_coefficients, QUADRATIC_LR)
 
     if LOG:
         print("Prior-weighted LR with data preprocessing (data centering)")
@@ -141,14 +112,7 @@ def LR_task(trainset, validset, app_prior, target="validation"):
     DTR_mean = vcol(np.sum(DTR, axis=1)) / DTR.shape[1]
     DTR_preprocess, DVAL_preprocess = DTR - DTR_mean, DVAL - DTR_mean
     results[4] = logistic_regression(
-        DTR_preprocess,
-        LTR,
-        DVAL_preprocess,
-        LVAL,
-        app_prior,
-        reg_coefficients,
-        PRIOR_WEIGHTED_LR_PREPROCESS,
-        "Data centering"
+        DTR_preprocess, LTR, DVAL_preprocess, LVAL, app_prior, reg_coefficients, PRIOR_WEIGHTED_LR_PREPROCESS, "Data centering"
     )
 
     if LOG:
@@ -172,17 +136,8 @@ def LR_task(trainset, validset, app_prior, target="validation"):
 
         if SAVE:
             plot_log_double_line(
-                reg_coefficients,
-                dcf,
-                min_dcf,
-                title,
-                "Regularization coefficient",
-                "DCF value",
-                "DCF",
-                "Min. DCF",
-                PLOT_PATH_LR if target == "validation" else PLOT_PATH_EVAL_LR,
-                file_name,
-                "png",
+                reg_coefficients, dcf, min_dcf, title, "Regularization coefficient", "DCF value", "DCF", "Min. DCF",
+                PLOT_PATH_LR if target == "validation" else PLOT_PATH_EVAL_LR, file_name, "png",
                 "Evaluation" + (f' - {result["preprocess"]}' if result["preprocess"] is not None else '')
             )
 

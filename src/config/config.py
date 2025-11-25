@@ -53,6 +53,7 @@ FILE_PATH_EVAL = "output/files/evaluation/"
 MODEL_PATH_SVM = "models/svm"
 MODEL_PATH_LR = "models/logreg"
 MODEL_PATH_GMM = "models/gmm"
+MODEL_PATH_RESULTS = "models/model_results.pkl"
 
 # File names
 FEATURE_STATISTICS = "feature_statistics.txt"
@@ -114,18 +115,18 @@ APPLICATIONS = [
 APPLICATION_PRIOR = 0.1
 EFF_PRIOR_LOG_ODDS_PARAMS = (-4, 4, 101)
 EXECUTE = {
-    "stats": False,
-    "dimred": False,
-    "fitting": False,
-    "MVG": False,
-    "LR": False,
-    "SVM": False,
+    "stats": True,
+    "dimred": True,
+    "fitting": True,
+    "MVG": True,
+    "LR": True,
+    "SVM": True,
     "GMM": True,
-    "comparison": False
+    "comparison": True
 }
 
 # EXECUTION MODES
 SAVE = True
 LOG = True
-REDUCED = True
-REDUCE_FACTOR = 0.05
+REDUCED = False
+REDUCE_FACTOR = 0.15

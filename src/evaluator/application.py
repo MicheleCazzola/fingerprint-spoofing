@@ -1,6 +1,7 @@
 import numpy as np
 
 import src.config.config as constants
+from src.dataset.dataset import Dataset
 from src.evaluator.evaluator import Evaluator
 from src.models.logreg import LogReg
 from src.models.svm import SupportVectorMachine
@@ -8,87 +9,118 @@ from src.models.gmm import GaussianMixtureModel
 from src.utils.plot import plot_bayes_errors
 from src.utils.utils import print_scores_stats, vcol, expand
 
+def write_app_results(results):
+    print_string = "--Evaluation results on evaluation dataset\n"
+    print_string += "--Calibrated scores--\n"
 
-def app_LR(DTR, LTR, DEVAL, variant, reg_coeff, training_prior, app_prior):
+    print_string += f"{'Type':^8s}{'Minimum DCF':^13s}{'Actual DCF':^11s}\n"
+    for (model_name, result) in results.items():
+        result = result["cal"]
+        print_string += f"{model_name:^8s}{result['min_dcf']:^13.3f}{result['act_dcf']:^11.3f}\n"
+
+    print_string += "\n"
+    print_string += "--Raw scores--\n"
+    print_string += f"{'Type':^8s}{'Minimum DCF':^13s}{'Actual DCF':^11s}\n"
+    for (model_name, result) in results.items():
+        if model_name != constants.FUSION:
+            result = result["raw"]
+            print_string += f"{model_name:^8s}{result['min_dcf']:^13.3f}{result['act_dcf']:^11.3f}\n"
+
+    return print_string
+
+
+def app_LR(DTR, LTR, DEVAL, variant, reg_coeff, training_prior, app_prior, model_id):
 
     if constants.LOG:
         print(f"LR {variant}, reg_coeff: {reg_coeff}, pi_tr = {training_prior}, pi_app = {app_prior}")
 
     lr = LogReg(variant=variant)
-    if variant == constants.LR_STANDARD:
-        lr.fit(DTR, LTR, reg_coeff=reg_coeff, training_prior=training_prior)
-    else:
-        if variant == constants.PRIOR_WEIGHTED_LR_PREPROCESS:
-            DTR_mean = vcol(np.sum(DTR, axis=1)) / DTR.shape[1]
-            DTR, DEVAL = DTR - DTR_mean, DEVAL - DTR_mean
-        elif variant == constants.QUADRATIC_LR:
-            DTR, DEVAL = map(expand, [DTR, DEVAL])
-
-        if variant in [constants.PRIOR_WEIGHTED_LR, constants.PRIOR_WEIGHTED_LR_PREPROCESS]:
-            lr.fit(DTR, LTR, reg_coeff=reg_coeff, training_prior=training_prior, app_prior=app_prior)
-        else:
+    loaded = lr.load_state_dict(constants.MODEL_PATH_LR, model_id)
+    
+    if lr.variant == constants.PRIOR_WEIGHTED_LR_PREPROCESS:
+        DTR_mean = vcol(np.sum(DTR, axis=1)) / DTR.shape[1]
+        DTR, DEVAL = DTR - DTR_mean, DEVAL - DTR_mean
+    elif lr.variant == constants.QUADRATIC_LR:
+        DTR, DEVAL = map(expand, [DTR, DEVAL])
+    
+    if not loaded:
+        if variant == constants.LR_STANDARD:
             lr.fit(DTR, LTR, reg_coeff=reg_coeff, training_prior=training_prior)
-
+        else:
+            if variant in [constants.PRIOR_WEIGHTED_LR, constants.PRIOR_WEIGHTED_LR_PREPROCESS]:
+                lr.fit(DTR, LTR, reg_coeff=reg_coeff, training_prior=training_prior, app_prior=app_prior)
+            else:
+                lr.fit(DTR, LTR, reg_coeff=reg_coeff, training_prior=training_prior)
+    
     scores = lr.scores(DEVAL)
     LPR = lr.predict(DEVAL, app_prior=app_prior)
 
     return scores, LPR
 
 
-def app_SVM(DTR, LTR, DEVAL, kernel, K, C, scale, app_prior):
+def app_SVM(DTR, LTR, DEVAL, kernel, K, C, scale, app_prior, model_id):
     ker_type = "poly" if kernel != constants.SVM_RBF else "rbf"
 
     if constants.LOG:
         print(f"SVM {kernel} ({ker_type}), K = {K}, C = {C}, gamma = {scale}, pi_app = {app_prior}")
 
     svm = SupportVectorMachine(K=K, C=C, kernel=ker_type)
+    
+    loaded = svm.load_state_dict(constants.MODEL_PATH_SVM, model_id)
 
-    if kernel == constants.SVM_RBF:
+    if not loaded:
+        if kernel == constants.SVM_RBF:
 
-        if constants.LOG:
-            print(f"Doing SVM RBF with scale {scale}")
+            if constants.LOG:
+                print(f"Doing SVM RBF with scale {scale}")
 
-        svm.fit(DTR, LTR, scale=scale)
+            svm.fit(DTR, LTR, scale=scale)
 
-        if constants.LOG:
-            assert svm.alpha is not None, "Model not trained. Fit the model first."
-            print(f"Model params (alpha): {svm.alpha} ({svm.alpha.shape})")
-            print(f"Other params: C = {svm.C}, K = {svm.K}")
-            print(f"Kernel type: {svm.kernel_type}")
-            print(f"Kernel args: {svm.kernel_args}")
-            print_scores_stats([svm.ZTR, svm.DTR], ["ztr", "dtr"])
+            if constants.LOG:
+                assert svm.alpha is not None, "Model not trained. Fit the model first."
+                print(f"Model params (alpha): ({svm.alpha.shape})")
+                print(f"Other params: C = {svm.C}, K = {svm.K}")
+                print(f"Kernel type: {svm.kernel_type}")
+                print(f"Kernel args: {svm.kernel_args}")
+                print_scores_stats([svm.ZTR, svm.DTR], ["ztr", "dtr"])
 
-    elif kernel == constants.SVM_POLYNOMIAL:
-        svm.fit(DTR, LTR, degree=2, offset=1)
-    else:
-        if kernel == constants.SVM_LINEAR_PREPROCESS:
-            DTR_mean = vcol(np.sum(DTR, axis=1)) / DTR.shape[1]
-            DTR, DEVAL = DTR - DTR_mean, DEVAL - DTR_mean
+        elif kernel == constants.SVM_POLYNOMIAL:
+            svm.fit(DTR, LTR, degree=2, offset=1)
+        else:
+            if kernel == constants.SVM_LINEAR_PREPROCESS:
+                DTR_mean = vcol(np.sum(DTR, axis=1)) / DTR.shape[1]
+                DTR, DEVAL = DTR - DTR_mean, DEVAL - DTR_mean
 
-        svm.fit(DTR, LTR, degree=1, offset=0)
+            svm.fit(DTR, LTR, degree=1, offset=0)
+    
     scores = svm.scores(DEVAL)
     LPR = svm.predict(DEVAL, app_prior=app_prior)
 
     return scores, LPR
 
 
-def app_GMM(DTR, LTR, DEVAL, LEVAL, variant, components, app_prior):
+def app_GMM(DTR, LTR, DEVAL, LEVAL, variant, components, app_prior, model_id):
 
     if constants.LOG:
         print(f"GMM {variant}, components = {components}, pi_app = {app_prior}")
 
     gmm = GaussianMixtureModel(variant=variant, components=components)
-    gmm.fit(DTR, LTR)
+    
+    loaded = gmm.load_state_dict(constants.MODEL_PATH_GMM, model_id)
+    
+    if not loaded:
+        gmm.fit(DTR, LTR)
+    
     scores = gmm.scores(DEVAL, LEVAL)
     LPR = gmm.predict(DEVAL, LEVAL, app_prior=app_prior)
 
     return scores, LPR
 
 
-def app_fusion(DTR, LTR, DVAL, LVAL, LR_params, SVM_params, GMM_params, app_prior):
-    scores_LR = app_LR(DTR, LTR, DVAL, LR_params["variant"], LR_params["λ"], None, app_prior)[0]
-    scores_SVM = app_SVM(DTR, LTR, DVAL, SVM_params["kernel"], SVM_params["K"], SVM_params["C"], SVM_params.get("scale", None), app_prior)[0]
-    scores_GMM = app_GMM(DTR, LTR, DVAL, LVAL, GMM_params["variant"], GMM_params["components"], app_prior)[0]
+def app_fusion(DTR, LTR, DVAL, LVAL, LR_params, SVM_params, GMM_params, app_prior, lr_id, svm_id, gmm_id):
+    scores_LR = app_LR(DTR, LTR, DVAL, LR_params["variant"], LR_params["λ"], None, app_prior, lr_id)[0]
+    scores_SVM = app_SVM(DTR, LTR, DVAL, SVM_params["kernel"], SVM_params["K"], SVM_params["C"], SVM_params.get("scale", None), app_prior, svm_id)[0]
+    scores_GMM = app_GMM(DTR, LTR, DVAL, LVAL, GMM_params["variant"], GMM_params["components"], app_prior, gmm_id)[0]
 
     return np.vstack([scores_LR, scores_SVM, scores_GMM])
 
@@ -103,20 +135,13 @@ def app_calibration(SVAL, LVAL, SEVAL, tr_prior, app_prior):
 
 
 def app_evaluation(
-    model_name,
-    model_params,
-    DTR,
-    LTR,
-    SVAL,
-    LVAL,
-    DEVAL,
-    LEVAL,
-    app_prior,
-    cal_tr_prior,
-    eff_prior_log_odds,
-    log_odd_app,
-    best
+    model_name, model_params, model_id, trainset: Dataset, SVAL, LVAL, testset: Dataset,
+    app_prior, cal_tr_prior, eff_prior_log_odds, log_odd_app, best
 ):
+    
+    DTR, LTR = trainset.get_data(), trainset.get_labels()
+    DEVAL, LEVAL = testset.get_data(), testset.get_labels()
+    
     if constants.LOG:
         print(f"Evaluation on application dataset: {model_name}{best * ' (best)'}")
         print(f"Training data/labels: {DTR.shape}, {LTR.shape}")
@@ -126,24 +151,18 @@ def app_evaluation(
     LPR_raw = None
     match model_name:
         case constants.LR:
-            SEVAL, LPR_raw = app_LR(DTR, LTR, DEVAL, model_params["variant"], model_params["λ"], None, app_prior)
+            SEVAL, LPR_raw = app_LR(DTR, LTR, DEVAL, model_params["variant"], model_params["λ"], None, app_prior, model_id)
             plot_name = constants.EVAL_BAYES_ERR_LR
         case constants.SVM:
-            SEVAL, LPR_raw = app_SVM(DTR, LTR, DEVAL, model_params["kernel"], model_params["K"], model_params["C"], model_params.get("scale", None), app_prior)
+            SEVAL, LPR_raw = app_SVM(DTR, LTR, DEVAL, model_params["kernel"], model_params["K"], model_params["C"], model_params.get("scale", None), app_prior, model_id)
             plot_name = constants.EVAL_BAYES_ERR_SVM
         case constants.GMM:
-            SEVAL, LPR_raw = app_GMM(DTR, LTR, DEVAL, LEVAL, model_params["variant"], model_params["components"], app_prior)
+            SEVAL, LPR_raw = app_GMM(DTR, LTR, DEVAL, LEVAL, model_params["variant"], model_params["components"], app_prior, model_id)
             plot_name = constants.EVAL_BAYES_ERR_GMM
         case constants.FUSION:
             SEVAL = app_fusion(
-                DTR,
-                LTR,
-                DEVAL,
-                LEVAL,
-                model_params[constants.LR],
-                model_params[constants.SVM],
-                model_params[constants.GMM],
-                app_prior
+                DTR, LTR, DEVAL, LEVAL, model_params[constants.LR], model_params[constants.SVM], model_params[constants.GMM],
+                app_prior, model_id[constants.LR], model_id[constants.SVM], model_id[constants.GMM]
             )
             plot_name = constants.EVAL_BAYES_ERR_FUSION
         case _:
@@ -182,32 +201,15 @@ def app_evaluation(
 
     if constants.SAVE:
         plot_bayes_errors(
-            eff_prior_log_odds,
-            [bayes_err_min_dcf_cal],
-            [bayes_err_act_dcf_cal],
-            log_odd_app,
-            f"Bayes error plot {model_name}{best * ' (best)'}",
-            "Evaluation dataset",
-            "Prior log-odds",
-            "DCF value",
-            constants.PLOT_PATH_EVAL_CAL,
-            plot_name,
-            "pdf"
+            eff_prior_log_odds, [bayes_err_min_dcf_cal], [bayes_err_act_dcf_cal], log_odd_app,
+            f"Bayes error plot {model_name}{best * ' (best)'}", "Evaluation dataset", "Prior log-odds",
+            "DCF value", constants.PLOT_PATH_EVAL_CAL, plot_name, "png"
         )
 
         plot_bayes_errors(
-            eff_prior_log_odds,
-            [bayes_err_min_dcf_raw, bayes_err_min_dcf_cal],
-            [bayes_err_act_dcf_raw, bayes_err_act_dcf_cal],
-            log_odd_app,
-            f"Bayes error plot {model_name}{best * ' (best)'}",
-            "Evaluation dataset",
-            "Prior log-odds",
-            "DCF value",
-            constants.PLOT_PATH_EVAL_CMP,
-            plot_name,
-            "pdf",
-            ["raw", "cal."]
+            eff_prior_log_odds, [bayes_err_min_dcf_raw, bayes_err_min_dcf_cal], [bayes_err_act_dcf_raw, bayes_err_act_dcf_cal],
+            log_odd_app, f"Bayes error plot {model_name}{best * ' (best)'}", "Evaluation dataset", "Prior log-odds", "DCF value",
+            constants.PLOT_PATH_EVAL_CMP, plot_name, "png", ["raw", "cal."]
         )
 
     return {

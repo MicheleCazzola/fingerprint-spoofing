@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from src.config.config import LOG, MODEL_PATH_SVM, PLOT_PATH_SVM, SAVE, SVM_EVALUATION_RESULTS, SVM_LINEAR, SVM_LINEAR_PREPROCESS, SVM_POLYNOMIAL, SVM_RBF
 from src.models.svm import SupportVectorMachine
@@ -112,6 +113,10 @@ def svm_task(trainset, validset, app_prior):
         SVM_POLYNOMIAL,
         SVM_RBF
     ]
+    
+    # Clean previous models
+    delete_all([os.path.join(MODEL_PATH_SVM, f) for f in os.listdir(MODEL_PATH_SVM)])
+    
     svm = SupportVectorMachine()
 
     eval_results = [{"min_dcf": [], "dcf": []} for _ in range(0, 4)]
@@ -136,13 +141,7 @@ def svm_task(trainset, validset, app_prior):
     # Linear SVM, no preprocessing
     svm.setParams(K=k_values[0])
     eval_results[0]["min_dcf"], eval_results[0]["dcf"], eval_results[0]["llr"], eval_results[0]["id"] = linear_svm(
-        DTR,
-        LTR,
-        DVAL,
-        LVAL,
-        app_prior,
-        svm,
-        c_values
+        DTR, LTR, DVAL, LVAL, app_prior, svm, c_values
     )
 
     if LOG:
@@ -153,13 +152,7 @@ def svm_task(trainset, validset, app_prior):
     DTR_preprocess, DVAL_preprocess = DTR - DTR_mean, DVAL - DTR_mean
     svm.setParams(K=k_values[1])
     eval_results[1]["min_dcf"], eval_results[1]["dcf"], eval_results[1]["llr"], eval_results[1]["id"] = linear_svm(
-        DTR_preprocess,
-        LTR,
-        DVAL_preprocess,
-        LVAL,
-        app_prior,
-        svm,
-        c_values
+        DTR_preprocess, LTR, DVAL_preprocess, LVAL, app_prior, svm, c_values
     )
 
     if LOG:
@@ -168,13 +161,7 @@ def svm_task(trainset, validset, app_prior):
     # Polynomial SVM (degree=2, offset=1)
     svm.setParams(K=k_values[2])
     eval_results[2]["min_dcf"], eval_results[2]["dcf"], eval_results[2]["llr"], eval_results[2]["id"] = poly_svm(
-        DTR,
-        LTR,
-        DVAL,
-        LVAL,
-        app_prior,
-        svm,
-        c_values
+        DTR, LTR, DVAL, LVAL, app_prior, svm, c_values
     )
 
     if LOG:
@@ -183,15 +170,8 @@ def svm_task(trainset, validset, app_prior):
     # RBF SVM (bias = 1), scale = [e-4, e-3, e-2, e-1]
     svm.setParams(K=k_values[3], ker_type="rbf")
     eval_results[3]["min_dcf"], eval_results[3]["dcf"], eval_results[3]["llr"], eval_results[3]["id"] = rbf_svm(
-        DTR,
-        LTR,
-        DVAL,
-        LVAL,
-        app_prior,
-        svm,
-        c_values_rbf,
-        scale_values_rbf
-    )
+        DTR, LTR, DVAL, LVAL, app_prior, svm, c_values_rbf, scale_values_rbf
+    )   
 
     if LOG:
         print("SVM collecting")
@@ -233,31 +213,14 @@ def svm_task(trainset, validset, app_prior):
     if SAVE:
         for (eval_result, title, name) in zip(eval_results[:-1], titles[:-1], SVM_EVALUATION_RESULTS[:-1]):
             plot_log_double_line(
-                c_values,
-                eval_result["min_dcf"],
-                eval_result["dcf"],
-                title,
-                "Regularization values",
-                "DCF values",
-                "Min. DCF",
-                "DCF",
-                PLOT_PATH_SVM,
-                name,
-                "png"
+                c_values, eval_result["min_dcf"], eval_result["dcf"], title, "Regularization values", "DCF values",
+                "Min. DCF", "DCF", PLOT_PATH_SVM, name, "png"
             )
 
         plot_log_N_double_lines(
-            c_values_rbf,
-            eval_results[-1]["min_dcf"],
-            eval_results[-1]["dcf"],
-            titles[-1],
-            "Regularization values",
-            "DCF values",
-            ["Min. DCF (g=e-4)", "Min. DCF (g=e-3)", "Min. DCF (g=e-2)", "Min. DCF (g=e-1)"],
-            ["DCF (g=e-4)", "DCF (g=e-3)", "DCF (g=e-2)", "DCF (g=e-1)"],
-            PLOT_PATH_SVM,
-            SVM_EVALUATION_RESULTS[-1],
-            "png"
+            c_values_rbf, eval_results[-1]["min_dcf"], eval_results[-1]["dcf"], titles[-1], "Regularization values",
+            "DCF values", ["Min. DCF (g=e-4)", "Min. DCF (g=e-3)", "Min. DCF (g=e-2)", "Min. DCF (g=e-1)"],
+            ["DCF (g=e-4)", "DCF (g=e-3)", "DCF (g=e-2)", "DCF (g=e-1)"], PLOT_PATH_SVM, SVM_EVALUATION_RESULTS[-1], "png"
         )
 
     return {

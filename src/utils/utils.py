@@ -113,6 +113,7 @@ def print_model_result(method, result):
     )
     print(f"Method parameters:")
     print(result['params'])
+    print(f"Model ID: {result.get('id', 'Not saved')}")
     print()
     
     

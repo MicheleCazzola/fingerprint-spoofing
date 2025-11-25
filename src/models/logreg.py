@@ -1,10 +1,11 @@
 from datetime import datetime
+import os
 import joblib
 import numpy as np
 from scipy import optimize as opt, linalg as alg
 
 
-from src.config.config import LR_STANDARD, PRIOR_WEIGHTED_LR
+from src.config.config import LR_STANDARD, PRIOR_WEIGHTED_LR, QUADRATIC_LR
 from src.utils.utils import vrow, vcol
 
 
@@ -18,7 +19,13 @@ class LogReg:
         self.training_prior = training_prior
         self.app_prior = app_prior
         
-    def load_state_dict(self, filepath):
+    def load_state_dict(self, path, id):
+        filepath = f"{path}/logreg_{id}.pkl"
+        
+        if not os.path.exists(filepath):
+            print(f"Warning: LR model file ('{filepath}') not found.")
+            return False
+        
         state_dict = joblib.load(filepath)
         
         self.variant = state_dict.get("variant", self.variant)
@@ -28,6 +35,8 @@ class LogReg:
         self.opt_info = state_dict.get("opt_info", self.opt_info)
         self.training_prior = state_dict.get("training_prior", self.training_prior)
         self.app_prior = state_dict.get("app_prior", self.app_prior)
+        
+        return True
         
     def save_state_dict(self, filepath):
         d = {
@@ -87,7 +96,7 @@ class LogReg:
             grad_w = reg_coeff * w + np.sum(psi * vrow(G) * DTR, axis=1)
             return J_min, np.concatenate((grad_w, grad_b))
 
-        loss_function = logreg_obj_lr if self.variant == LR_STANDARD else logreg_obj_pwlr
+        loss_function = logreg_obj_lr if self.variant in [LR_STANDARD, QUADRATIC_LR] else logreg_obj_pwlr
 
         x, f_min, d = opt.fmin_l_bfgs_b(func=loss_function,
                                         approx_grad=False,
