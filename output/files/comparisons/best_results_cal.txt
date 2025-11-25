@@ -1,0 +1,6 @@
+-- Comparisons among models --
+  Type   Minimum DCF Actual DCF                  Parameters                 
+   LR       0.307       0.313            training_prior: 9.400e-01          
+  SVM       0.225       0.226            training_prior: 9.900e-01          
+  GMM       0.157       0.177            training_prior: 9.100e-01          
+ Fusion     0.161       0.172            training_prior: 2.000e-02          

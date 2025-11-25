@@ -1,10 +1,10 @@
 -- Minimum DCFs, Actual DCFs --
-Linear kernel: 0.400, 1.000 (C = 0.000, K = 1.0)
-Linear kernel - Data centering: 0.400, 1.000 (C = 0.000, K = 1.0)
-Polynomial kernel: 0.040, 1.000 (C = 0.000, K = 0.0)
+Linear kernel: 0.445, 0.998 (C = 0.000, K = 1.0)
+Linear kernel - Data centering: 0.445, 0.998 (C = 0.000, K = 1.0)
+Polynomial kernel: 0.310, 0.405 (C = 0.316, K = 0.0)
 RBF kernel:
 Minimum DCF  Actual DCF    γ      C     K  
-   0.240       0.660     0.018 31.623  1.0 
-   0.240       0.660     0.050 10.000  1.0 
-   0.220       1.000     0.135  1.000  1.0 
-   0.220       1.000     0.368  0.316  1.0 
+   0.310       0.432     0.018 31.623  1.0 
+   0.316       0.424     0.050 100.000 1.0 
+   0.219       0.347     0.135 100.000 1.0 
+   0.225       0.708     0.368  3.162  1.0 

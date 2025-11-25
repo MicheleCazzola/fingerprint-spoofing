@@ -1,0 +1,13 @@
+--Evaluation results on evaluation dataset
+--Calibrated scores--
+  Type   Minimum DCF Actual DCF 
+   LR       0.355       0.423   
+  SVM       0.280       0.305   
+  GMM       0.179       0.206   
+ Fusion     0.185       0.191   
+
+--Raw scores--
+  Type   Minimum DCF Actual DCF 
+   LR       0.355       0.398   
+  SVM       0.280       0.326   
+  GMM       0.179       0.182   

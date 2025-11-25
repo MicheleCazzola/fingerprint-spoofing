@@ -1,0 +1,5 @@
+-- Comparisons among models --
+  Type   Minimum DCF Actual DCF                  Parameters                 
+   LR       0.309       0.317       variant: Quadratic LR, λ: 1.000e-04     
+  SVM       0.219       0.347   kernel: RBF, scale: 1.353e-01, C: 1.000e+02, K: 1
+  GMM       0.153       0.187        variant: diag, components: (16, 8)     
