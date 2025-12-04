@@ -1,16 +1,24 @@
-from typing import Sequence
+"""
+    Dataset class for handling numerical features and binary labels.
+    
+    This module provides a Dataset class that encapsulates a dataset with numerical features
+    and binary labels. It includes methods for data retrieval, splitting into training and testing sets,
+    and reducing the dataset size.
+"""
+
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
 class Dataset:
     """
-    Class to handle datasets, including loading from CSV and splitting into training/testing sets.
+    Class representing the dataset with numerical features and binary labels.
     
-    :attr features: feature matrix
-    :attr labels: label vector
-    :attr size: number of samples
-    :attr dim: number of features
+    Attributes:
+        features (np.ndarray): A 2D numpy array where each column represents a data point and each row represents a feature.
+        labels (np.ndarray): A 1D numpy array containing binary labels (0 or 1) for each data point.
+        size (int): The number of data points in the dataset.
+        dim (int): The number of features for each data point.
     """
     
     def __init__(self, features: np.ndarray, labels: np.ndarray):
@@ -40,8 +48,10 @@ class Dataset:
         Splits the dataset into training and testing sets based on the given ratio
 
         :param ratio: ratio of the training set size to the total dataset size
-        :return: tuple containing training and testing sets as tuples of features and labels
+        :return trainset: Dataset instance for the training set
+        :return testset: Dataset instance for the test set
         """
+        
         indices_train, indices_test = train_test_split(
             np.arange(self.size), train_size=ratio, random_state=0, stratify=self.labels
         )
@@ -71,6 +81,12 @@ class Dataset:
         return Dataset(reduced_features, reduced_labels)
 
     def __getitem__(self, index) -> 'Dataset':
+        """
+        Allows indexing to retrieve a subset of the dataset.
+        
+        :param index: index or slice to retrieve
+        :return: Dataset instance containing the subset
+        """
         if isinstance(index, tuple):
             assert len(index) == 2, "Indexing with tuple requires two elements"
             return Dataset(self.features[index[0], index[1]], self.labels[index[1]])

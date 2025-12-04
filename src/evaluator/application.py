@@ -1,3 +1,12 @@
+"""
+    Application evaluation utilities for machine learning models.
+    
+    This module provides functions to evaluate various machine learning models such as
+    Logistic Regression, Support Vector Machines, and Gaussian Mixture Models on application datasets.
+    The models can be loaded from saved states or trained anew, and their performance is assessed
+    using metrics like Detection Cost Function (DCF) and Bayes error plots.
+"""
+
 import numpy as np
 
 import src.config.config as constants

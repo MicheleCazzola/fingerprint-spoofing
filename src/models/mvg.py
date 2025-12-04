@@ -1,3 +1,11 @@
+"""
+    Multivariate Gaussian (MVG) model implementation.
+    
+    This module defines the MVG class and its variants (Naive Bayes MVG and Tied MVG), which provide methods for fitting,
+    predicting, and computing correlations using multivariate Gaussian distributions.
+
+"""
+
 import numpy as np
 
 from src.config.config import GAUSSIAN_MODELS
@@ -8,6 +16,14 @@ from src.utils.utils import vcol, vrow
 
 
 class MVG:
+    """
+    Class implementing the Multivariate Gaussian (MVG) model for binary classification.
+    Provides methods for fitting the model, predicting class labels, and computing correlations.
+    
+    Attributes:
+        mean (np.ndarray): Mean vectors for each class.
+        cov (np.ndarray): Covariance matrices for each class.
+    """
     def __init__(self):
         
         self.mean = None

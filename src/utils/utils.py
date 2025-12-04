@@ -1,3 +1,9 @@
+"""
+    Utility functions module.
+    
+    Provides general-purpose utility functions for data manipulation, statistics computation, and file operations.
+"""
+
 import os
 import numpy as np
 
@@ -58,6 +64,12 @@ def effective_prior(application: tuple) -> float:
     return application[0] * application[1] / (application[0] * application[1] + (1 - application[0]) * application[2])
 
 def expand(DTR):
+    """
+    Transforms the dataset into an expanded feature space by adding quadratic features.
+    
+    :param DTR: original dataset
+    :return: expanded dataset
+    """
     expanded = []
     for i in range(DTR.shape[1]):
         arr = np.concatenate([(DTR[:, i:i + 1] @ DTR[:, i:i + 1].T).ravel(), DTR[:, i]])
@@ -101,6 +113,12 @@ def delete_all(filepaths: list):
             print(f"Warning: file {filepath} does not exist.")
 
 def print_model_result(method, result):
+    """
+    Prints the results of a model evaluation including method name, minimum and actual DCF, LLR statistics, parameters, and model ID.
+    
+    :param method: name of the method used
+    :param result: dictionary containing evaluation results
+    """
     print(f"Method: {method}")
     print(f"Minimum DCF: {result['min_dcf']:.5f}")
     print(f"Actual DCF: {result['act_dcf']:.5f}")
@@ -118,6 +136,12 @@ def print_model_result(method, result):
     
     
 def print_scores_stats(scores, names):
+    """
+    Prints statistics for a list of score arrays along with their names.
+    
+    :param scores: list of score arrays
+    :param names: list of names corresponding to the score arrays
+    """
     for (score, name) in zip(scores, names):
         print(f"Score type: {name}")
         print(

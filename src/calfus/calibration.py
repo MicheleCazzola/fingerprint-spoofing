@@ -1,3 +1,10 @@
+"""
+    Calibration module for score calibration using logistic regression and k-fold cross-validation.
+
+    This module defines the Calibrator class and functions to perform score calibration
+    on model results, evaluating the performance before and after calibration.
+"""
+
 import numpy as np
 
 from src.config.config import PRIOR_WEIGHTED_LR, LR, SVM, GMM, PLOT_PATH_CAL_FUS, SAVE, LOG
@@ -8,13 +15,29 @@ from src.utils.plot import plot_bayes_errors
 
 
 class Calibrator:
+    """
+    Calibrator class for score calibration using logistic regression and k-fold cross-validation.
+    
+    Attributes:
+        scores (np.ndarray): The scores to be calibrated.
+        labels (np.ndarray): The true labels corresponding to the scores.
+    """
     def __init__(self, scores, labels):
         self.scores = scores
         self.labels = labels
-        self.calibrated = None
 
     @staticmethod
     def calibrate(training_prior, app_prior, kf):
+        """
+        Calibrate scores using logistic regression with k-fold cross-validation.
+        
+        :param training_prior: The empirical training prior probability.
+        :param app_prior: The application prior probability.
+        :param kf: The k-fold cross-validation object.
+        :return cal_scores: The calibrated scores after calibration.
+        :return act_labels: The true labels corresponding to the calibrated scores.
+        :return pred_labels: The predicted labels after calibration.
+        """
         lr = LogReg(variant=PRIOR_WEIGHTED_LR)
 
         cal_scores = []

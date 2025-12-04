@@ -1,11 +1,35 @@
+"""
+    Evaluation utilities for machine learning models.
+
+    This module provides the Evaluator class, which includes static methods for evaluating
+    various machine learning models such as Gaussian models, Logistic Regression, Support Vector Machines, 
+    and Gaussian Mixture Models.
+"""
+
 import numpy as np
 
 from src.config.config import GAUSSIAN, GAUSSIAN_MODELS, GMM, LR, SVM
 
 
 class Evaluator:
+    """
+    Class with evaluation utilities for machine learning models.
+    """
+    
     @staticmethod
     def evaluate(llr, LPR, LVAL, eff_prior, **model_params):
+        """
+        Evaluate the performance of a model using log-likelihood ratios (llr), predicted labels (LPR),
+        true labels (LVAL), and an effective prior (eff_prior). Additional model parameters can be passed
+        as keyword arguments.
+        
+        :param llr: log-likelihood ratios
+        :param LPR: predicted labels
+        :param LVAL: true labels
+        :param eff_prior: effective prior probability
+        :param model_params: additional model parameters
+        :return: dictionary containing model parameters and evaluation results
+        """
         M = Evaluator.compute_confusion_matrix(LPR, LVAL, 2)
         dummy_risk = Evaluator.dummy_risk(eff_prior, 1, 1)
         dcf = Evaluator.normalized_DCF(M, eff_prior, dummy_risk)
@@ -27,6 +51,12 @@ class Evaluator:
 
     @staticmethod
     def _best_configuration_gaussian(eval_results_prior):
+        """
+        Selects the best configuration for Gaussian models based on minimum DCF across different PCA settings.
+        
+        :param eval_results_prior: dictionary containing evaluation results for different PCA settings
+        :return best: dictionary with the best configuration for each Gaussian model
+        """
         best = dict(zip(GAUSSIAN_MODELS, [dict() for _ in GAUSSIAN_MODELS]))
         for pca in eval_results_prior:
             for model_name in eval_results_prior[pca]:
@@ -39,6 +69,12 @@ class Evaluator:
 
     @staticmethod
     def _best_configuration_LR(eval_results):
+        """
+        Selects the best configuration for Logistic Regression based on minimum DCF.
+        
+        :param eval_results: list of evaluation results for different configurations
+        :return: dictionary with the best configuration for Logistic Regression
+        """
         min_dcfs = [r[0] for r in eval_results]
         best_conf = np.argmin(min_dcfs)
         return {
@@ -54,6 +90,12 @@ class Evaluator:
 
     @staticmethod
     def _best_configuration_SVM(eval_results):
+        """
+        Selects the best configuration for Support Vector Machine based on minimum DCF.
+        
+        :param eval_results: list of evaluation results for different configurations
+        :return: dictionary with the best configuration for Support Vector Machine
+        """
         min_dcfs = [r[1] for r in eval_results[:-1]]
         best_conf_no_rbf = np.argmin(min_dcfs)
         min_dcfs_rbf = [r[1] for (_, r) in eval_results[-1].items()]
@@ -94,6 +136,12 @@ class Evaluator:
 
     @staticmethod
     def _best_configuration_GMM(eval_results):
+        """
+        Selects the best configuration for Gaussian Mixture Models based on minimum DCF.
+        
+        :param eval_results: dictionary containing evaluation results for different configurations
+        :return: dictionary with the best configuration for Gaussian Mixture Models
+        """
         all_results = [["full", c, v["min_dcf"], v["dcf"], v["llr"], v["id"]] for (c, v) in eval_results["full"].items()] + \
                       [["diag", c, v["min_dcf"], v["dcf"], v["llr"], v["id"]] for (c, v) in eval_results["diag"].items()]
         min_dcfs = [r[2] for r in all_results]
@@ -112,6 +160,15 @@ class Evaluator:
 
     @staticmethod
     def best_configuration(eval_results, mode, eff_prior=0.1) -> dict:
+        """
+        Selects the best configuration for a given model based on minimum DCF.
+        
+        :param eval_results: evaluation results for different configurations
+        :param mode: model type (GAUSSIAN, LR, SVM, GMM)
+        :param eff_prior: effective prior probability (used for MVG models, default is 0.1)
+        :return: dictionary with the best configuration for the specified model
+        :raise: KeyError if an invalid model name is provided
+        """
         if mode == GAUSSIAN:
             return Evaluator._best_configuration_gaussian(eval_results[eff_prior])
         if mode == LR:
@@ -125,6 +182,13 @@ class Evaluator:
 
     @staticmethod
     def best_model(model_results, key):
+        """
+        Selects the best model based on a specified key.
+        
+        :param model_results: dictionary containing model results
+        :param key: key to use for selecting the best model
+        :return: dictionary with the best model
+        """
         keys = [model[key] for model in model_results.values()]
         best_model = np.argmin(keys)
 
@@ -132,6 +196,14 @@ class Evaluator:
 
     @staticmethod
     def compute_confusion_matrix(LPR, LVAL, n_classes):
+        """
+        Computes the confusion matrix given predicted labels and true labels.
+        
+        :param LPR: predicted labels
+        :param LVAL: true labels
+        :param n_classes: number of classes
+        :return M: confusion matrix
+        """
         M = np.zeros((n_classes, n_classes), dtype=np.int32)
 
         # print(LPR.shape, LVAL.shape)
@@ -142,18 +214,50 @@ class Evaluator:
 
     @staticmethod
     def dummy_risk(prior, C_fn=1, C_fp=1):
+        """
+        Computes the dummy risk given prior probabilities and costs.
+        
+        :param prior: prior probability of the positive class
+        :param C_fn: cost of false negative (default is 1)
+        :param C_fp: cost of false positive (default is 1)
+        :return: dummy risk value
+        """
         return min(prior * C_fn, (1 - prior) * C_fp)
 
     @staticmethod
     def unnormalized_DCF(M, eff_prior):
+        """
+        Computes the unnormalized Detection Cost Function (DCF).
+        
+        :param M: confusion matrix
+        :param eff_prior: effective prior probability
+        :return: unnormalized DCF value
+        """
         return eff_prior * (M[0, 1] / (M[0, 1] + M[1, 1])) + (1 - eff_prior) * (M[1, 0] / (M[0, 0] + M[1, 0]))
 
     @staticmethod
     def normalized_DCF(M, eff_prior, dummy_risk):
+        """
+        Computes the normalized Detection Cost Function (DCF).
+        
+        :param M: confusion matrix
+        :param eff_prior: effective prior probability
+        :param dummy_risk: dummy risk value
+        :return: normalized DCF value
+        """
         return Evaluator.unnormalized_DCF(M, eff_prior) / dummy_risk
 
     @staticmethod
     def minimum_DCF(llr, LVAL, eff_prior, dummy_risk):
+        """
+        Computes the minimum Detection Cost Function (DCF) over all possible thresholds.
+        
+        :param llr: log-likelihood ratios
+        :param LVAL: true labels
+        :param eff_prior: effective prior probability
+        :param dummy_risk: dummy risk value
+        :return: minimum normalized DCF value
+        """
         min_DCF = np.inf
 
         # Initially, confusion matrix has only false and true positives
@@ -177,6 +281,14 @@ class Evaluator:
 
     @staticmethod
     def bayes_error(llr, LVAL, effective_prior_log_odds):
+        """
+        Computes the Bayes error given log-likelihood ratios, true labels, and effective prior log odds.
+        
+        :param llr: log-likelihood ratios
+        :param LVAL: true labels
+        :param effective_prior_log_odds: effective prior log odds
+        :return: dictionary containing minimum and actual DCF values across thresholds
+        """
 
         dcf, min_dcf = [], []
         for threshold in -effective_prior_log_odds:

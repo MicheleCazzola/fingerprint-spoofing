@@ -1,5 +1,11 @@
+"""
+    SVM task module.
+    
+    Handles training and evaluation of Support Vector Machines (SVMs) with different kernel types.
+"""
 import os
 import numpy as np
+
 from src.config.config import LOG, MODEL_PATH_SVM, PLOT_PATH_SVM, SAVE, SVM_EVALUATION_RESULTS, SVM_LINEAR, SVM_LINEAR_PREPROCESS, SVM_POLYNOMIAL, SVM_RBF
 from src.models.svm import SupportVectorMachine
 from src.tasks.utils import optimal_bayes
@@ -25,6 +31,21 @@ def write_SVM_results(results):
 
 
 def linear_svm(DTR, LTR, DVAL, LVAL, app_prior, svm: SupportVectorMachine, c_values):
+    """
+    Perform linear SVM training and evaluation for a given set of regularization coefficients.
+    
+    :param DTR: Training data.
+    :param LTR: Training labels.
+    :param DVAL: Validation data.
+    :param LVAL: Validation labels.
+    :param app_prior: Prior probability of the positive class in the application data.
+    :param svm: SVM model instance.
+    :param c_values: List of regularization coefficients to try.
+    :return results_min_dcf: List of minimum DCFs for each coefficient.
+    :return results_dcf: List of actual DCFs for each coefficient.
+    :return llrs: List of log-likelihood ratios for each coefficient.
+    :return ids: List of model state dictionary IDs for each coefficient.
+    """
 
     results_min_dcf, results_dcf, llrs, ids = [], [], [], []
     for c in c_values:
@@ -46,6 +67,21 @@ def linear_svm(DTR, LTR, DVAL, LVAL, app_prior, svm: SupportVectorMachine, c_val
 
 
 def poly_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, c_values):
+    """
+    Perform polynomial SVM training and evaluation for a given set of regularization coefficients.
+    
+    :param DTR: Training data.
+    :param LTR: Training labels.
+    :param DVAL: Validation data.
+    :param LVAL: Validation labels.
+    :param app_prior: Prior probability of the positive class in the application data.
+    :param svm: SVM model instance.
+    :param c_values: List of regularization coefficients to try.
+    :return results_min_dcf: List of minimum DCFs for each coefficient.
+    :return results_dcf: List of actual DCFs for each coefficient.
+    :return llrs: List of log-likelihood ratios for each coefficient.
+    :return ids: List of model state dictionary IDs for each coefficient.
+    """
 
     results_min_dcf, results_dcf, llrs, ids = [], [], [], []
     for c in c_values:
@@ -67,6 +103,22 @@ def poly_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, c_values):
 
 
 def rbf_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, c_values, scale_values):
+    """
+    Perform RBF SVM training and evaluation for a given set of regularization coefficients and scale values.
+    
+    :param DTR: Training data.
+    :param LTR: Training labels.
+    :param DVAL: Validation data.
+    :param LVAL: Validation labels.
+    :param app_prior: Prior probability of the positive class in the application data.
+    :param svm: SVM model instance.
+    :param c_values: List of regularization coefficients to try.
+    :param scale_values: List of scale values to try.
+    :return results_min_dcf: Dictionary of minimum DCFs for each scale value.
+    :return results_dcf: Dictionary of actual DCFs for each scale value.
+    :return llrs: Dictionary of log-likelihood ratios for each scale value.
+    :return ids: Dictionary of model state dictionary IDs for each scale value.
+    """
 
     results_min_dcf, results_dcf, llrs, ids = {}, {}, {}, {}
     for scale in scale_values:
@@ -99,6 +151,14 @@ def rbf_svm(DTR, LTR, DVAL, LVAL, app_prior, svm, c_values, scale_values):
 
 
 def svm_task(trainset, validset, app_prior):
+    """
+    Perform SVM training and evaluation for different kernel types.
+    
+    :param trainset: Training dataset.
+    :param validset: Validation dataset.
+    :param app_prior: Prior probability of the positive class in the application data.
+    :return: Dictionary containing best results for each SVM configuration.
+    """
     
     DTR, LTR = trainset.get_data(), trainset.get_labels()
     DVAL, LVAL = validset.get_data(), validset.get_labels()

@@ -1,3 +1,10 @@
+"""
+    Gaussian Mixture Model (GMM) implementation with EM and LBG algorithms.
+
+    This module defines the GaussianMixtureModel class, which provides methods for fitting a GMM to data
+    using the Expectation-Maximization (EM) algorithm and the LBG algorithm for initializing GMMs with multiple components.
+"""
+
 from datetime import datetime
 import os
 import joblib
@@ -9,6 +16,18 @@ from src.utils.utils import vcol, vrow
 
 
 class GaussianMixtureModel:
+    """
+    Class for Gaussian Mixture Model (GMM) implementation with EM and LBG algorithms.
+    
+    Attributes:
+        variant (str): Covariance type ('full', 'diag', 'tied').
+        alpha (float): LBG splitting parameter.
+        delta (float): Convergence threshold for EM.
+        num_components (tuple): Number of components for each class.
+        psi (float): Minimum eigenvalue for covariance bounding.
+        gmm (list): List of GMM parameters for each class.
+    """
+    
     def __init__(self, variant="full", alpha=0.1, delta=1e-6, components=(1, 1), psi=0.01):
         self.variant = variant
         self.alpha = alpha
@@ -18,6 +37,13 @@ class GaussianMixtureModel:
         self.gmm = None
         
     def load_state_dict(self, path, id):
+        """
+        Load the state dictionary of the GMM model from a file.
+        
+        :param path: Directory path where the model file is located.
+        :param id: Identifier for the model file.
+        :return: True if the model was loaded successfully, False otherwise.
+        """
         
         filepath = f"{path}/gmm_{id}.pkl"
         
@@ -37,6 +63,12 @@ class GaussianMixtureModel:
         return True
     
     def save_state_dict(self, filepath):
+        """
+        Save the state dictionary of the GMM model to a file.
+        
+        :param filepath: Directory path where the model file will be saved.
+        :return id: Identifier for the saved model file.
+        """
         d = {
             "variant": self.variant,
             "alpha": self.alpha,
@@ -59,6 +91,13 @@ class GaussianMixtureModel:
 
     @staticmethod
     def _log_joint(X, gmm):
+        """
+        Fit the GMM model to the data X and compute the log-joint probabilities.
+        
+        :param X: Data matrix of shape (D, N).
+        :param gmm: GMM parameters (weights, means, covariances).
+        :return S: Log-joint probability matrix of shape (M, N).
+        """
         M = len(gmm)
         S = np.zeros((M, X.shape[1]))
         for g in range(len(gmm)):
@@ -67,6 +106,14 @@ class GaussianMixtureModel:
         return S
 
     def _logpdf_GMM(self, X, c=None, gmm=None):
+        """
+        Generate log-probability density function for GMM.
+        
+        :param X: Data matrix of shape (D, N).
+        :param c: Class label (optional).
+        :param gmm: GMM parameters (optional).
+        :return: Log-probability density vector of shape (1, N).
+        """
         if gmm is None:
             assert self.gmm is not None, "GMM parameters not initialized. Fit the model first."
             assert c is not None, "Class label 'c' must be provided if GMM parameters are not given."
@@ -78,10 +125,23 @@ class GaussianMixtureModel:
 
     @staticmethod
     def _log_marginal(log_joint):
+        """
+        Compute the log-marginal probabilities from log-joint probabilities.
+        
+        :param log_joint: Log-joint probability matrix of shape (M, N).
+        :return r: Log-marginal probability vector of shape (1, N).
+        """
         r = scspec.logsumexp(log_joint, axis=0, return_sign=False)
         return vrow(r) # type: ignore
 
     def _expectation(self, X, gmm):
+        """
+        Perform the expectation step of the EM algorithm. 
+        
+        :param X: Data matrix of shape (D, N).
+        :param gmm: GMM parameters (weights, means, covariances).
+        :return responsibilities: Responsibilities matrix of shape (M, N).
+        """
         Slog_joint = self._log_joint(X, gmm)
         Slog_marginal = self._log_marginal(Slog_joint)
         responsibilities = np.exp(Slog_joint - Slog_marginal)
@@ -89,6 +149,15 @@ class GaussianMixtureModel:
         return responsibilities
 
     def _check(self, X, gmm_current, previous_ll):
+        """
+        Check for convergence based on the change in log-likelihood.
+        
+        :param X: Data matrix of shape (D, N).
+        :param gmm_current: Current GMM parameters.
+        :param previous_ll: Previous log-likelihood value.
+        :return converged: Boolean indicating if convergence criteria met.
+        :return new_ll: New log-likelihood value.
+        """
         new_logdens = self._logpdf_GMM(X, gmm=gmm_current)
         new_ll = np.mean(new_logdens)
         gain = new_ll - previous_ll
@@ -96,6 +165,12 @@ class GaussianMixtureModel:
         return gain <= self.delta, new_ll
 
     def _bound_cov(self, cov):
+        """
+        Apply covariance bounding to ensure numerical stability.
+        
+        :param cov: Covariance matrix.
+        :return newCov: Bounded covariance matrix.
+        """
         U, s, _ = np.linalg.svd(cov)
         s[s < self.psi] = self.psi
         newCov = U @ (vcol(s) * U.T)
@@ -103,6 +178,13 @@ class GaussianMixtureModel:
         return newCov
 
     def _cov_transform(self, w, cov):
+        """
+        Transform covariance matrices based on the specified variant.
+        
+        :param w: List of weights for each Gaussian component.
+        :param cov: List of covariance matrices for each Gaussian component.
+        :return cov: Transformed list of covariance matrices.
+        """
         if self.variant == "diag":
             cov = [covg * np.eye(covg.shape[0]) for covg in cov]
         elif self.variant == "tied":
@@ -110,6 +192,13 @@ class GaussianMixtureModel:
         return cov
 
     def _maximization(self, X, r):
+        """
+        Perform the maximization step of the EM algorithm.
+        
+        :param X: Data matrix of shape (D, N).
+        :param r: Responsibilities matrix of shape (M, N).
+        :return: Updated GMM parameters (weights , means, covariances).
+        """
         Z = np.sum(r, axis=1)
         F = [vcol(np.sum(r[g] * X, axis=1)) for g in range(len(r))]
         S = [np.sum(((r[g] * X)[:, :, np.newaxis] * X[:, :, np.newaxis].T).T, axis=1) for g in range(len(r))]
@@ -124,6 +213,14 @@ class GaussianMixtureModel:
         return list(zip(w, mu, cov))
 
     def _EM(self, X, gmm):
+        """
+        Fit the GMM model to the data X using the EM algorithm.
+        
+        :param X: Data matrix of shape (D, N).
+        :param gmm: Initial GMM parameters (weights, means, covariances).
+        :return gmm: Fitted GMM parameters.
+        :return avg_ll: Average log-likelihood of the fitted GMM.
+        """
         avg_ll = np.mean(self._logpdf_GMM(X, gmm=gmm))
 
         stop = False
@@ -136,6 +233,12 @@ class GaussianMixtureModel:
         return gmm, avg_ll
 
     def _LBG(self, gmm):
+        """
+        Perform the LBG algorithm to split Gaussian components. Used for initializing GMMs with more components.
+        
+        :param gmm: Current GMM parameters (weights, means, covariances).
+        :return new_gmm: New GMM parameters after splitting.
+        """
         new_gmm = []
         for g in gmm:
             w, mu, cov = g
@@ -149,6 +252,14 @@ class GaussianMixtureModel:
         return new_gmm
 
     def _EM_LBG(self, XTR, label):
+        """
+        Fit the GMM model to the data XTR using the LBG algorithm followed by EM.
+        
+        :param XTR: Data matrix of shape (D, N) for a specific class.
+        :param label: Class label.
+        :return gmm: Fitted GMM parameters.
+        :return avg_ll: Average log-likelihood of the fitted GMM.
+        """
         mu = vcol(np.sum(XTR, axis=1)) / XTR.shape[1]
         cov = (XTR - mu) @ (XTR - mu).T / XTR.shape[1]
         cov = self._cov_transform([1.0], [cov])
@@ -168,6 +279,12 @@ class GaussianMixtureModel:
         return gmm, avg_ll
 
     def _scores(self, DVAL, LVAL):
+        """Compute the log-probability density scores for each class.
+        
+        :param DVAL: Data matrix of shape (D, N).
+        :param LVAL: Labels vector of shape (N,).
+        :return S: Score matrix of shape (C, N) where C is the number of classes.
+        """
         S = np.zeros((len(np.unique(LVAL)), DVAL.shape[1]))
         for label in sorted(np.unique(LVAL)):
             S[label, :] = self._logpdf_GMM(DVAL, c=label)
@@ -175,10 +292,23 @@ class GaussianMixtureModel:
         return S
 
     def scores(self, DVAL, LVAL):
+        """Compute the log-likelihood ratio scores for binary classification.
+        
+        :param DVAL: Data matrix of shape (D, N).
+        :param LVAL: Labels vector of shape (N,).
+        :return: Log-likelihood ratio scores.
+        """
         S = self._scores(DVAL, LVAL)
         return vrow(S[1, :] - S[0, :])
 
     def fit(self, DTR, LTR, **kwargs):
+        """
+        Fit the GMM model to the training data DTR with labels LTR.
+        
+        :param DTR: Training data matrix of shape (D, N).
+        :param LTR: Training labels vector of shape (N,).
+        :param kwargs: Additional parameters for model configuration.
+        """
         self.set_params(**kwargs)
         self.gmm = None
 
@@ -189,6 +319,14 @@ class GaussianMixtureModel:
         self.gmm = gmm_list
 
     def predict(self, DVAL, LVAL, app_prior=0.5):
+        """
+        Predict class labels for the validation data DVAL based on the fitted GMM model.
+        
+        :param DVAL: Validation data matrix of shape (D, N).
+        :param LVAL: True labels vector of shape (N,).
+        :param app_prior: Application prior for binary classification thresholding.
+        :return LPR: Predicted labels vector of shape (N,).
+        """
         S = self._scores(DVAL, LVAL)
 
         if len(np.unique(LVAL)) == 2:

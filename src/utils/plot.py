@@ -1,4 +1,11 @@
+"""
+    Plotting utilities module.
+    
+    Provides functions for plotting feature distributions, line charts, and Bayes error rates.
+"""
+
 import matplotlib.pyplot as plt
+
 from src.config.config import LABEL_NAMES, PLOT_PATH_ESTIMATIONS, PLOT_SUBPATH_HISTOGRAM_FEATURES, \
     PLOT_SUBPATH_SCATTERPLOTS_FEATURES, ESTIMATED_FEATURE
 
@@ -165,7 +172,6 @@ def plot_estimated_features(x, y, features):
     :param x: features domain
     :param y: estimated values for the features
     :param features: dataset features, divided by class
-    :return: None
     """
     i = 0
     for ((y_est_false, y_est_true), (f_false, f_true)) in zip(y, features):
@@ -192,6 +198,22 @@ def plot_bayes_errors(
     extension,
     models=None
 ):
+    """
+    Plots Bayes error rates including minimum and actual DCF values. 
+    
+    :param eff_prior_log_odds: Effective prior log-odds values.
+    :param min_dcf: List of minimum DCF values to plot.
+    :param act_dcf: List of actual DCF values to plot.
+    :param eff_prior_log_odd: Effective prior log-odd for system application (vertical line).
+    :param title: Main title of the plot.
+    :param subtitle: Subtitle of the plot.
+    :param x_label: Label for the x-axis.
+    :param y_label: Label for the y-axis.
+    :param path: Path to save the plot.
+    :param name: Name of the plot file.
+    :param extension: File extension for the plot.
+    :param models: Optional list of model names for labeling.
+    """
 
     if min_dcf is None:
         min_dcf = [None] * len(act_dcf)
@@ -224,6 +246,22 @@ def plot_bayes_errors(
 
 
 def plot_log_double_line(x, y1, y2, title, x_label, y_label, legend1, legend2, path, name, extension, subtitle=None):
+    """
+    Plots two lines on a logarithmic x-axis.
+    
+    :param x: x values.
+    :param y1: y values for the first line.
+    :param y2: y values for the second line.
+    :param title: Title of the plot.
+    :param x_label: Label for the x-axis.
+    :param y_label: Label for the y-axis.
+    :param legend1: Legend label for the first line.
+    :param legend2: Legend label for the second line.
+    :param path: Path to save the plot.
+    :param name: Name of the plot file.
+    :param extension: File extension for the plot.
+    :param subtitle (optional): Subtitle of the plot. Default is None.
+    """
     plt.figure(name)
     plt.xscale('log', base=10)
     plt.plot(x, y1, label=legend1)
@@ -243,6 +281,21 @@ def plot_log_double_line(x, y1, y2, title, x_label, y_label, legend1, legend2, p
 
 
 def plot_log_N_double_lines(x, ys1, ys2, title, x_label, y_label, legends1, legends2, path, name, extension):
+    """
+    Plots N pairs of lines on a logarithmic x-axis.
+    
+    :param x: x values.
+    :param ys1: Dictionary of y values for the first set of lines.
+    :param ys2: Dictionary of y values for the second set of lines.
+    :param title: Title of the plot.
+    :param x_label: Label for the x-axis.
+    :param y_label: Label for the y-axis.
+    :param legends1: List of legend labels for the first set of lines.
+    :param legends2: List of legend labels for the second set of lines.
+    :param path: Path to save the plot.
+    :param name: Name of the plot file.
+    :param extension: File extension for the plot.
+    """
     plt.figure(name)
     plt.xscale('log', base=10)
     for (y1, y2, legend1, legend2) in zip(ys1, ys2, legends1, legends2):

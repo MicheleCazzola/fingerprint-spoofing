@@ -1,3 +1,11 @@
+"""
+    Logistic Regression model implementation.
+    
+    This module defines the LogReg class, which provides methods for training,
+    scoring, and predicting using logistic regression. It supports standard,
+    prior-weighted, and quadratic variants of logistic regression.
+"""
+
 from datetime import datetime
 import os
 import joblib
@@ -10,6 +18,19 @@ from src.utils.utils import vrow, vcol
 
 
 class LogReg:
+    """
+    Logistic Regression model supporting standard, prior-weighted, and quadratic variants.
+    Provides methods for fitting the model, scoring, and predicting class labels.
+    
+    Attributes:
+        variant (int): Variant of logistic regression to use.
+        w (np.ndarray): Weight vector of the logistic regression model.
+        b (float): Bias term of the logistic regression model.
+        j_min (float): Minimum value of the objective function after training.
+        opt_info (dict): Optimization information from the training process.
+        training_prior (float): Prior probability of the positive class in the training data.
+        app_prior (float): Prior probability of the positive class in the application data.
+    """
     def __init__(self, variant=LR_STANDARD, training_prior=None, app_prior=None):
         self.variant = variant
         self.w = None
@@ -20,6 +41,13 @@ class LogReg:
         self.app_prior = app_prior
         
     def load_state_dict(self, path, id):
+        """
+        Load the state dictionary of the LR model from a file.
+        
+        :param path: Directory path where the model file is located.
+        :param id: Identifier for the model file.
+        :return: True if the model was loaded successfully, False otherwise.
+        """
         filepath = f"{path}/logreg_{id}.pkl"
         
         if not os.path.exists(filepath):
@@ -39,6 +67,12 @@ class LogReg:
         return True
         
     def save_state_dict(self, filepath):
+        """
+        Save the state dictionary of the LR model to a file.
+        
+        :param filepath: Directory path where the model file will be saved.
+        :return id: Identifier for the saved model file.
+        """
         d = {
             "variant": self.variant,
             "w": self.w,
@@ -59,6 +93,16 @@ class LogReg:
         self.app_prior = kwargs.get("app_prior", self.app_prior)
 
     def fit(self, DTR, LTR, reg_coeff=0, training_prior=None, app_prior=None):
+        """
+        Fit the logistic regression model to the training data. Uses L-BFGS-B optimization.
+        
+        :param DTR: Training data matrix of shape (D, N).
+        :param LTR: Training labels vector of shape (N,).
+        :param reg_coeff: Regularization coefficient for L2 regularization.
+        :param training_prior: Prior probability of the positive class in the training data.
+        :param app_prior: Prior probability of the positive class in the application data.
+        :raise ValueError: If prior-weighted logistic regression is selected without an application prior.
+        """
         D = DTR.shape[0]
         n = DTR.shape[1]
 
@@ -68,6 +112,7 @@ class LogReg:
         self.app_prior = app_prior if app_prior is not None else np.sum(LTR == 1) / n
         self.training_prior = training_prior if training_prior is not None else self.app_prior
 
+        # Objective function for standard logistic regression
         def logreg_obj_lr(v):
             w, b = v[0:-1], v[-1]
             S = (vcol(w).T @ DTR + b).ravel()
@@ -79,6 +124,7 @@ class LogReg:
             grad_w = reg_coeff * w + np.sum(vrow(G) * DTR, axis=1) / n
             return J_min, np.concatenate((grad_w, grad_b))
 
+        # Objective function for prior-weighted logistic regression
         def logreg_obj_pwlr(v):
 
             assert self.training_prior is not None, "Training prior must be defined for prior-weighted logistic regression."
@@ -107,11 +153,24 @@ class LogReg:
         self.opt_info = d
 
     def scores(self, features):
+        """
+        Compute the scores for the given features using the trained logistic regression model.
+        
+        :param features: Data matrix of shape (D, N).
+        :return: Scores vector of shape (N,).
+        """
         assert self.training_prior is not None, "Training prior must be defined for scoring."
         assert self.w is not None and self.b is not None, "No model defined"
         return vrow(self.w) @ features + self.b - np.log(self.training_prior / (1 - self.training_prior))
 
     def predict(self, features, app_prior=None):
+        """
+        Predict class labels for the given features using the trained logistic regression model.
+        
+        :param features: Data matrix of shape (D, N).
+        :param app_prior: Prior probability of the positive class in the application data.
+        :return LPR: Predicted labels vector of shape (1, N).
+        """
 
         if self.w is None or self.b is None or self.app_prior is None:
             raise ValueError("No model defined")

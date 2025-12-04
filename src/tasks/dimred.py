@@ -1,3 +1,10 @@
+"""
+    Dimensionality Reduction Task Module
+    
+    This module performs dimensionality reduction using PCA and LDA, visualizes the results,
+    and evaluates classification performance on the reduced data.
+"""
+
 from src.config.config import FILE_PATH_LDA, LDA_ERROR_RATE_TH, LDA_ERROR_RATE_TH_COMPACT, LDA_ERROR_RATES, LDA_HISTOGRAM, PCA_PREFIX_HISTOGRAM, PCA_PREFIX_SCATTERPLOT, PLOT_PATH_LDA, PLOT_PATH_PCA, PLOT_SUBPATH_HISTOGRAM_LDA, PLOT_SUBPATH_LINES_LDA, SAVE
 from src.dataset.dataset import Dataset
 from src.dimred.lda import LDA

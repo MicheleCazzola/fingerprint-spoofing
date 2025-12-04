@@ -1,3 +1,8 @@
+"""
+    Logistic Regression task module.
+    
+    Handles training and evaluation of Logistic Regression models with various configurations.
+"""
 import os
 import numpy as np
 
@@ -17,6 +22,20 @@ def write_LR_results(eval_results):
     
     
 def logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, variant, preprocess=None):
+    """
+    Perform logistic regression training and evaluation for a given variant and set of regularization coefficients.
+    
+    :param DTR: Training data.
+    :param LTR: Training labels.
+    :param DVAL: Validation data.
+    :param LVAL: Validation labels.
+    :param app_prior: Prior probability of the positive class in the application data.
+    :param reg_coefficients: List of regularization coefficients to try.
+    :param variant: Logistic regression variant to use.
+    :param preprocess: Preprocessing method applied to the data, if any.
+    :return: Dictionary containing preprocessing info and evaluation results.
+    """
+    
     eval_results = []
     lr = LogReg(variant)
 
@@ -52,6 +71,15 @@ def logistic_regression(DTR, LTR, DVAL, LVAL, app_prior, reg_coefficients, varia
 
 
 def LR_task(trainset, validset, app_prior, target="validation"):
+    """
+    Execute logistic regression training and evaluation for various variants and regularization coefficients.
+    
+    :param trainset: Training dataset.
+    :param validset: Validation dataset.
+    :param app_prior: Prior probability of the positive class in the application data.
+    :param target: Target dataset for plotting ('validation' or 'evaluation').
+    :return eval_results_best: List of best evaluation results for each logistic regression configuration.
+    """
     
     DTR, LTR = trainset.get_data(), trainset.get_labels()
     DVAL, LVAL = validset.get_data(), validset.get_labels()

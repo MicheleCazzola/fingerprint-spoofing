@@ -1,3 +1,10 @@
+"""
+    Statistics task module.
+    
+    Handles statistical analysis of datasets, including computation of feature means and variances,
+    plotting feature distributions, and saving statistical results.
+"""
+
 from src.config.config import FEATURE_PREFIX_HISTOGRAM, FEATURE_PREFIX_SCATTERPLOT, FEATURE_STATISTICS, FILE_PATH_FEATURES, LABEL_NAMES, PLOT_PATH_EVAL_FEATURES, PLOT_PATH_FEATURES, SAVE
 from src.dataset.dataset import Dataset
 from src.utils.plot import plot_feature_distributions
@@ -18,6 +25,13 @@ def write_statistics(statistics):
 
 
 def stats_task(trainset: Dataset, testset: Dataset):
+    """
+    Perform statistical analysis on the training and test datasets.
+    Handles analysis, plotting, and saving of feature statistics.
+    
+    :param trainset: Training dataset.
+    :param testset: Test dataset.
+    """
     # Compute mean and variance per class for each feature
     statistics = compute_statistics(
         trainset.features,

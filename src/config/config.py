@@ -1,3 +1,10 @@
+"""
+    Configuration constants and settings for the fingerprint spoofing project.
+
+    This module contains various constants used throughout the project, including
+    label names, model types, file paths, plot paths, and numeric settings.
+"""
+
 # LABELS
 LABEL_NAMES = {
     False: "Fake",

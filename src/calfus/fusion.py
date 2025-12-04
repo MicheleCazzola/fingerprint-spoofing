@@ -1,3 +1,10 @@
+"""
+    Fusion module for score fusion using logistic regression and k-fold cross-validation.
+    
+    This module defines the Fusion class and functions to perform score fusion
+    on multiple model scores, evaluating the performance of the fused scores.
+"""
+
 import numpy as np
 
 from src.calfus.calibration import Calibrator
@@ -23,6 +30,12 @@ def write_best_results(results):
     return print_string
 
 class Fusion:
+    """Class for score fusion using logistic regression and k-fold cross-validation.
+    
+    Attributes:
+        labels (np.ndarray): The true labels corresponding to the scores.
+        scores (np.ndarray): The scores to be fused.
+    """
     def __init__(self, labels, scores):
         self.labels = labels
         self.scores = np.vstack(scores)
@@ -32,6 +45,16 @@ class Fusion:
 
     @staticmethod
     def fuse(tr_prior, app_prior, kf):
+        """
+        Fuse scores using logistic regression with k-fold cross-validation.
+        
+        :param tr_prior: The empirical training prior probability.
+        :param app_prior: The application prior probability.
+        :param kf: The k-fold cross-validation object.
+        :return cal_scores: The fused scores after calibration.
+        :return LVAL_kf: The true labels corresponding to the fused scores.
+        :return LPR: The predicted labels after fusion.
+        """
         cal_scores, LVAL_kf, LPR = Calibrator.calibrate(tr_prior, app_prior, kf)
         return cal_scores, LVAL_kf, LPR
 

@@ -1,3 +1,9 @@
+"""
+    Fitting utilities module.
+    
+    Provides functions for Gaussian log-density computation and parameter estimation.
+"""
+
 import numpy as np
 from numpy.linalg import linalg
 
@@ -7,7 +13,7 @@ from src.utils.utils import vcol, vrow
 
 def logpdf_GAU_ND(X, mu, C):
     """
-    Computes the log-density Gaussian distribution for the dataset **X**, by direct computing
+    Computes the log-density Gaussian distribution for the dataset **X**
 
     :param X: dataset to compute the Gaussian distribution on
     :param mu: mean vector of the Gaussian distribution
@@ -15,7 +21,7 @@ def logpdf_GAU_ND(X, mu, C):
     :return: values of the Gaussian distribution for the dataset
     """
     M = X.shape[0]
-    sign, det_val = linalg.slogdet(C)  # sign = 1 since C is semi-definite positive (supposed not singular)
+    _, det_val = linalg.slogdet(C)  # sign = 1 since C is semi-definite positive (supposed not singular)
     return -M * np.log(2 * np.pi) / 2 - det_val / 2 - ((X - vcol(mu)) * (linalg.inv(C) @ (X - vcol(mu)))).sum(0) / 2
 
 
@@ -36,10 +42,12 @@ def compute_estimators(X, mu):
 
 def gaussian_estimation(dataset: Dataset):
     """
-    Computes the estimates of the Gaussian-distributed dataset **D**
+    Compute the estimates of a Gaussian distribution for each feature in the dataset.
 
     :param dataset: dataset to compute the Gaussian estimation on
-    :return: a triplet with features domain, Gaussian estimated plot and dataset samples, divided by class
+    :return XPlot: X values for plotting
+    :return Yplots: Y values for plotting
+    :return features: original features of the dataset
     """
 
     features = []

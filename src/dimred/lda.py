@@ -1,3 +1,11 @@
+"""
+    Linear Discriminant Analysis (LDA) implementation.
+    
+    This module provides a class for performing Linear Discriminant Analysis (LDA) for
+    dimensionality reduction and classification tasks. It includes methods for fitting the LDA model,
+    transforming data, and evaluating classification performance.
+"""
+
 import numpy as np
 from src.dimred.pca import PCA
 from numpy.linalg import linalg
@@ -5,10 +13,11 @@ from src.utils.utils import vcol, project
 
 class LDA:
     """
-    Class to perform LDA on data.
+    Class implementing Linear Discriminant Analysis (LDA) for dimensionality reduction and classification.
     
-    :attr W: LDA transformation matrix
-    :attr pca: PCA object for preprocessing (if any)
+    Attributes:
+        W (np.ndarray): LDA transformation matrix.
+        pca (PCA, optional): PCA object for optional preprocessing.
     """
     
     def __init__(self):
@@ -23,7 +32,7 @@ class LDA:
         :param SB: between-class covariance matrix
         :param SW: within-class covariance matrix
         :param m: LDA dimensions
-        :return: LDA transformation matrix
+        :return W: LDA transformation matrix
         """
         # Whitening transformation
         U1, s1, _ = linalg.svd(SW)
@@ -43,7 +52,8 @@ class LDA:
 
         :param D: dataset
         :param L: labels
-        :return: computed matrices
+        :return SB: between-class covariance matrix
+        :return SW: within-class covariance matrix
         """
         mu = D.mean(axis=1)
         SB = np.zeros((D.shape[0], D.shape[0]))
@@ -64,7 +74,7 @@ class LDA:
 
         :param SB: between-class covariance matrix
         :param SW: within-class covariance matrix
-        :return: LDA transformation matrix
+        :return W: LDA transformation matrix
         """
         W = self._joint_diag(SB, SW, 1)
 
@@ -76,9 +86,9 @@ class LDA:
 
         :param data: dataset
         :param threshold: threshold for classification
-        :param mu0: class 0 mean
-        :param mu1: class 1 mean
-        :return: predicted labels
+        :param mu0: mean of class 0
+        :param mu1: mean of class 1
+        :return predicted_labels: predicted labels
         """
         if mu1 > mu0:
             predicted_labels = (data > threshold).astype(int)
@@ -100,9 +110,10 @@ class LDA:
     def fit(self, train_data, train_labels):
         """
         Estimates LDA transformation matrix from training data and labels
+        
         :param train_data: training set
         :param train_labels: training labels
-        :return: LDA transformation matrix
+        :return W: LDA transformation matrix
         """
         
         SB, SW = self._covariances(train_data, train_labels)
@@ -112,6 +123,7 @@ class LDA:
     def transform(self, data):
         """
         Projects data using estimated LDA transformation matrix
+        
         :param data: data to project
         :return: projected data
         """
@@ -122,6 +134,7 @@ class LDA:
     def fit_transform(self, train_data, train_labels):
         """
         Fits LDA transformation matrix and projects training data
+        
         :param train_data: training set
         :param train_labels: training labels
         :return: projected training data
@@ -132,12 +145,15 @@ class LDA:
     def classify(self, train_data, train_labels, test_data, test_labels, pca=None):
         """
         Classifies evaluation data using LDA projection and threshold computed from training data
+        
         :param train_data: training set
         :param train_labels: training labels
         :param test_data: evaluation set
         :param test_labels: evaluation labels
         :param pca: PCA object for preprocessing (default None)
-        :return: predicted labels, error rate, threshold
+        :return predicted_labels: predicted labels for evaluation set
+        :return error_rate: error rate of the classification
+        :return threshold: classification threshold
         """
         
         if pca is not None:
@@ -165,11 +181,15 @@ class LDA:
     def classify_generalized_threshold(self, train_data, train_labels, test_data, test_labels):
         """
         Classifies evaluation data using LDA projection and threshold computed from training data
+        
         :param train_data: training set
         :param train_labels: training labels
         :param test_data: evaluation set
         :param test_labels: evaluation labels
-        :return: predicted labels, error rate, threshold
+        :return thresholds: array of thresholds
+        :return error_rates: array of error rates corresponding to thresholds
+        :return red_thresholds: reduced array of thresholds within [-0.3, 0.3]
+        :return red_error_rates: reduced array of error rates corresponding to reduced thresholds
         """
         
         self.fit(train_data, train_labels)
@@ -205,10 +225,11 @@ class LDA:
         :param test_data: validation dataset
         :param test_labels: validation labels
         :param pca_maxdim: maximum dimensionality for PCA
-        :return: error rates, depending on the dimensionality of the PCA
+        :return dimensions: list of PCA dimensions used
+        :return error_rates: error rates, depending on the dimensionality of the PCA
         """
 
-        dimensions = list(range(5, 1, -1))
+        dimensions = list(range(pca_maxdim, 1, -1))
         error_rates = []
         for m in dimensions:
             pca = PCA(m)

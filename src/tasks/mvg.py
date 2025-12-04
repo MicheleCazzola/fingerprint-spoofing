@@ -1,6 +1,13 @@
-from copy import deepcopy
-import sys
+"""
+    MVG task module.
+    
+    Handles training and evaluation of various Gaussian models including standard MVG, Naive Bayes MVG, and Tied MVG.
+    Supports PCA preprocessing and application-specific prior adjustments.
+    Executes classification analysis and saves results accordingly.
+"""
+
 import numpy as np
+
 from src.config.config import APPLICATIONS, FILE_PATH_MVG, GAUSSIAN, GAUSSIAN_APPLICATION_PRIORS, GAUSSIAN_BAYES_ERROR, GAUSSIAN_ERROR_RATES, GAUSSIAN_EVALUATION_RESULTS, GAUSSIAN_MODELS, LABEL_NAMES, PLOT_PATH_MVG, SAVE
 from src.dimred.pca import PCA
 from src.evaluator.evaluator import Evaluator
@@ -174,7 +181,7 @@ def classification_analysis(models, train_data, train_labels, val_data, val_labe
     :param application_priors: list of application priors
     :param evaluate: whether to evaluate the results
     :param eval_results: evaluation results dictionary
-    :return: error rates
+    :return err_rates: error rates
     """
     
     err_rates = {}
@@ -198,7 +205,7 @@ def classification_PCA_preprocessing(models, train_data, train_labels, val_data,
     :param application_priors: list of application priors
     :param evaluate: whether to evaluate the results
     :param eval_results: evaluation results dictionary
-    :return: error rates
+    :return error_rates_pca: error rates
     """
     
     error_rates_pca = {}
@@ -222,6 +229,15 @@ def classification_PCA_preprocessing(models, train_data, train_labels, val_data,
     return error_rates_pca
             
 def MVG_task(trainset, validset, app_prior, effective_prior_log_odds):
+    """
+    Execute MVG training and evaluation for various Gaussian models.
+    Autonomously handles classification analysis, PCA preprocessing, and result saving.
+    
+    :param trainset: Training dataset.
+    :param validset: Validation dataset.
+    :param app_prior: Prior probability of the positive class in the application data.
+    :param effective_prior_log_odds: Effective prior log-odds for Bayes error computation.
+    """
     
     DTR, LTR = trainset.get_data(), trainset.get_labels()
     DVAL, LVAL = validset.get_data(), validset.get_labels()

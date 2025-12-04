@@ -1,4 +1,11 @@
+"""
+    GMM task module.
+    
+    Handles training and evaluation of Gaussian Mixture Models (GMMs) with different covariance structures.
+"""
+
 import os
+
 from src.config.config import LOG, MODEL_PATH_GMM
 from src.dataset.dataset import Dataset
 from src.evaluator.evaluator import Evaluator
@@ -20,6 +27,17 @@ def write_GMM_results(results):
 
 
 def gmm_variant(trainset: Dataset, validset: Dataset, app_prior, variant, components, gmm: GaussianMixtureModel):
+    """
+    Train and evaluate GMM with specified covariance variant. 
+    
+    :param trainset: Training dataset.
+    :param validset: Validation dataset.
+    :param app_prior: Prior probability of the positive class in the application data.
+    :param variant: Covariance variant ('full' or 'diag').
+    :param components: List of component numbers to try for each class.
+    :param gmm: GMM model instance.
+    :return result: Dictionary with results for each combination of components.
+    """
     
     DTR, LTR = trainset.get_data(), trainset.get_labels()
     DVAL, LVAL = validset.get_data(), validset.get_labels()
@@ -59,6 +77,14 @@ def gmm_variant(trainset: Dataset, validset: Dataset, app_prior, variant, compon
 
 
 def gmm_task(trainset, validset, app_prior):
+    """
+    Execute GMM training and evaluation task for both full and diagonal covariance variants.
+    
+    :param trainset: Training dataset.
+    :param validset: Validation dataset.
+    :param app_prior: Prior probability of the positive class in the application data.
+    :return gmm_results: Dictionary containing results for both covariance variants.
+    """
     steps = 6
     gmm_components = [2 ** i for i in range(steps)]
     gmm_results = {
