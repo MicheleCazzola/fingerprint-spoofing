@@ -21,6 +21,8 @@ alongside with:
 
 The following content is the transcription of the description of the activities that compose the whole project.
 
+*Note*: the original code of the project is hosted at [fingerprint-spoofing-old](https://github.com/MicheleCazzola/fingerprint-spoofing-old.git). It provides less documentation and does not follow all the typical code conventions for ML works, reason for which I created this new version.
+
 ## Introduction
 The project task consists of a binary classification problem. The goal is to perform fingerprint spoofing detection, i.e. to identify genuine vs counterfeit fingerprint images. The dataset consists of labelled samples corresponding to the genuine (True, label 1) class and the fake (False, label 0) class. The samples are computed by a feature extractor that summarizes high-level characteristics of a fingerprint image. The data is 6-dimensional.
 The training files for the project are stored in file Project/trainData.txt. The format of the file is the same as for the Iris dataset, i.e. a csv file where each row represents a sample. The first 6 values of each row are the features, whereas the last value of each row represents the class (1 or 0). The samples are not ordered. 
